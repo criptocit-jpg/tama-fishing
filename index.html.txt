@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tama Fishing 2026</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: #1e293b;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            width: 90%;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #334155;
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #475569;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .game-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        #fish-btn {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #38bdf8 0%, #0284c7 100%);
+            border-radius: 50%;
+            border: 8px solid #0ea5e9;
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.4);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        #fish-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+        }
+
+        .btn-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-align: center;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .energy-bar {
+            width: 80%;
+            height: 10px;
+            background: #1e293b;
+            border-radius: 5px;
+            margin-top: 30px;
+            overflow: hidden;
+            border: 1px solid #475569;
+        }
+
+        .energy-fill {
+            width: 70%;
+            height: 100%;
+            background: linear-gradient(90deg, #facc15, #eab308);
+            box-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+        }
+
+        .status-text {
+            margin-top: 15px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="font-size: 1.4rem; font-weight: bold;">TAMAFISHING 2026</div>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <span class="stat-label">Мощность</span>
+            <span class="stat-value" id="power">1.0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Уровень</span>
+            <span class="stat-value" id="level">1</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Опыт</span>
+            <span class="stat-value" id="xp">0</span>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div id="fish-btn">
+            <div class="btn-text">ЗАБРОСИТЬ<br>УДОЧКУ</div>
+        </div>
+        
+        <div class="energy-bar">
+            <div class="energy-fill" id="energy-fill"></div>
+        </div>
+        <div class="status-text" id="status">Энергия: 15/15</div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран
+
+        const fishBtn = document.getElementById('fish-btn');
+        const status = document.getElementById('status');
+
+        fishBtn.addEventListener('click', () => {
+            // Визуальный эффект
+            status.innerText = "Забрасываем...";
+            
+            // Вибрация (если поддерживается)
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+
+            // Отправляем данные в бот
+            const data = {
+                action: 'catch_fish',
+                timestamp: Date.now()
+            };
+            
+            tg.sendData(JSON.stringify(data));
+            
+            // Закрывать или нет — зависит от твоей логики, 
+            // обычно для кликера не закрывают, но sendData в TWA 
+            // по умолчанию закрывает приложение. 
+            // Чтобы не закрывалось, нужно использовать API сервера.
+        });
+    </script>
+</body>
+</html>
