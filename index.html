@@ -3,115 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing PRO</title>
+    <title>Tama Fishing Ultimate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
-        :root { --main-blue: #0ea5e9; --dark-bg: #0f172a; }
+        :root { --main-blue: #0ea5e9; --dark-bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); }
         body {
             background: var(--dark-bg); color: white; font-family: 'Segoe UI', sans-serif;
             margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-        #ton-connect { position: absolute; top: 15px; right: 15px; z-index: 100; }
-        .tab-content { flex: 1; display: none; padding: 20px; overflow-y: auto; text-align: center; }
+        #ton-connect { position: absolute; top: 15px; right: 15px; z-index: 100; transform: scale(0.9); }
+        .tab-content { flex: 1; display: none; padding: 20px; overflow-y: auto; padding-bottom: 100px; }
         .active { display: block; }
         
-        /* Главная кнопка */
-        .fish-circle {
-            width: 200px; height: 200px; background: linear-gradient(135deg, #0ea5e9, #2563eb);
-            border-radius: 50%; margin: 50px auto; display: flex; justify-content: center;
-            align-items: center; border: 8px solid rgba(255,255,255,0.1);
-            box-shadow: 0 0 40px rgba(14, 165, 233, 0.4); cursor: pointer;
-        }
-        .fish-circle:active { transform: scale(0.95); }
+        /* Профиль сверху */
+        .user-stats { background: var(--card-bg); padding: 15px; display: flex; justify-content: space-around; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .stat-val { color: var(--main-blue); font-weight: bold; }
 
-        /* Нижнее меню */
-        .nav-bar {
-            display: flex; background: rgba(30, 41, 59, 0.9);
-            backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 10px 0; padding-bottom: 25px;
+        /* Кнопка ловли */
+        .fish-circle {
+            width: 180px; height: 180px; background: radial-gradient(circle, #0ea5e9, #2563eb);
+            border-radius: 50%; margin: 30px auto; display: flex; justify-content: center;
+            align-items: center; border: 6px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 30px rgba(14, 165, 233, 0.4); cursor: pointer; transition: 0.1s;
         }
-        .nav-item { flex: 1; text-align: center; font-size: 12px; color: #94a3b8; cursor: pointer; }
-        .nav-item.active-nav { color: var(--main-blue); font-weight: bold; }
+        .fish-circle:active { transform: scale(0.92); }
+
+        /* Карточки магазина и топа */
+        .card { background: var(--card-bg); padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
+        .btn-buy { background: var(--main-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 10px; }
         
-        .stat-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 10px; }
-        .btn-buy { background: var(--main-blue); color: white; border: none; padding: 8px 15px; border-radius: 8px; margin-top: 5px; }
+        /* Навигация */
+        .nav-bar {
+            display: flex; position: fixed; bottom: 0; width: 100%; background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;
+        }
+        .nav-item { flex: 1; text-align: center; padding: 15px 0; font-size: 12px; color: #94a3b8; cursor: pointer; }
+        .nav-item.active-nav { color: var(--main-blue); }
     </style>
 </head>
 <body>
 
     <div id="ton-connect"></div>
 
-    <div id="game" class="tab-content active">
-        <h2 style="margin-top:40px;">🎣 ТЕРРИТОРИЯ ЛОВА</h2>
-        <div class="fish-circle" id="catch-btn">
-            <span style="font-size: 20px; font-weight: bold;">ЗАБРОСИТЬ</span>
-        </div>
-        <div class="stat-card" id="status-text">Готов к рыбалке</div>
+    <div class="user-stats">
+        <div>💰 <span id="ui-bal" class="stat-val">...</span> TC</div>
+        <div>🎒 <span id="ui-fish" class="stat-val">...</span> кг</div>
+        <div>🔋 <span id="ui-energy" class="stat-val">...</span></div>
     </div>
 
-    <div id="inventory" class="tab-content">
-        <h2>🎒 ВАШ САДОК</h2>
-        <div class="stat-card">
-            <p>💰 Баланс: <span id="user-bal">0.00</span> TC</p>
-            <p>🐟 В садке: <span id="user-fish">0.00</span> кг</p>
+    <div id="game" class="tab-content active">
+        <h3 style="text-align:center;">🎣 РЫБАЛКА</h3>
+        <div class="fish-circle" id="catch-btn"><b>ЗАБРОС</b></div>
+        <div class="card" style="text-align:center;">
+            <div id="status">Нажмите для заброса</div>
+            <div style="font-size:12px; color:#64748b; margin-top:5px;">Удочка: <span id="ui-dur">...</span>%</div>
         </div>
-        <button class="btn-buy" onclick="sendToBot('sell_fish')">Продать весь улов (1кг = 0.1 TC)</button>
     </div>
 
     <div id="shop" class="tab-content">
-        <h2>🛒 МАГАЗИН</h2>
-        <div class="stat-card">
-            <p>🔧 Набор инструментов</p>
-            <p style="font-size:12px; color:#94a3b8;">Чинит удочку до 100%</p>
-            <button class="btn-buy" onclick="sendToBot('buy_repair')">Купить (10 TC)</button>
+        <h3>🛒 МАГАЗИН</h3>
+        <div class="card">
+            <b>🔧 Ремонт снастей</b><br><small>Восстановление до 100%</small>
+            <button class="btn-buy" onclick="act('buy_repair')">10 TC</button>
         </div>
-        <div class="stat-card">
-            <p>🍞 Универсальная приманка</p>
-            <p style="font-size:12px; color:#94a3b8;">Удваивает вес (10 шт)</p>
-            <button class="btn-buy" onclick="sendToBot('buy_bait')">Купить (25 TC)</button>
+        <div class="card">
+            <b>🍞 Приманка (10 шт)</b><br><small>Вес улова х2</small>
+            <button class="btn-buy" onclick="act('buy_bait')">25 TC</button>
+        </div>
+        <div class="card">
+            <b>🌊 Лицензия: Река</b><br><small>Доступ к крупной рыбе</small>
+            <button class="btn-buy" onclick="act('buy_lic_river')">500 TC</button>
         </div>
     </div>
 
+    <div id="leaderboard" class="tab-content">
+        <h3>🏆 ТОП ИГРОКОВ</h3>
+        <div id="top-list">Загрузка...</div>
+    </div>
+
+    <div id="info" class="tab-content">
+        <h3>ℹ️ ИНФОРМАЦИЯ</h3>
+        <div class="card">
+            <p>Курс: 1 кг рыбы = 0.1 TC</p>
+            <p>Вывод: от 30,000 TC</p>
+            <p>Версия проекта: 8.1 Ultimate</p>
+        </div>
+        <button class="btn-buy" style="background:#334155;" onclick="act('sell_fish')">⚖️ ПРОДАТЬ ВЕСЬ УЛОВ</button>
+    </div>
+
     <div class="nav-bar">
-        <div class="nav-item active-nav" onclick="openTab('game', this)">🎣 Игра</div>
-        <div class="nav-item" onclick="openTab('inventory', this)">🎒 Садок</div>
-        <div class="nav-item" onclick="openTab('shop', this)">🛒 Магазин</div>
+        <div class="nav-item active-nav" onclick="tab('game', this)">🎣 Игра</div>
+        <div class="nav-item" onclick="tab('shop', this)">🛒 Лавка</div>
+        <div class="nav-item" onclick="tab('leaderboard', this)">🏆 Топ</div>
+        <div class="nav-item" onclick="tab('info', this)">ℹ️ Инфо</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.enableClosingConfirmation();
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://criptocit-jpg.github.io/tama-fishing/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
         });
 
-        function openTab(tabId, el) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-            document.getElementById(tabId).classList.add('active');
-            el.classList.add('active-nav');
-        }
-
-        function sendToBot(actionType) {
-            if (!tonConnectUI.connected && actionType === 'catch_fish') {
-                alert("Пожалуйста, подключите кошелек!");
-                return;
-            }
-            const data = {
-                action: actionType,
-                wallet: tonConnectUI.account ? tonConnectUI.account.address : null
-            };
+        // Функция отправки действий боту
+        function act(type) {
+            const data = { action: type, wallet: tonConnectUI.account ? tonConnectUI.account.address : null };
             tg.sendData(JSON.stringify(data));
         }
 
-        document.getElementById('catch-btn').addEventListener('click', () => {
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            sendToBot('catch_fish');
-        });
+        function tab(id, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active-nav');
+            if(id === 'leaderboard') act('get_top'); // Запрашиваем топ при открытии
+        }
+
+        // ПОЛУЧЕНИЕ ДАННЫХ ОТ БОТА
+        tg.onEvent('main_button_pressed', () => {}); // Заглушка
+
+        // Получаем стартовые данные через initDataUnsafe
+        const user = tg.initDataUnsafe.user;
+        
+        document.getElementById('catch-btn').onclick = () => {
+            tg.HapticFeedback.impactOccurred('medium');
+            act('catch_fish');
+        };
+
+        // Внимание: Чтобы данные обновлялись, бот пришлет ответ в чат.
     </script>
 </body>
 </html>
