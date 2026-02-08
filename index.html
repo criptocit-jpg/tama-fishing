@@ -3,102 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing Game</title>
+    <title>Tama Fishing</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(180deg, #1a2a6c, #b21f1f, #fdbb2d);
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            overflow: hidden;
-        }
-
-        .game-container {
-            text-align: center;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            width: 90%;
-        }
-
-        h1 { margin-bottom: 20px; font-size: 24px; }
-
-        .btn {
-            background: #4CAF50;
-            border: none;
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            width: 100%;
-            font-size: 18px;
-            margin: 10px 0;
-            cursor: pointer;
-            border-radius: 12px;
-            transition: 0.3s;
-            font-weight: bold;
-        }
-
-        .btn:active { transform: scale(0.95); }
-
-        .btn-sell { background: #f44336; }
-        .btn-top { background: #2196F3; }
-        .btn-shop { background: #ff9800; }
-
-        #status {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #ddd;
-        }
+        body { font-family: sans-serif; background: #1a2a6c; color: white; text-align: center; margin: 0; padding: 20px; }
+        .btn { background: #4CAF50; border: none; color: white; padding: 15px; width: 100%; font-size: 18px; border-radius: 12px; margin: 10px 0; font-weight: bold; }
+        .btn:active { transform: scale(0.98); background: #45a049; }
+        #status { font-size: 14px; color: #88bdff; margin-top: 10px; }
     </style>
 </head>
 <body>
-
-    <div class="game-container">
-        <h1>🎣 Tama Fishing</h1>
-        
-        <button class="btn" onclick="sendAction('catch_fish')">ЗАБРОС УДОЧКИ</button>
-        <button class="btn btn-sell" onclick="sendAction('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ</button>
-        <button class="btn btn-shop" onclick="sendAction('buy_echolot')">МАГАЗИН (ЭХОЛОТ)</button>
-        <button class="btn btn-top" onclick="sendAction('get_top')">ТОП РЫБАКОВ</button>
-
-        <div id="status">Нажмите кнопку для действия</div>
-    </div>
+    <h1>🎣 Tamacoin Fishing</h1>
+    <button class="btn" onclick="sendToBot('catch_fish')">ЗАБРОС УДОЧКИ</button>
+    <button class="btn" style="background:#f44336" onclick="sendToBot('sell_fish')">ПРОДАТЬ УЛОВ</button>
+    <div id="status">Готов к рыбалке</div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        tg.expand();
 
-        // Основная функция отправки данных
-        function sendAction(actionName) {
+        // Ссылка на твой новый сервер Render
+        const SERVER_URL = 'https://tama-bot-server.onrender.com/api/action';
+
+        async function sendToBot(actionName) {
             const status = document.getElementById('status');
-            status.innerText = "Отправка сигнала: " + actionName + "...";
+            status.innerText = "Забрасываем... 🎣";
 
-            const data = JSON.stringify({ action: actionName });
+            // Собираем данные игрока
+            const userData = {
+                userId: tg.initDataUnsafe.user.id,
+                action: actionName
+            };
 
-            // ВНИМАНИЕ: В Telegram Web App метод sendData 
-            // ВСЕГДА закрывает приложение. Это зашито в Telegram.
-            // Чтобы окно НЕ ЗАКРЫВАЛОСЬ, нам в будущем нужно использовать API бота.
-            // Но сейчас мы используем этот метод, чтобы бот в index.js получил сигнал.
-            
             try {
-                tg.sendData(data);
-                status.innerText = "Сигнал отправлен!";
+                // Отправляем запрос на Render БЕЗ закрытия окна
+                const response = await fetch(SERVER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    status.innerText = "Успешно! Проверь чат бота.";
+                } else {
+                    status.innerText = "Ошибка сервера";
+                }
             } catch (e) {
-                status.innerText = "Ошибка: " + e.message;
+                status.innerText = "Связь потеряна...";
             }
         }
-
-        // Сообщаем Telegram, что приложение готово
-        tg.ready();
     </script>
 </body>
 </html>
