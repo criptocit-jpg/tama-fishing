@@ -27,7 +27,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Уведомления */
         #toast {
             position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150%);
             background: var(--gold); color: #000;
@@ -39,52 +38,56 @@
         }
         #toast.show { transform: translateX(-50%) translateY(0); }
 
-        .page { display: none; height: 100vh; flex-direction: column; padding: 25px 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 180px; }
+        .page { display: none; height: 100vh; flex-direction: column; padding: 25px 20px; box-sizing: border-box; overflow: hidden; }
         .page.active { display: flex; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Баланс */
-        .balance-container { text-align: center; margin-top: 10px; }
+        .balance-container { text-align: center; margin-top: 5px; flex-shrink: 0; }
         .balance-label { font-size: 11px; color: #8892b0; letter-spacing: 3px; font-weight: 700; }
-        .balance-val { font-size: 52px; font-weight: 900; color: #fff; margin-top: 5px; letter-spacing: -1px; }
+        .balance-val { font-size: 48px; font-weight: 900; color: #fff; margin-top: 2px; }
         .balance-val span { color: var(--gold); }
 
         /* Статистика */
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 30px 0; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; flex-shrink: 0; }
         .stat-item {
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-radius: 20px; padding: 16px;
+            border-radius: 18px; padding: 12px;
             text-align: center; backdrop-filter: blur(10px);
         }
-        .stat-item small { display: block; font-size: 10px; color: #8892b0; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
-        .stat-item b { font-size: 20px; font-weight: 800; }
+        .stat-item b { font-size: 18px; font-weight: 800; }
 
-        /* Зона рыбалки - УВЕЛИЧЕНА */
+        /* ЗОНА РЫБАЛКИ - МАКСИМАЛЬНЫЙ РАЗМЕР */
         .fishing-area { 
             flex-grow: 1; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             position: relative;
-            padding: 20px 0;
+            width: 100%;
+            margin-bottom: 10px; /* Чтобы не накладывалось на кнопку */
         }
         #fishAnim { 
-            width: 85%; 
-            max-width: 320px; 
+            width: 100%; /* На всю ширину */
+            height: auto;
+            max-height: 85%; /* Почти до упора вверх и вниз */
+            object-fit: contain;
             display: none; 
-            filter: drop-shadow(0 0 30px var(--blue)); 
-            animation: fishPop 0.3s ease-out;
+            filter: drop-shadow(0 0 40px var(--blue)); 
+            animation: fishPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         @keyframes fishPop {
-            from { transform: scale(0.6); opacity: 0; }
+            from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
         /* Кнопки внизу */
         .bottom-actions {
-            position: fixed; bottom: 95px; left: 0; width: 100%;
-            padding: 0 20px; box-sizing: border-box; z-index: 100;
+            position: relative; /* Не fixed внутри flex-контейнера для точного прилегания */
+            width: 100%;
+            padding-bottom: 100px; /* Место под навигатором */
+            flex-shrink: 0;
         }
         .btn {
             border: none; border-radius: 22px; color: white;
@@ -94,61 +97,37 @@
         }
         .btn-blue {
             background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
-            padding: 22px; box-shadow: 0 6px 20px rgba(0, 136, 204, 0.3);
+            padding: 24px; box-shadow: 0 6px 20px rgba(0, 136, 204, 0.3);
         }
         .btn-gold {
             background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dark) 100%);
             color: #000; padding: 20px; margin-bottom: 12px;
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.2);
         }
-        .btn:active { transform: scale(0.97); }
-
-        /* Выпадающие меню */
-        .section { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 24px; margin-bottom: 15px; overflow: hidden; transition: 0.3s; }
-        .section-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; cursor: pointer; }
-        .section-content { 
-            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out;
-            background: rgba(0,0,0,0.2);
-        }
-        .section.open { border-color: var(--gold); }
-        .section.open .section-content { max-height: 500px; padding: 20px; border-top: 1px solid var(--glass-border); }
-        .section.open .arrow { transform: rotate(180deg); color: var(--gold); }
-        .arrow { transition: 0.3s; color: #555; }
-
-        /* Магазин */
-        .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-        .item-row:last-child { margin-bottom: 0; }
-        .item-info b { display: block; font-size: 15px; margin-bottom: 2px; }
-        .item-info small { color: #8892b0; font-size: 12px; }
-        .btn-buy { background: #fff; color: #000; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 13px; }
-
-        /* Поля ввода */
-        input {
-            width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border);
-            padding: 16px; border-radius: 14px; color: white; font-size: 16px;
-            margin-bottom: 12px; box-sizing: border-box; outline: none;
-        }
+        .btn:active { transform: scale(0.96); }
 
         /* Навигация */
         .navbar {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 85px;
-            background: rgba(5, 8, 16, 0.94); backdrop-filter: blur(15px);
+            background: rgba(5, 8, 16, 0.95); backdrop-filter: blur(15px);
             display: flex; border-top: 1px solid var(--glass-border); z-index: 1000;
-            padding-bottom: env(safe-area-inset-bottom);
         }
-        .nav-link { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #556080; text-decoration: none; transition: 0.3s; }
+        .nav-link { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #556080; text-decoration: none; }
         .nav-link.active { color: var(--gold); }
-        .nav-link span { font-size: 24px; margin-bottom: 4px; }
-        .nav-link label { font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .nav-link span { font-size: 22px; }
 
-        /* Модалка сундуков */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); display: none;
-            flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
-        }
-        .box-wrap { display: flex; gap: 25px; margin-top: 40px; }
-        .box-item { font-size: 70px; cursor: pointer; transition: 0.3s; }
+        /* Остальное (Меню/Топ) */
+        #menu, #top { overflow-y: auto; }
+        .section { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; margin-bottom: 12px; overflow: hidden; }
+        .section-header { padding: 18px; display: flex; justify-content: space-between; font-weight: 700; cursor: pointer; }
+        .section-content { max-height: 0; overflow: hidden; transition: 0.3s; background: rgba(0,0,0,0.2); }
+        .section.open .section-content { max-height: 500px; padding: 18px; border-top: 1px solid var(--glass-border); }
+        .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-buy { background: #fff; color: #000; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 800; }
+        input { width: 100%; background: #000; border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; color: #fff; margin-bottom: 10px; box-sizing: border-box; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .box-wrap { display: flex; gap: 20px; }
+        .box-item { font-size: 60px; }
     </style>
 </head>
 <body>
@@ -157,17 +136,17 @@
 
 <div id="game" class="page active">
     <div class="balance-container">
-        <div class="balance-label">ДОСТУПНО К ВЫВОДУ</div>
+        <div class="balance-label">БАЛАНС TC</div>
         <div class="balance-val"><span id="b1">0</span></div>
     </div>
 
     <div class="stats">
-        <div class="stat-item"><small>Энергия</small><b id="u-en">0</b></div>
-        <div class="stat-item"><small>Ящики</small><b id="u-boxes">0</b></div>
+        <div class="stat-item"><small>ЭНЕРГИЯ</small><b id="u-en">0</b></div>
+        <div class="stat-item"><small>ЯЩИКИ</small><b id="u-boxes">0</b></div>
     </div>
 
     <div class="fishing-area">
-        <img src="fish_anim.webp" id="fishAnim" alt="Fish Animation">
+        <img src="fish_anim.webp" id="fishAnim">
     </div>
 
     <div class="bottom-actions">
@@ -177,67 +156,40 @@
 </div>
 
 <div id="menu" class="page">
-    <h1 style="font-size: 28px; margin-bottom: 30px;">Управление</h1>
-
+    <h1 style="font-size: 24px;">Управление</h1>
     <div class="section">
-        <div class="section-header" onclick="toggleSection(this)">
-            <span>🐟 МОЙ УЛОВ</span>
-            <span class="arrow">▼</span>
-        </div>
+        <div class="section-header" onclick="toggleSection(this)"><span>🐟 МОЙ УЛОВ</span><span>▼</span></div>
         <div class="section-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span>В сумке: <b id="u-fish">0</b> кг</span>
-            </div>
-            <button class="btn btn-blue" style="padding:15px; font-size:15px;" onclick="doAction('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ</button>
+            <p>Рыба: <b id="u-fish">0</b> кг</p>
+            <button class="btn btn-blue" style="padding:15px; font-size:14px;" onclick="doAction('sell_fish')">ПРОДАТЬ ВСЁ</button>
         </div>
     </div>
-
     <div class="section">
-        <div class="section-header" onclick="toggleSection(this)">
-            <span>🛒 МАГАЗИН STARS</span>
-            <span class="arrow">▼</span>
-        </div>
+        <div class="section-header" onclick="toggleSection(this)"><span>🛒 МАГАЗИН STARS</span><span>▼</span></div>
         <div class="section-content">
-            <div class="item-row">
-                <div class="item-info"><b>Титановая леска</b><small>Прочность -1 за заброс</small></div>
-                <button class="btn-buy" onclick="doAction('buy_stars', {id:'titan_line'})">50 ⭐</button>
-            </div>
-            <div class="item-row">
-                <div class="item-info"><b>Золотая каша</b><small>+50% к весу рыбы</small></div>
-                <button class="btn-buy" onclick="doAction('buy_stars', {id:'gold_bait'})">100 ⭐</button>
-            </div>
-            <div class="item-row">
-                <div class="item-info"><b>Энергетик</b><small>Восстановить +30 энергии</small></div>
-                <button class="btn-buy" onclick="doAction('buy_stars', {id:'energy_pack'})">30 ⭐</button>
-            </div>
+            <div class="item-row"><div><b>Титановая леска</b><br><small>Износ -1</small></div><button class="btn-buy" onclick="doAction('buy_stars', {id:'titan_line'})">50 ⭐</button></div>
+            <div class="item-row"><div><b>Золотая каша</b><br><small>+50% веса</small></div><button class="btn-buy" onclick="doAction('buy_stars', {id:'gold_bait'})">100 ⭐</button></div>
+            <div class="item-row"><div><b>Энергетик</b><br><small>+30 энергии</small></div><button class="btn-buy" onclick="doAction('buy_stars', {id:'energy_pack'})">30 ⭐</button></div>
         </div>
     </div>
-
     <div class="section">
-        <div class="section-header" onclick="toggleSection(this)">
-            <span>💳 ВЫВОД TC</span>
-            <span class="arrow">▼</span>
-        </div>
+        <div class="section-header" onclick="toggleSection(this)"><span>💳 ВЫВОД TC</span><span>▼</span></div>
         <div class="section-content">
-            <input type="text" id="wallet" placeholder="TON Кошелек (UQ...)">
-            <input type="number" id="amount" placeholder="Минимум 30 000 TC">
-            <button class="btn btn-blue" style="background: #e91e63;" onclick="withdraw()">ОТПРАВИТЬ ЗАЯВКУ</button>
+            <input type="text" id="wallet" placeholder="TON Адрес">
+            <input type="number" id="amount" placeholder="Сумма (30к+)">
+            <button class="btn btn-blue" style="background: #e91e63;" onclick="withdraw()">ВЫВЕСТИ</button>
         </div>
     </div>
 </div>
 
 <div id="top" class="page">
-    <h1 style="text-align:center; margin-bottom:30px;">Лидеры</h1>
+    <h1 style="text-align:center;">Лидеры</h1>
     <div id="top-list"></div>
 </div>
 
 <div id="box-modal" class="modal">
-    <h2 style="color:var(--gold); font-size:24px;">ВЫБЕРИ СВОЙ БОНУС</h2>
-    <div class="box-wrap">
-        <div class="box-item" onclick="selectBox(this)">🎁</div>
-        <div class="box-item" onclick="selectBox(this)">🎁</div>
-        <div class="box-item" onclick="selectBox(this)">🎁</div>
-    </div>
+    <h2 style="color:var(--gold);">ВЫБЕРИ ПРИЗ</h2>
+    <div class="box-wrap"><div class="box-item" onclick="selectBox(this)">🎁</div><div class="box-item" onclick="selectBox(this)">🎁</div><div class="box-item" onclick="selectBox(this)">🎁</div></div>
 </div>
 
 <nav class="navbar">
@@ -249,27 +201,21 @@
 <script>
     const tg = window.Telegram.WebApp;
     const API_URL = 'https://tama-bot-server.onrender.com/api/action';
-    
-    tg.ready();
-    tg.expand();
+    tg.ready(); tg.expand();
 
     function showToast(text) {
         const toast = document.getElementById('toast');
-        toast.innerText = text;
-        toast.classList.add('show');
+        toast.innerText = text; toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    function toggleSection(header) {
-        header.parentElement.classList.toggle('open');
-    }
+    function toggleSection(header) { header.parentElement.classList.toggle('open'); }
 
     function showPage(pageId, navEl) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         navEl.classList.add('active');
-        tg.HapticFeedback.impactOccurred('light');
     }
 
     async function loadData() {
@@ -278,7 +224,7 @@
             const response = await fetch(`${API_URL}?userId=${uid}`);
             const data = await response.json();
             updateUI(data);
-        } catch (e) { console.error(e); }
+        } catch (e) {}
     }
 
     function updateUI(d) {
@@ -288,15 +234,11 @@
         document.getElementById('u-boxes').innerText = d.boxes || 0;
         document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
         document.getElementById('btn-open-box').style.display = (d.boxes > 0) ? 'flex' : 'none';
-
         if(d.top) {
-            const list = document.getElementById('top-list');
-            list.innerHTML = d.top.map((u, i) => `
-                <div class="stat-item" style="display:flex; justify-content:space-between; margin-bottom:10px; padding:18px;">
-                    <span style="font-weight:700;">${i+1}. ${u.n}</span>
-                    <span style="color:var(--gold); font-weight:900;">${Math.floor(u.b).toLocaleString()} TC</span>
-                </div>
-            `).join('');
+            document.getElementById('top-list').innerHTML = d.top.map((u, i) => `
+                <div class="stat-item" style="display:flex; justify-content:space-between; margin-bottom:10px; padding:15px;">
+                    <b>${i+1}. ${u.n}</b><span style="color:var(--gold); font-weight:900;">${Math.floor(u.b).toLocaleString()}</span>
+                </div>`).join('');
         }
     }
 
@@ -324,16 +266,12 @@
         setTimeout(() => {
             anim.style.display = 'none';
             doAction('catch_fish');
-        }, 1200); // 1.2 секунды как заказывал
+        }, 1300); // ЗАДЕРЖКА 1.3 СЕКУНДЫ
     }
 
-    function openBoxModal() { 
-        document.getElementById('box-modal').style.display = 'flex'; 
-    }
-    
+    function openBoxModal() { document.getElementById('box-modal').style.display = 'flex'; }
     function selectBox(el) {
         el.innerText = "✨";
-        tg.HapticFeedback.notificationOccurred('success');
         setTimeout(() => {
             doAction('open_box');
             document.getElementById('box-modal').style.display = 'none';
@@ -344,7 +282,7 @@
     function withdraw() {
         const w = document.getElementById('wallet').value;
         const a = document.getElementById('amount').value;
-        if(!w || a < 30000) return showToast("Заполни данные!");
+        if(!w || a < 30000) return showToast("Данные!");
         doAction('withdraw', {wallet: w, amount: parseFloat(a)});
     }
 
