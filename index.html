@@ -3,69 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing Mobile</title>
+    <title>Tama Fishing Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --water: #2c7bb6; --sky: #abd9e9; }
-        body { margin: 0; background: var(--sky); font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
+        :root { --water: #4da6ff; --grass: #7cfc00; --sky: #87CEEB; }
+        body { margin: 0; padding: 0; background: var(--sky); overflow: hidden; font-family: 'Arial', sans-serif; touch-action: none; }
 
-        /* Сцена */
-        .world { position: relative; height: 60vh; background: linear-gradient(to bottom, #74ebd5, #acb6e5); overflow: hidden; }
-        .water { position: absolute; bottom: 0; width: 100%; height: 100px; background: var(--water); opacity: 0.8; z-index: 10; }
+        /* Пейзаж */
+        .scene { position: relative; height: 65vh; background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%); overflow: hidden; }
+        .hills { position: absolute; bottom: 100px; width: 100%; height: 50px; background: #9ccc65; border-radius: 50% 50% 0 0; transform: scale(1.5); }
+        .lake { position: absolute; bottom: 0; width: 100%; height: 120px; background: #0288d1; border-top: 4px solid #01579b; z-index: 2; }
+        
+        /* Облака */
+        .cloud { position: absolute; background: white; width: 50px; height: 20px; border-radius: 20px; opacity: 0.9; animation: moveClouds 30s linear infinite; }
+        @keyframes moveClouds { from { left: -100px; } to { left: 100vw; } }
 
-        /* Удочка */
-        .rod-container { position: absolute; right: -20px; bottom: 80px; width: 200px; height: 200px; transform: rotate(-15deg); transition: 0.5s; z-index: 5; }
-        .rod-stick { width: 6px; height: 250px; background: #4b3621; border-radius: 5px; transform-origin: bottom; transition: 0.3s; }
-        .line { position: absolute; top: 0; left: 3px; width: 1px; height: 180px; background: white; transform-origin: top; transition: 0.3s; }
+        /* Рыбак и Удочка */
+        .fisherman { position: absolute; right: 20px; bottom: 20px; width: 120px; height: 150px; z-index: 10; }
+        .rod { position: absolute; bottom: 110px; right: 80px; width: 4px; height: 200px; background: #4b3621; transform-origin: bottom; transform: rotate(-45deg); transition: 0.3s; }
+        .line { position: absolute; top: 0; left: 1px; width: 1px; height: 170px; background: white; transform-origin: top; transform: rotate(45deg); }
+        .bobber { position: absolute; bottom: -5px; left: -7px; width: 14px; height: 22px; background: red; border: 2px solid white; border-radius: 50% 50% 3px 3px; }
 
-        /* Поплавок */
-        .bobber { position: absolute; bottom: -10px; left: -7px; width: 14px; height: 20px; background: red; border: 2px solid white; border-radius: 50% 50% 2px 2px; }
-
-        /* Рыбка */
-        .fish { 
-            position: absolute; width: 40px; height: 30px; background: orange; border-radius: 50% 50% 50% 50%;
-            display: none; z-index: 15; left: 30%; bottom: 80px; box-shadow: 0 0 10px gold;
+        /* Золотая рыбка */
+        .fish-gold { 
+            position: absolute; width: 40px; height: 30px; background: #ffd700; border-radius: 50%;
+            display: none; z-index: 15; left: 40%; bottom: 80px; box-shadow: 0 0 15px orange;
         }
-        .fish::after { content: '🐟'; font-size: 25px; position: absolute; top: -5px; left: 5px; }
+        .fish-gold::after { content: '🐟'; font-size: 24px; position: absolute; top: -5px; left: 5px; }
 
         /* Анимации */
         @keyframes bite { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(15px); } }
-        @keyframes rodBend { 0% { transform: rotate(0deg); } 50% { transform: rotate(15deg); } }
-        @keyframes catchFish { 
-            0% { bottom: 50px; left: 30%; transform: rotate(0deg); opacity: 1; }
-            100% { bottom: 300px; left: 80%; transform: rotate(360deg); opacity: 0; }
+        @keyframes fishJump { 
+            0% { bottom: 50px; left: 40%; transform: scale(1) rotate(0deg); opacity: 1; }
+            50% { bottom: 250px; left: 60%; transform: scale(1.5) rotate(180deg); }
+            100% { bottom: 150px; left: 80%; transform: scale(0.5) rotate(360deg); opacity: 0; }
         }
 
-        .active-bite { animation: bite 0.4s infinite; }
-        .active-bend { animation: rodBend 0.4s infinite; }
-        .jump-fish { display: block !important; animation: catchFish 0.8s ease-out forwards; }
+        .bite-anim { animation: bite 0.4s infinite; }
+        .jump-anim { display: block !important; animation: fishJump 1s ease-in-out forwards; }
 
-        /* Кнопки */
-        .ui { height: 40vh; background: #1a2a6c; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 15px; }
-        .btn { width: 100%; max-width: 300px; padding: 18px; border: none; border-radius: 15px; color: white; font-size: 20px; font-weight: bold; cursor: pointer; }
-        .btn-go { background: #4CAF50; box-shadow: 0 5px #2d5a27; }
-        .btn-go:active { transform: translateY(3px); box-shadow: 0 2px #2d5a27; }
-        #status { color: #88bdff; font-weight: 500; }
+        /* Кнопки в стиле скрина */
+        .ui { height: 35vh; background: #0d1b4a; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; gap: 10px; z-index: 20; position: relative; }
+        .btn-box { display: flex; gap: 10px; width: 100%; justify-content: center; }
+        .btn { padding: 15px 25px; border: none; border-radius: 20px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-catch { background: #4CAF50; border-bottom: 4px solid #2d5a27; }
+        .btn-sell { background: #f44336; border-bottom: 4px solid #b71c1c; }
+        .btn:active { transform: translateY(2px); border-bottom: 0; }
+        #status { color: #88bdff; margin-top: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
-<div class="world">
-    <div class="water"></div>
-    <div class="rod-container" id="rodBox">
-        <div class="rod-stick" id="rodStick">
+<div class="scene">
+    <div class="cloud" style="top: 30px; animation-duration: 40s;"></div>
+    <div class="cloud" style="top: 80px; animation-duration: 25s; left: 40%;"></div>
+    <div class="hills"></div>
+    <div class="lake"></div>
+    
+    <div class="fish-gold" id="fishGold"></div>
+
+    <div class="fisherman">
+        <div style="position:absolute; bottom:0; width:80px; height:80px; background:#607d8b; border-radius:20px 20px 0 0;"></div>
+        <div style="position:absolute; bottom:70px; left:10px; width:50px; height:50px; background:#ff5722; border-radius:50%;"></div>
+        
+        <div class="rod" id="rod">
             <div class="line">
                 <div class="bobber" id="bobber"></div>
             </div>
         </div>
     </div>
-    <div class="fish" id="fish"></div>
 </div>
 
 <div class="ui">
-    <button class="btn btn-go" id="mainBtn" onclick="handleFishing()">ЗАБРОСИТЬ 🎣</button>
-    <button class="btn" style="background:#f44336" onclick="sendToServer('sell_fish')">ПРОДАТЬ 💰</button>
-    <div id="status">Готов к рыбалке</div>
+    <div class="btn-box">
+        <button class="btn btn-catch" id="catchBtn" onclick="doCatch()">ЗАБРОСИТЬ 🎣</button>
+        <button class="btn btn-sell" onclick="sendAction('sell_fish')">ПРОДАТЬ 💰</button>
+    </div>
+    <div id="status">ГОТОВ К РЫБАЛКЕ</div>
 </div>
 
 <script>
@@ -73,54 +87,47 @@
     tg.expand();
     const SERVER_URL = 'https://tama-bot-server.onrender.com/api/action';
 
-    async function handleFishing() {
-        const btn = document.getElementById('mainBtn');
+    async function doCatch() {
+        const btn = document.getElementById('catchBtn');
         const bobber = document.getElementById('bobber');
-        const rod = document.getElementById('rodStick');
-        const fish = document.getElementById('fish');
+        const fish = document.getElementById('fishGold');
         const status = document.getElementById('status');
 
         btn.disabled = true;
-        status.innerText = "Закинули... Ждем...";
-
-        // 1. Поклевка через 1.5 сек
+        status.innerText = "ОЖИДАНИЕ УЛОВА...";
+        
+        // 1. Поклевка через 2 секунды
         setTimeout(() => {
-            bobber.classList.add('active-bite');
-            rod.classList.add('active-bend');
-            status.innerText = "КЛЮЕТ! Тянем...";
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
-        }, 1500);
+            bobber.classList.add('bite-anim');
+            status.innerText = "КЛЮЕТ! ТЯНИ!";
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }, 2000);
 
-        // 2. Вытягивание через 3 сек
+        // 2. Вытягивание
         setTimeout(async () => {
-            bobber.classList.remove('active-bite');
-            rod.classList.remove('active-bend');
+            bobber.classList.remove('bite-anim');
+            fish.classList.add('jump-anim');
             
-            // Анимация рыбки
-            fish.classList.add('jump-fish');
-            
-            await sendToServer('catch_fish');
-            
-            setTimeout(() => {
-                fish.classList.remove('jump-fish');
-                btn.disabled = false;
-                status.innerText = "Успешный улов!";
-            }, 800);
+            await sendAction('catch_fish');
 
-        }, 3500);
+            setTimeout(() => {
+                fish.classList.remove('jump-anim');
+                btn.disabled = false;
+                status.innerText = "ЕСТЬ УЛОВ!";
+            }, 1000);
+        }, 4000);
     }
 
-    async function sendToServer(act) {
+    async function sendAction(act) {
         const user = tg.initDataUnsafe?.user;
         if (!user) return;
-        
         try {
             await fetch(SERVER_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id, action: act })
             });
-        } catch (e) { console.error("Error:", e); }
+        } catch (e) { console.error(e); }
     }
 </script>
 
