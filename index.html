@@ -7,56 +7,90 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { margin: 0; padding: 0; background: #0a1128; font-family: sans-serif; color: white; overflow: hidden; }
-        .page { display: none; height: 100vh; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        
+        /* Общие стили страниц */
+        .page { 
+            display: none; 
+            height: 100vh; 
+            flex-direction: column; 
+            padding: 20px; 
+            box-sizing: border-box; 
+            /* Добавляем отступ снизу, чтобы контент не перекрывался меню */
+            padding-bottom: 90px; 
+        }
         .page.active { display: flex; }
         
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 70px; background: #000; display: flex; border-top: 1px solid #333; }
-        .nav-item { flex: 1; text-align: center; padding: 15px; color: #666; font-size: 12px; }
+        /* Нижнее меню */
+        .nav-bar { 
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            height: 75px; 
+            background: #000; 
+            display: flex; 
+            border-top: 1px solid #333; 
+            z-index: 9999; 
+        }
+        .nav-item { flex: 1; text-align: center; padding: 12px; color: #666; font-size: 11px; font-weight: bold; }
         .nav-item.active { color: #ffd700; }
+        .nav-item span { display: block; font-size: 20px; margin-bottom: 3px; }
         
+        /* Карточки и кнопки */
         .card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; margin-bottom: 15px; text-align: center; border: 1px solid #222; }
-        .btn { background: #4CAF50; border: none; padding: 15px; border-radius: 15px; color: white; font-weight: bold; width: 100%; margin-top: 10px; }
+        .btn { background: #4CAF50; border: none; padding: 18px; border-radius: 15px; color: white; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
+        .btn:active { transform: scale(0.98); }
         .btn:disabled { opacity: 0.5; }
 
-        #fishAnim { width: 250px; margin: 20px auto; display: none; }
-        .balance-val { font-size: 32px; color: #ffd700; font-weight: bold; }
+        /* Игровые элементы */
+        #fishAnim { width: 250px; margin: 40px auto; display: none; }
+        .balance-header { font-size: 28px; color: #ffd700; font-weight: bold; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div id="p-game" class="page active">
-        <div class="balance-val" style="text-align: center;"><span id="b1">0.00</span> TC</div>
+        <div class="balance-header"><span id="b1">0.00</span> TC</div>
         <img src="" id="fishAnim">
-        <button class="btn" id="cBtn" onclick="doFish()" style="margin-top: auto; font-size: 18px; padding: 25px;">ЗАБРОСИТЬ 🎣</button>
+        
+        <div style="margin-top: auto; padding-bottom: 20px;">
+            <button class="btn" id="cBtn" onclick="doFish()" style="background: #4CAF50; border-bottom: 4px solid #2d5a27;">ЗАБРОСИТЬ УДОЧКУ 🎣</button>
+        </div>
     </div>
 
     <div id="p-sadok" class="page">
-        <h2>🎒 МОЙ САДОК</h2>
+        <h2 style="text-align: center;">🎒 МОЙ САДОК</h2>
         <div class="card">
-            <p>Рыба: <b id="s-fish">0</b> кг</p>
-            <p>Удочка: <b id="s-rod">100</b>%</p>
+            <p style="font-size: 18px;">Рыба: <b id="s-fish" style="color: #ffd700;">0</b> кг</p>
+            <p style="font-size: 18px;">Удочка: <b id="s-rod">100</b>%</p>
         </div>
-        <button class="btn" onclick="doAction('sell_fish')">ПРОДАТЬ ВСЁ (0.5 TC/кг)</button>
-        <button class="btn" onclick="doAction('repair_rod')" style="background: #0288d1;">ПОЧИНИТЬ (5 TC)</button>
-        <button class="btn" onclick="tg.showAlert('Вывод от 30,000 TC доступен в Админке')" style="background: #e53935; margin-top: 30px;">ВЫВЕСТИ СРЕДСТВА</button>
+        <button class="btn" onclick="doAction('sell_fish')">ПРОДАТЬ ВСЁ (0.5 TC/кг) 💰</button>
+        <button class="btn" onclick="doAction('repair_rod')" style="background: #0288d1;">ПОЧИНИТЬ (5 TC) 🛠</button>
+        <button class="btn" onclick="tg.showAlert('Вывод от 30,000 TC доступен в Админке')" style="background: #e53935; margin-top: 20px;">ВЫВЕСТИ СРЕДСТВА 💳</button>
     </div>
 
     <div id="p-shop" class="page">
-        <h2>🛒 МАГАЗИН</h2>
+        <h2 style="text-align: center;">🛒 МАГАЗИН</h2>
         <div class="card">
-            <p>📡 Эхолот (USDT)</p>
-            <button class="btn" onclick="tg.showAlert('Скоро в продаже!')">КУПИТЬ ЗА ТОН</button>
+            <p style="font-size: 18px;">📡 Эхолот (3 заряда)</p>
+            <p style="color: #888;">Показывает шанс улова</p>
+            <button class="btn" onclick="tg.showAlert('Скоро в продаже за TON!')">0.5 USDT</button>
+        </div>
+        <div class="card">
+            <p style="font-size: 18px;">🌊 Озеро Надежды</p>
+            <p style="color: #888;">Локация с редкой рыбой</p>
+            <button class="btn" onclick="tg.showAlert('Скоро в продаже за TON!')">1.0 USDT</button>
         </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="tab('game', this)">🎮 ИГРА</div>
-        <div class="nav-item" onclick="tab('sadok', this)">🎒 САДОК</div>
-        <div class="nav-item" onclick="tab('shop', this)">🛒 ШОП</div>
+        <div class="nav-item active" onclick="tab('game', this)"><span>🎮</span>ИГРА</div>
+        <div class="nav-item" onclick="tab('sadok', this)"><span>🎒</span>САДОК</div>
+        <div class="nav-item" onclick="tab('shop', this)"><span>🛒</span>МАГАЗИН</div>
     </div>
 
 <script>
     const tg = window.Telegram.WebApp;
+    // Убедись, что этот URL ведет на твой живой сервер Render
     const url = 'https://tama-bot-server.onrender.com/api/action';
     const uid = tg.initDataUnsafe?.user?.id || 569502967;
 
@@ -71,20 +105,23 @@
     async function load() {
         try {
             const r = await fetch(`${url}?userId=${uid}`);
+            if (!r.ok) return;
             const d = await r.json();
             document.getElementById('b1').innerText = d.balance.toFixed(2);
             document.getElementById('s-fish').innerText = d.fish.toFixed(2);
             document.getElementById('s-rod').innerText = d.rod_durability;
-        } catch(e) {}
+        } catch(e) { console.error("Ошибка загрузки данных"); }
     }
 
     async function doAction(act) {
-        await fetch(url, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ userId: uid, action: act })
-        });
-        load();
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ userId: uid, action: act })
+            });
+            load();
+        } catch(e) { console.error("Ошибка действия"); }
     }
 
     async function doFish() {
@@ -92,8 +129,9 @@
         const anim = document.getElementById('fishAnim');
         btn.disabled = true;
 
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
         setTimeout(async () => {
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             anim.src = "fish_anim.webp?t=" + new Date().getTime();
             anim.style.display = 'block';
             
@@ -104,7 +142,7 @@
                 btn.disabled = false;
                 load();
             }, 2000);
-        }, 1000);
+        }, 800);
     }
 
     tg.expand();
