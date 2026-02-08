@@ -3,137 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing Ultimate</title>
+    <title>Tama Fishing Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
-        :root { --main-blue: #0ea5e9; --dark-bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); }
         body {
-            background: var(--dark-bg); color: white; font-family: 'Segoe UI', sans-serif;
-            margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(180deg, #1a2a6c, #b21f1f, #fdbb2d);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
         }
-        #ton-connect { position: absolute; top: 15px; right: 15px; z-index: 100; transform: scale(0.9); }
-        .tab-content { flex: 1; display: none; padding: 20px; overflow-y: auto; padding-bottom: 100px; }
-        .active { display: block; }
-        
-        /* Профиль сверху */
-        .user-stats { background: var(--card-bg); padding: 15px; display: flex; justify-content: space-around; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .stat-val { color: var(--main-blue); font-weight: bold; }
 
-        /* Кнопка ловли */
-        .fish-circle {
-            width: 180px; height: 180px; background: radial-gradient(circle, #0ea5e9, #2563eb);
-            border-radius: 50%; margin: 30px auto; display: flex; justify-content: center;
-            align-items: center; border: 6px solid rgba(255,255,255,0.2);
-            box-shadow: 0 0 30px rgba(14, 165, 233, 0.4); cursor: pointer; transition: 0.1s;
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            width: 90%;
         }
-        .fish-circle:active { transform: scale(0.92); }
 
-        /* Карточки магазина и топа */
-        .card { background: var(--card-bg); padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
-        .btn-buy { background: var(--main-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 10px; }
-        
-        /* Навигация */
-        .nav-bar {
-            display: flex; position: fixed; bottom: 0; width: 100%; background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;
+        h1 { margin-bottom: 20px; font-size: 24px; }
+
+        .btn {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            font-size: 18px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: bold;
         }
-        .nav-item { flex: 1; text-align: center; padding: 15px 0; font-size: 12px; color: #94a3b8; cursor: pointer; }
-        .nav-item.active-nav { color: var(--main-blue); }
+
+        .btn:active { transform: scale(0.95); }
+
+        .btn-sell { background: #f44336; }
+        .btn-top { background: #2196F3; }
+        .btn-shop { background: #ff9800; }
+
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #ddd;
+        }
     </style>
 </head>
 <body>
 
-    <div id="ton-connect"></div>
+    <div class="game-container">
+        <h1>🎣 Tama Fishing</h1>
+        
+        <button class="btn" onclick="sendAction('catch_fish')">ЗАБРОС УДОЧКИ</button>
+        <button class="btn btn-sell" onclick="sendAction('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ</button>
+        <button class="btn btn-shop" onclick="sendAction('buy_echolot')">МАГАЗИН (ЭХОЛОТ)</button>
+        <button class="btn btn-top" onclick="sendAction('get_top')">ТОП РЫБАКОВ</button>
 
-    <div class="user-stats">
-        <div>💰 <span id="ui-bal" class="stat-val">...</span> TC</div>
-        <div>🎒 <span id="ui-fish" class="stat-val">...</span> кг</div>
-        <div>🔋 <span id="ui-energy" class="stat-val">...</span></div>
-    </div>
-
-    <div id="game" class="tab-content active">
-        <h3 style="text-align:center;">🎣 РЫБАЛКА</h3>
-        <div class="fish-circle" id="catch-btn"><b>ЗАБРОС</b></div>
-        <div class="card" style="text-align:center;">
-            <div id="status">Нажмите для заброса</div>
-            <div style="font-size:12px; color:#64748b; margin-top:5px;">Удочка: <span id="ui-dur">...</span>%</div>
-        </div>
-    </div>
-
-    <div id="shop" class="tab-content">
-        <h3>🛒 МАГАЗИН</h3>
-        <div class="card">
-            <b>🔧 Ремонт снастей</b><br><small>Восстановление до 100%</small>
-            <button class="btn-buy" onclick="act('buy_repair')">10 TC</button>
-        </div>
-        <div class="card">
-            <b>🍞 Приманка (10 шт)</b><br><small>Вес улова х2</small>
-            <button class="btn-buy" onclick="act('buy_bait')">25 TC</button>
-        </div>
-        <div class="card">
-            <b>🌊 Лицензия: Река</b><br><small>Доступ к крупной рыбе</small>
-            <button class="btn-buy" onclick="act('buy_lic_river')">500 TC</button>
-        </div>
-    </div>
-
-    <div id="leaderboard" class="tab-content">
-        <h3>🏆 ТОП ИГРОКОВ</h3>
-        <div id="top-list">Загрузка...</div>
-    </div>
-
-    <div id="info" class="tab-content">
-        <h3>ℹ️ ИНФОРМАЦИЯ</h3>
-        <div class="card">
-            <p>Курс: 1 кг рыбы = 0.1 TC</p>
-            <p>Вывод: от 30,000 TC</p>
-            <p>Версия проекта: 8.1 Ultimate</p>
-        </div>
-        <button class="btn-buy" style="background:#334155;" onclick="act('sell_fish')">⚖️ ПРОДАТЬ ВЕСЬ УЛОВ</button>
-    </div>
-
-    <div class="nav-bar">
-        <div class="nav-item active-nav" onclick="tab('game', this)">🎣 Игра</div>
-        <div class="nav-item" onclick="tab('shop', this)">🛒 Лавка</div>
-        <div class="nav-item" onclick="tab('leaderboard', this)">🏆 Топ</div>
-        <div class="nav-item" onclick="tab('info', this)">ℹ️ Инфо</div>
+        <div id="status">Нажмите кнопку для действия</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.expand(); // Разворачиваем на весь экран
 
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://criptocit-jpg.github.io/tama-fishing/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect'
-        });
+        // Основная функция отправки данных
+        function sendAction(actionName) {
+            const status = document.getElementById('status');
+            status.innerText = "Отправка сигнала: " + actionName + "...";
 
-        // Функция отправки действий боту
-        function act(type) {
-            const data = { action: type, wallet: tonConnectUI.account ? tonConnectUI.account.address : null };
-            tg.sendData(JSON.stringify(data));
+            const data = JSON.stringify({ action: actionName });
+
+            // ВНИМАНИЕ: В Telegram Web App метод sendData 
+            // ВСЕГДА закрывает приложение. Это зашито в Telegram.
+            // Чтобы окно НЕ ЗАКРЫВАЛОСЬ, нам в будущем нужно использовать API бота.
+            // Но сейчас мы используем этот метод, чтобы бот в index.js получил сигнал.
+            
+            try {
+                tg.sendData(data);
+                status.innerText = "Сигнал отправлен!";
+            } catch (e) {
+                status.innerText = "Ошибка: " + e.message;
+            }
         }
 
-        function tab(id, el) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-            document.getElementById(id).classList.add('active');
-            el.classList.add('active-nav');
-            if(id === 'leaderboard') act('get_top'); // Запрашиваем топ при открытии
-        }
-
-        // ПОЛУЧЕНИЕ ДАННЫХ ОТ БОТА
-        tg.onEvent('main_button_pressed', () => {}); // Заглушка
-
-        // Получаем стартовые данные через initDataUnsafe
-        const user = tg.initDataUnsafe.user;
-        
-        document.getElementById('catch-btn').onclick = () => {
-            tg.HapticFeedback.impactOccurred('medium');
-            act('catch_fish');
-        };
-
-        // Внимание: Чтобы данные обновлялись, бот пришлет ответ в чат.
+        // Сообщаем Telegram, что приложение готово
+        tg.ready();
     </script>
 </body>
 </html>
