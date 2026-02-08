@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing FIXED</title>
+    <title>Tama Fishing BEAUTY</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { margin: 0; padding: 0; background: #070b1a; color: white; font-family: sans-serif; overflow: hidden; }
@@ -24,34 +24,37 @@
         .card { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
         .card small { color: #888; font-size: 11px; }
 
-        /* ИГРОВАЯ ЗОНА */
         .game-zone { 
             position: relative; 
             flex-grow: 1; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: flex-start; /* Начинаем сверху */
-            padding-top: 20px;
+            justify-content: center; 
         }
 
-        #fishAnim { width: 220px; height: 220px; display: none; }
-        #idle-text { font-size: 20px; color: #3a4a6a; font-weight: bold; margin-bottom: 20px; }
+        #fishAnim { width: 250px; height: 250px; display: none; margin-bottom: 50px; }
+        #idle-text { font-size: 18px; color: #3a4a6a; font-weight: bold; margin-bottom: 20px; }
 
-        /* ЖЕСТКОЕ ПОЗИЦИОНИРОВАНИЕ КНОПКИ */
+        /* ИСПРАВЛЕННАЯ КНОПКА: Тоньше, Ниже, Скрываемая */
         #cBtn { 
             position: absolute;
-            top: 50%; /* Ровно посередине экрана по вертикали */
+            top: 65%; /* Опустили ниже (было 50%) */
             left: 50%;
-            transform: translate(-50%, -50%); /* Центрируем саму кнопку */
-            background: #4CAF50; border: none; padding: 22px; border-radius: 20px; 
-            color: white; font-weight: bold; width: 85%; font-size: 20px; 
-            box-shadow: 0 6px 0 #2d5a27; z-index: 100;
+            transform: translate(-50%, -50%);
+            background: #4CAF50; border: none; 
+            padding: 14px 40px; /* Сделали тоньше (было 22px) */
+            border-radius: 30px; /* Более округлая */
+            color: white; font-weight: bold; 
+            width: 70%; /* Чуть уже (было 85%) */
+            font-size: 16px; 
+            box-shadow: 0 4px 0 #2d5a27; z-index: 100;
+            transition: opacity 0.2s;
         }
-        #cBtn:active { transform: translate(-50%, -48%); box-shadow: 0 2px 0 #2d5a27; }
-        #cBtn:disabled { background: #444; box-shadow: 0 6px 0 #222; opacity: 0.6; }
+        #cBtn:active { transform: translate(-50%, -45%); box-shadow: 0 2px 0 #2d5a27; }
+        
+        .btn-hidden { opacity: 0; pointer-events: none; } /* Класс для скрытия */
 
-        /* ОСТАЛЬНЫЕ КНОПКИ */
         .btn-action { background: #0288d1; border: none; padding: 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 4px 0 #01579b; }
         .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 
@@ -96,7 +99,6 @@
         <div class="game-zone">
             <div id="idle-text">🏝 Удачного клёва!</div>
             <img src="fish_anim.webp" id="fishAnim">
-            
             <button id="cBtn" onclick="doFish()">🎣 ЗАБРОСИТЬ УДОЧКУ</button>
         </div>
     </div>
@@ -140,10 +142,10 @@
     }
 
     function updateUI(d) {
-        document.getElementById('b1').innerText = d.balance.toFixed(2);
+        document.getElementById('b1').innerText = Number(d.balance).toFixed(2);
         document.getElementById('u-en').innerText = d.energy;
         document.getElementById('u-lvl').innerText = d.level;
-        document.getElementById('s-fish').innerText = d.fish.toFixed(2);
+        document.getElementById('s-fish').innerText = Number(d.fish).toFixed(2);
         document.getElementById('s-rod').innerText = d.rod_durability;
     }
 
@@ -166,16 +168,24 @@
 
     async function doFish() {
         const btn = document.getElementById('cBtn');
-        btn.disabled = true;
+        const anim = document.getElementById('fishAnim');
+        const txt = document.getElementById('idle-text');
+
+        // Скрываем кнопку и текст, показываем гифку
+        btn.classList.add('btn-hidden');
+        txt.style.display = 'none';
+        anim.style.display = 'block';
+
         const d = await doAction('catch_fish');
-        document.getElementById('fishAnim').style.display = 'block';
-        document.getElementById('idle-text').style.display = 'none';
+        
         setTimeout(() => { if (d.msg) showToast(d.msg); }, 1000);
+
+        // Через 3 секунды возвращаем всё как было
         setTimeout(() => {
-            document.getElementById('fishAnim').style.display = 'none';
-            document.getElementById('idle-text').style.display = 'block';
-            btn.disabled = false;
-        }, 2500);
+            anim.style.display = 'none';
+            txt.style.display = 'block';
+            btn.classList.remove('btn-hidden');
+        }, 3000);
     }
 
     function tab(id, el) {
@@ -197,7 +207,7 @@
     }
 
     function openTop() {
-        const list = lastData.top ? lastData.top.map((u, i) => `<div>${i+1}. ${u.n} — ${u.b.toFixed(0)} TC</div>`).join('') : "Пусто";
+        const list = lastData.top ? lastData.top.map((u, i) => `<div>${i+1}. ${u.n} — ${Number(u.b).toFixed(0)} TC</div>`).join('') : "Пусто";
         document.getElementById('topList').innerHTML = list;
         document.getElementById('topModal').style.display = 'flex';
     }
