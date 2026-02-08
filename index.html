@@ -3,107 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing</title>
+    <title>Tama Fishing PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: #000; font-family: sans-serif; }
+        body { margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; color: white; }
 
-        /* Та самая картинка фоном */
+        /* Фоновый арт (если загрузишь background.jpg, он подтянется) */
         .game-screen {
             position: relative;
             width: 100vw;
             height: 100vh;
-            background: url('https://i.imgur.com/K6L87X0.png') no-repeat center center;
+            background: #1a2a6c url('background.jpg') no-repeat center center;
             background-size: cover;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
         }
 
-        /* Удочка (одна, у игрока) */
-        .rod {
+        /* Счётчик на экране */
+        .inventory-counter {
             position: absolute;
-            bottom: 30%;
-            right: 15%;
-            width: 4px;
-            height: 250px;
-            background: #3e2723;
-            transform-origin: bottom center;
-            transform: rotate(-35deg);
-            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            z-index: 10;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 2px solid #ffd700;
+            font-weight: bold;
+            font-size: 18px;
+            z-index: 100;
         }
 
-        /* Леска и поплавок */
-        .line {
+        /* Твоя анимация */
+        #fishAnim {
             position: absolute;
-            top: 0;
-            left: 2px;
-            width: 1px;
-            height: 180px;
-            background: rgba(255,255,255,0.5);
-            transform-origin: top center;
-            transform: rotate(35deg);
+            bottom: 35%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            z-index: 50;
+            display: none;
+            pointer-events: none;
         }
 
-        .bobber {
+        /* Модальное окно улова */
+        .result-modal {
             position: absolute;
-            bottom: -10px;
-            left: -7px;
-            width: 14px;
-            height: 22px;
-            background: #f44336;
-            border: 2px solid #fff;
-            border-radius: 50% 50% 2px 2px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 20px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            z-index: 200;
+            transition: 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+        }
+        .result-modal.show { transform: translate(-50%, -50%) scale(1); }
+        .result-modal h2 { margin: 0; color: #f44336; }
+        .result-modal p { font-size: 18px; font-weight: bold; margin: 10px 0; }
+        .result-modal button { 
+            background: #4CAF50; color: white; border: none; padding: 10px 20px; 
+            border-radius: 10px; font-weight: bold; cursor: pointer;
         }
 
-        /* Анимация поклевки */
-        .bite { animation: shake 0.4s infinite; }
-        @keyframes shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(12px); } }
-
-        /* Кнопки внизу поверх картинки */
+        /* Кнопки управления */
         .controls {
             padding: 20px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
         }
 
         .btn {
             width: 100%;
-            max-width: 280px;
+            max-width: 300px;
             padding: 18px;
             border: none;
-            border-radius: 12px;
+            border-radius: 15px;
             color: white;
             font-size: 18px;
             font-weight: bold;
             text-transform: uppercase;
         }
-
         .btn-catch { background: #4CAF50; border-bottom: 4px solid #2d5a27; }
         .btn-sell { background: #e53935; border-bottom: 4px solid #b71c1c; }
-        .btn:active { transform: translateY(2px); border-bottom: 0; }
+        .btn:disabled { background: #777; border-bottom: none; opacity: 0.6; }
 
-        #status { color: #fff; font-size: 14px; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; }
+        #status { color: #88bdff; font-size: 14px; margin-bottom: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="game-screen">
-    <div class="rod" id="mainRod">
-        <div class="line">
-            <div class="bobber" id="mainBobber"></div>
-        </div>
+    <div class="inventory-counter">🎒 Рыбы: <span id="fishCount">0</span></div>
+
+    <img src="fish_anim.webp" id="fishAnim">
+
+    <div class="result-modal" id="resultModal">
+        <h2>УЛОВ!</h2>
+        <p id="fishType">Золотая рыбка</p>
+        <p id="fishWeight" style="color: #0288d1;">1.5 кг</p>
+        <button onclick="closeModal()">ОТЛИЧНО</button>
     </div>
 
     <div class="controls">
         <div id="status">ГОТОВ К РЫБАЛКЕ</div>
-        <button class="btn btn-catch" id="catchBtn" onclick="fishingProcess()">ЗАБРОСИТЬ УДОЧКУ 🎣</button>
-        <button class="btn btn-sell" onclick="sendToServer('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ 💰</button>
+        <button class="btn btn-catch" id="catchBtn" onclick="startFishing()">ЗАБРОСИТЬ 🎣</button>
+        <button class="btn btn-sell" onclick="sendToServer('sell_fish')">ПРОДАТЬ ВСЁ 💰</button>
     </div>
 </div>
 
@@ -112,49 +125,76 @@
     tg.expand();
     const SERVER_URL = 'https://tama-bot-server.onrender.com/api/action';
 
-    async function fishingProcess() {
+    let localFishCount = 0;
+    const fishNames = ["Карась", "Окунь", "Щука", "Золотая рыбка", "Сазан", "Плотва"];
+
+    async function startFishing() {
         const btn = document.getElementById('catchBtn');
-        const rod = document.getElementById('mainRod');
-        const bobber = document.getElementById('mainBobber');
+        const anim = document.getElementById('fishAnim');
         const status = document.getElementById('status');
 
         btn.disabled = true;
         status.innerText = "УДОЧКА ЗАБРОШЕНА...";
-        
-        // Наклон при забросе
-        rod.style.transform = "rotate(-25deg)";
 
-        // Поклевка через 2 сек
+        // 1. Имитация ожидания
         setTimeout(() => {
-            bobber.classList.add('bite');
-            status.innerText = "КЛЮЕТ! ПОДТЯГИВАЙ!";
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            status.innerText = "КЛЮЕТ! ТЯНИ!";
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
         }, 2000);
 
-        // Тянем через 4 сек
+        // 2. Показ анимации и запрос к серверу
         setTimeout(async () => {
-            bobber.classList.remove('bite');
-            rod.style.transform = "rotate(-70deg)"; // Резкий взмах вверх
+            anim.style.display = 'block'; // Показываем твою анимацию
             
             await sendToServer('catch_fish');
-            
+
             setTimeout(() => {
-                rod.style.transform = "rotate(-35deg)";
-                btn.disabled = false;
-                status.innerText = "ЕСТЬ УЛОВ! ЗАКИДЫВАЙ СНОВА";
-            }, 1000);
-        }, 4500);
+                anim.style.display = 'none';
+                showResult(); // Показываем окно с весом
+            }, 1500); // Время работы анимации
+        }, 4000);
     }
 
-    async function sendToServer(actionType) {
+    function showResult() {
+        const modal = document.getElementById('resultModal');
+        const typeEl = document.getElementById('fishType');
+        const weightEl = document.getElementById('fishWeight');
+        const countEl = document.getElementById('fishCount');
+
+        // Генерируем случайные данные для красоты
+        const name = fishNames[Math.floor(Math.random() * fishNames.length)];
+        const weight = (Math.random() * (5.0 - 0.5) + 0.5).toFixed(2);
+
+        typeEl.innerText = name;
+        weightEl.innerText = weight + " кг";
+        
+        localFishCount++;
+        countEl.innerText = localFishCount;
+
+        modal.classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').classList.remove('show');
+        document.getElementById('catchBtn').disabled = false;
+        document.getElementById('status').innerText = "ГОТОВ К РЫБАЛКЕ";
+    }
+
+    async function sendToServer(act) {
         const userId = tg.initDataUnsafe?.user?.id;
-        if (!userId) return;
         try {
-            await fetch(SERVER_URL, {
+            const response = await fetch(SERVER_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, action: actionType })
+                body: JSON.stringify({ userId, action: act })
             });
+            
+            // Если продали рыбу, обнуляем счётчик
+            if (act === 'sell_fish') {
+                localFishCount = 0;
+                document.getElementById('fishCount').innerText = "0";
+                document.getElementById('status').innerText = "УЛОВ ПРОДАН!";
+            }
         } catch (e) { console.error("Server error"); }
     }
 </script>
