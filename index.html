@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing Polish</title>
+    <title>Tama Fishing Ultimate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { margin: 0; padding: 0; background: #070b1a; color: white; font-family: sans-serif; overflow: hidden; }
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: gold; color: #000; padding: 10px 20px; border-radius: 50px; font-weight: bold; z-index: 10000; transition: 0.5s; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: gold; color: #000; padding: 10px 20px; border-radius: 50px; font-weight: bold; z-index: 10000; transition: 0.5s; font-size: 14px; }
         #toast.show { transform: translateX(-50%) translateY(0); }
 
         .page { display: none; height: 100vh; flex-direction: column; padding: 20px; box-sizing: border-box; }
@@ -21,34 +21,47 @@
         #fishAnim { width: 260px; height: 260px; display: none; margin-bottom: 20px; }
         #idle-text { font-size: 16px; color: #3a4a6a; font-weight: bold; margin-bottom: 10px; }
 
-        /* ИДЕАЛЬНАЯ КНОПКА: Широкая, очень тонкая, снизу */
         #cBtn { 
-            position: absolute;
-            bottom: 15%; /* Привязка к нижнему краю игровой зоны */
-            left: 50%;
-            transform: translateX(-50%);
-            background: #4CAF50; border: none; 
-            padding: 8px 0; /* Вполовину тоньше */
-            border-radius: 10px; 
-            color: white; font-weight: bold; 
-            width: 90%; /* Максимально широкая */
-            font-size: 14px; /* Компактный текст */
-            box-shadow: 0 3px 0 #2d5a27; z-index: 100;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+            background: #4CAF50; border: none; padding: 8px 0; border-radius: 10px; 
+            color: white; font-weight: bold; width: 90%; font-size: 14px; 
+            box-shadow: 0 3px 0 #2d5a27; z-index: 100; text-transform: uppercase;
         }
         #cBtn:active { transform: translateX(-50%) translateY(2px); box-shadow: 0 1px 0 #2d5a27; }
 
-        .btn-action { background: #0288d1; border: none; padding: 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 4px 0 #01579b; width: 100%; }
+        .btn-action { background: #0288d1; border: none; padding: 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 4px 0 #01579b; width: 100%; font-size: 13px; }
         .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: #000; display: flex; border-top: 1px solid #333; }
         .nav-item { flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: center; font-size: 12px; color: #555; }
         .nav-item.active { color: gold; font-weight: bold; }
+
+        /* МОДАЛКИ */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 9000; }
+        .modal-inner { background: #1a2235; padding: 20px; border-radius: 20px; width: 85%; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #070b1a; color: white; border: 1px solid #333; box-sizing: border-box; }
     </style>
 </head>
 <body>
     <div id="toast"></div>
+
+    <div id="wModal" class="modal">
+        <div class="modal-inner">
+            <h3 style="margin-top:0">💳 ВЫВОД TC</h3>
+            <input type="text" id="wallet" placeholder="TON Кошелек">
+            <input type="number" id="wAmount" placeholder="Сумма (мин 30000)">
+            <button class="btn-action" onclick="submitWithdraw()">ОТПРАВИТЬ</button>
+            <button class="btn-action" style="background:#444; margin-top:10px" onclick="closeW()">ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="topModal" class="modal">
+        <div class="modal-inner">
+            <h3 style="margin-top:0">🏆 ТОП РЫБАКОВ</h3>
+            <div id="topList" style="margin: 15px 0; max-height: 200px; overflow-y: auto;"></div>
+            <button class="btn-action" onclick="document.getElementById('topModal').style.display='none'">ПОНЯТНО</button>
+        </div>
+    </div>
 
     <div id="p-game" class="page active">
         <div class="balance-val"><span id="b1">0.00</span> TC</div>
@@ -70,11 +83,12 @@
             <div class="card"><small>УДОЧКА</small><span id="s-rod">100</span>%</div>
         </div>
         <div class="grid-btns">
-            <button class="btn-action" style="background:#4CAF50; box-shadow:0 4px 0 #2d5a27" onclick="doAction('sell_fish')">💰 ПРОДАТЬ (0.5)</button>
-            <button class="btn-action" onclick="doAction('repair_rod')">🛠 ЧИНИТЬ</button>
+            <button class="btn-action" style="background:#4CAF50" onclick="doAction('sell_fish')">💰 ПРОДАТЬ (0.5)</button>
+            <button class="btn-action" onclick="doAction('repair_rod')">🛠 ЧИНИТЬ (10)</button>
             <button class="btn-action" style="background:#6a1b9a" onclick="openTop()">🏆 ТОП</button>
             <button class="btn-action" style="background:#e53935" onclick="openW()">💳 ВЫВОД</button>
         </div>
+        <button class="btn-action" style="margin-top:15px; background:orange; box-shadow:0 4px 0 #b36b00" onclick="shareRef()">🔗 ПРИГЛАСИТЬ ДРУГА (+🎁)</button>
     </div>
 
     <div class="nav-bar">
@@ -85,7 +99,7 @@
 <script>
     const tg = window.Telegram.WebApp;
     const url = 'https://tama-bot-server.onrender.com/api/action';
-    let lastData = {};
+    let lastData = { top: [] };
     tg.ready(); tg.expand();
 
     function showToast(txt) {
@@ -130,22 +144,50 @@
         const btn = document.getElementById('cBtn');
         const anim = document.getElementById('fishAnim');
         const txt = document.getElementById('idle-text');
-
-        btn.style.display = 'none';
-        txt.style.display = 'none';
-        anim.style.display = 'block';
+        btn.style.display = 'none'; txt.style.display = 'none'; anim.style.display = 'block';
 
         const d = await doAction('catch_fish');
-        
-        // Уведомление чуть быстрее
-        setTimeout(() => { if (d.msg) showToast(d.msg); }, 600);
+        setTimeout(() => { if (d.msg) showToast(d.msg); }, 500);
 
-        // Сократили до 1.5 секунд (1 заброс)
+        // Тайминг 1300 мл/с
         setTimeout(() => {
-            anim.style.display = 'none';
-            txt.style.display = 'block';
-            btn.style.display = 'block';
-        }, 1500);
+            anim.style.display = 'none'; txt.style.display = 'block'; btn.style.display = 'block';
+        }, 1300);
+    }
+
+    // ЛОГИКА МОДАЛОК
+    function openW() { document.getElementById('wModal').style.display = 'flex'; }
+    function closeW() { document.getElementById('wModal').style.display = 'none'; }
+    function submitWithdraw() {
+        const w = document.getElementById('wallet').value;
+        const a = document.getElementById('wAmount').value;
+        if (a < 30000) return showToast("Мин. 30,000 TC");
+        doAction('withdraw', { wallet: w, amount: a });
+        closeW();
+    }
+
+    function openTop() {
+        const list = lastData.top && lastData.top.length > 0 
+            ? lastData.top.map((u, i) => `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #333"><span>${i+1}. ${u.n}</span><b>${Number(u.b).toFixed(0)} TC</b></div>`).join('') 
+            : "Пока нет данных";
+        document.getElementById('topList').innerHTML = list;
+        document.getElementById('topModal').style.display = 'flex';
+    }
+
+    function shareRef() {
+        const uid = tg.initDataUnsafe?.user?.id || "569502967";
+        const link = `https://t.me/Tama_fishing_2026_bot?start=${uid}`;
+        
+        // Копируем в буфер
+        const el = document.createElement('textarea');
+        el.value = link; document.body.appendChild(el);
+        el.select(); document.execCommand('copy');
+        document.body.removeChild(el);
+        
+        showToast("Ссылка скопирована!");
+
+        // Открываем шаринг в ТГ
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Лови рыбу и зарабатывай TC вместе со мной! 🎣`);
     }
 
     function tab(id, el) {
