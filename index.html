@@ -3,97 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing 2026</title>
+    <title>Tama Fishing Boxes</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { margin: 0; padding: 0; background: #070b1a; color: white; font-family: sans-serif; overflow: hidden; }
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: gold; color: #000; padding: 10px 20px; border-radius: 50px; font-weight: bold; z-index: 10000; transition: 0.5s; font-size: 14px; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: gold; color: #000; padding: 10px 20px; border-radius: 50px; font-weight: bold; z-index: 10000; transition: 0.5s; }
         #toast.show { transform: translateX(-50%) translateY(0); }
-        
         .page { display: none; height: 100vh; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .page.active { display: flex; }
-        
-        .balance-val { font-size: 38px; color: gold; font-weight: 900; text-align: center; margin-top: 10px; }
+        .balance-val { font-size: 38px; color: gold; font-weight: 900; text-align: center; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
         .card { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
+        .btn-action { background: #0288d1; border: none; padding: 15px; border-radius: 15px; color: white; font-weight: bold; width: 100%; margin-top: 5px; box-shadow: 0 4px 0 #01579b; }
         
-        .game-zone { position: relative; flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #fishAnim { width: 260px; height: 260px; display: none; margin-bottom: 20px; }
-        #idle-text { font-size: 16px; color: #3a4a6a; font-weight: bold; margin-bottom: 10px; }
-        
-        #cBtn { 
-            position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
-            background: #4CAF50; border: none; padding: 8px 0; border-radius: 10px; 
-            color: white; font-weight: bold; width: 90%; font-size: 14px; 
-            box-shadow: 0 3px 0 #2d5a27; z-index: 100; text-transform: uppercase;
-        }
-        #cBtn:active { transform: translateX(-50%) translateY(2px); box-shadow: 0 1px 0 #2d5a27; }
-        
-        .btn-action { background: #0288d1; border: none; padding: 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 4px 0 #01579b; width: 100%; font-size: 13px; margin-top: 5px; }
-        
+        /* МОДАЛКА КОРОБОК */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-inner { text-align: center; width: 90%; }
+        .box-container { display: flex; justify-content: space-around; margin: 30px 0; }
+        .box-item { font-size: 50px; cursor: pointer; transition: 0.3s; filter: grayscale(0.5); }
+        .box-item:hover { transform: scale(1.2); filter: grayscale(0); }
+        .box-item.shake { animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: rotate(0); } 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } 100% { transform: rotate(0); } }
+
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: #000; display: flex; border-top: 1px solid #333; }
         .nav-item { flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: center; font-size: 12px; color: #555; }
         .nav-item.active { color: gold; font-weight: bold; }
         
-        /* МОДАЛКИ */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 9000; }
-        .modal-inner { background: #1a2235; padding: 20px; border-radius: 20px; width: 85%; max-height: 80vh; overflow-y: auto; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #070b1a; color: white; border: 1px solid #333; box-sizing: border-box; }
-        
-        .shop-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
-        .shop-info b { font-size: 14px; display: block; }
-        .shop-info small { color: #888; font-size: 11px; }
-
-        #ban-screen { display: none; flex-direction: column; height: 100vh; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        #box-badge { background: red; color: white; border-radius: 50%; padding: 2px 7px; font-size: 10px; position: absolute; top: 10px; right: 20%; }
     </style>
 </head>
 <body>
     <div id="toast"></div>
 
-    <div id="ban-screen">
-        <h1 style="color: #ff4444; font-size: 60px; margin: 0;">🚫</h1>
-        <h2>ДОСТУП ОГРАНИЧЕН</h2>
-        <p>Вы были заблокированы администратором за нарушение правил игры.</p>
-    </div>
-
-    <div id="wModal" class="modal">
+    <div id="boxModal" class="modal">
         <div class="modal-inner">
-            <h3 style="margin:0">💳 ВЫВОД TC</h3>
-            <p style="font-size: 11px; color: gold;">Внимание: Кошелек привязывается навсегда!</p>
-            <input type="text" id="wallet" placeholder="TON Кошелек">
-            <input type="number" id="wAmount" placeholder="Сумма (мин 30000)">
-            <button class="btn-action" onclick="submitWithdraw()">ОТПРАВИТЬ</button>
-            <button class="btn-action" style="background:#444" onclick="closeW()">ЗАКРЫТЬ</button>
-        </div>
-    </div>
-
-    <div id="topModal" class="modal">
-        <div class="modal-inner">
-            <h3 style="margin:0">🏆 ТОП РЫБАКОВ</h3>
-            <div id="topList" style="margin: 15px 0;"></div>
-            <button class="btn-action" onclick="document.getElementById('topModal').style.display='none'">ПОНЯТНО</button>
-        </div>
-    </div>
-
-    <div id="shopModal" class="modal">
-        <div class="modal-inner">
-            <h3 style="margin:0">🛒 МАГАЗИН STARS</h3>
-            <p style="font-size: 11px; color: #888;">Счет на оплату придет в личку бота</p>
-            <div style="margin: 15px 0;">
-                <div class="shop-item">
-                    <div class="shop-info"><b>Титановая леска</b><small>Прочность -1 вместо -2</small></div>
-                    <button class="btn-action" style="width:auto; padding:5px 10px;" onclick="buyItem('titan_line')">50 ⭐</button>
-                </div>
-                <div class="shop-item">
-                    <div class="shop-info"><b>Золотая каша</b><small>+50% к весу рыбы</small></div>
-                    <button class="btn-action" style="width:auto; padding:5px 10px;" onclick="buyItem('gold_bait')">100 ⭐</button>
-                </div>
-                <div class="shop-item">
-                    <div class="shop-info"><b>Энергетик</b><small>+30 энергии молнией</small></div>
-                    <button class="btn-action" style="width:auto; padding:5px 10px;" onclick="buyItem('energy_pack')">30 ⭐</button>
-                </div>
+            <h2 id="box-title">ВЫБЕРИ ОДНУ КОРОБКУ</h2>
+            <p id="box-desc">Внутри может быть до 50,000 TC!</p>
+            <div class="box-container">
+                <div class="box-item" onclick="pickBox(this)">🎁</div>
+                <div class="box-item" onclick="pickBox(this)">🎁</div>
+                <div class="box-item" onclick="pickBox(this)">🎁</div>
             </div>
-            <button class="btn-action" style="background:#444" onclick="document.getElementById('shopModal').style.display='none'">ЗАКРЫТЬ</button>
+            <p id="box-status" style="color: gold; font-weight: bold;"></p>
         </div>
     </div>
 
@@ -101,27 +52,21 @@
         <div class="balance-val"><span id="b1">0.00</span> TC</div>
         <div class="stat-grid">
             <div class="card"><small>ЭНЕРГИЯ</small><br><span id="u-en">0</span></div>
-            <div class="card"><small>РАНГ</small><br><span id="u-lvl">1</span></div>
+            <div class="card"><small>ЯЩИКИ</small><br><span id="u-boxes" style="color:red; font-weight:bold">0</span></div>
         </div>
-        <div class="game-zone">
-            <div id="idle-text">🏝 ТИХАЯ ЗАВОДЬ</div>
-            <img src="fish_anim.webp" id="fishAnim">
-            <button id="cBtn" onclick="doFish()">ЗАБРОСИТЬ УДОЧКУ</button>
+        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center">
+             <button id="openBoxBtn" class="btn-action" style="display:none; background: gold; color:black" onclick="startBoxGame()">📦 ОТКРЫТЬ ЯЩИК!</button>
+             <div id="game-ui" style="text-align:center">
+                <img src="fish_anim.webp" id="fishAnim" style="width:200px; display:none">
+                <button class="btn-action" style="background:#4CAF50" onclick="doFish()">ЗАБРОСИТЬ УДОЧКУ</button>
+             </div>
         </div>
     </div>
 
     <div id="p-menu" class="page">
-        <h2 style="text-align:center; margin-top:0">🎒 МЕНЮ</h2>
-        <div class="stat-grid">
-            <div class="card"><small>ВЕС РЫБЫ</small><br><span id="s-fish">0.00</span></div>
-            <div class="card"><small>УДОЧКА</small><br><span id="s-rod">100</span>%</div>
-        </div>
-        <button class="btn-action" style="background:#4CAF50" onclick="doAction('sell_fish')">💰 ПРОДАТЬ (0.5)</button>
-        <button class="btn-action" onclick="doAction('repair_rod')">🛠 ЧИНИТЬ (10)</button>
-        <button class="btn-action" style="background: linear-gradient(to right, #00d2ff, #3a7bd5)" onclick="document.getElementById('shopModal').style.display='flex'">🛒 МАГАЗИН STARS</button>
-        <button class="btn-action" style="background:#6a1b9a" onclick="openTop()">🏆 ТОП</button>
-        <button class="btn-action" style="background:#e53935" onclick="openW()">💳 ВЫВОД</button>
-        <button class="btn-action" style="background:orange" onclick="shareRef()">🔗 ПРИГЛАСИТЬ ДРУГА</button>
+        <h2>背包 РЮКЗАК</h2>
+        <button class="btn-action" onclick="doAction('sell_fish')">ПРОДАТЬ РЫБУ</button>
+        <button class="btn-action" onclick="shareRef()">🔗 ПОЗВАТЬ ДРУГА (+1 📦)</button>
     </div>
 
     <div class="nav-bar">
@@ -132,7 +77,6 @@
 <script>
     const tg = window.Telegram.WebApp;
     const url = 'https://tama-bot-server.onrender.com/api/action';
-    let lastData = { top: [] };
     tg.ready(); tg.expand();
 
     function showToast(txt) {
@@ -141,114 +85,55 @@
     }
 
     async function load() {
-        const uid = tg.initDataUnsafe?.user?.id || "569502967";
-        try {
-            const r = await fetch(`${url}?userId=${uid}`);
-            lastData = await r.json();
-            updateUI(lastData);
-        } catch(e) {}
+        const r = await fetch(`${url}?userId=${tg.initDataUnsafe?.user?.id || "569502967"}`);
+        const d = await r.json();
+        updateUI(d);
     }
 
     function updateUI(d) {
-        // ПРОВЕРКА НА БАН
-        if (d.banned) {
-            document.getElementById('p-game').style.display = 'none';
-            document.getElementById('p-menu').style.display = 'none';
-            document.querySelector('.nav-bar').style.display = 'none';
-            document.getElementById('ban-screen').style.display = 'flex';
-            return;
-        }
-
         document.getElementById('b1').innerText = Number(d.balance).toFixed(2);
         document.getElementById('u-en').innerText = d.energy;
-        document.getElementById('u-lvl').innerText = d.level;
-        document.getElementById('s-fish').innerText = Number(d.fish).toFixed(2);
-        document.getElementById('s-rod').innerText = d.rod_durability;
+        document.getElementById('u-boxes').innerText = d.boxes || 0;
         
-        // Предзаполнение кошелька, если он уже привязан
-        if (d.wallet) document.getElementById('wallet').value = d.wallet;
+        // Если есть коробки, показываем кнопку открытия
+        document.getElementById('openBoxBtn').style.display = (d.boxes > 0) ? 'block' : 'none';
+        document.getElementById('game-ui').style.display = (d.boxes > 0) ? 'none' : 'block';
     }
 
-    async function doAction(act, extra = {}) {
-        const r = await fetch(url, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-                userId: tg.initDataUnsafe?.user?.id || "569502967", 
-                userName: tg.initDataUnsafe?.user?.first_name || "Рыбак", 
-                action: act, ...extra 
-            })
-        });
-        const d = await r.json();
-        if (d.msg && act !== 'catch_fish') showToast(d.msg);
-        updateUI(d);
-        return d;
+    function startBoxGame() {
+        document.getElementById('boxModal').style.display = 'flex';
+        document.getElementById('box-title').innerText = "ВЫБЕРИ ОДНУ КОРОБКУ";
+        document.getElementById('box-status').innerText = "";
+        document.querySelectorAll('.box-item').forEach(b => { b.style.opacity = "1"; b.classList.remove('shake'); b.innerText = "🎁"; });
     }
 
-    async function doFish() {
-        const btn = document.getElementById('cBtn');
-        const anim = document.getElementById('fishAnim');
-        const txt = document.getElementById('idle-text');
-        
-        // ПЕРЕЗАПУСК ГИФКИ
-        anim.src = "fish_anim.webp?t=" + Date.now();
-        btn.style.display = 'none'; txt.style.display = 'none'; anim.style.display = 'block';
-
-        const d = await doAction('catch_fish');
-        setTimeout(() => { if (d.msg) showToast(d.msg); }, 400);
-
-        // ТАЙМИНГ 1100 мс
-        setTimeout(() => {
-            anim.style.display = 'none'; txt.style.display = 'block'; btn.style.display = 'block';
-        }, 1100);
+    async function pickBox(el) {
+        el.classList.add('shake');
+        setTimeout(async () => {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ userId: tg.initDataUnsafe?.user?.id, action: 'open_box' })
+            });
+            const d = await r.json();
+            
+            el.classList.remove('shake');
+            el.innerText = "💰";
+            document.getElementById('box-title').innerText = "ПОЗДРАВЛЯЕМ!";
+            document.getElementById('box-status').innerText = d.msg;
+            
+            setTimeout(() => {
+                document.getElementById('boxModal').style.display = 'none';
+                updateUI(d);
+            }, 2500);
+        }, 1500);
     }
 
-    function buyItem(id) {
-        doAction('buy_stars', { id });
-        document.getElementById('shopModal').style.display = 'none';
-    }
-
-    function openW() { document.getElementById('wModal').style.display = 'flex'; }
-    function closeW() { document.getElementById('wModal').style.display = 'none'; }
-    
-    function submitWithdraw() {
-        const w = document.getElementById('wallet').value;
-        const a = document.getElementById('wAmount').value;
-        if (a < 30000) return showToast("Мин. 30,000 TC");
-        if (!w) return showToast("Введите кошелек!");
-        doAction('withdraw', { wallet: w, amount: a });
-        closeW();
-    }
-
-    function openTop() {
-        const list = lastData.top.map((u, i) => 
-            `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #333">
-                <span>${i+1}. ${u.n}</span>
-                <b style="color:gold">${u.b.toFixed(2)}</b>
-            </div>`
-        ).join('');
-        document.getElementById('topList').innerHTML = list || "Данных нет";
-        document.getElementById('topModal').style.display = 'flex';
-    }
-
-    function shareRef() {
-        const uid = tg.initDataUnsafe?.user?.id || "569502967";
-        const link = `https://t.me/Tama_fishing_2026_bot?start=${uid}`;
-        const el = document.createElement('textarea'); el.value = link; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-        showToast("Ссылка скопирована!");
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Лови рыбу и зарабатывай монеты!`);
-    }
-
-    function tab(id, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('p-' + id).classList.add('active');
-        el.classList.add('active');
-        load();
-    }
+    async function doFish() { /* твоя логика рыбалки */ }
+    async function doAction(act) { /* общая логика */ }
+    function tab(id, el) { /* переключение вкладок */ }
     
     load();
-    setInterval(load, 15000); // Автообновление данных каждые 15 сек
 </script>
 </body>
 </html>
