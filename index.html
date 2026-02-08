@@ -3,247 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing Ultimate</title>
+    <title>Tama Fishing</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { margin: 0; padding: 0; background: #070b1a; color: white; font-family: -apple-system, sans-serif; overflow: hidden; -webkit-user-select: none; }
-        
-        #toast { 
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px);
-            background: #fff; color: #000; padding: 12px 25px; border-radius: 50px; 
-            font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 10000; 
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
-        #toast.show { transform: translateX(-50%) translateY(0); }
-
-        .page { display: none; height: 100vh; flex-direction: column; padding: 20px; box-sizing: border-box; padding-bottom: 100px; }
+        body { margin: 0; background: #070b1a; color: white; font-family: sans-serif; overflow: hidden; }
+        .page { display: none; height: 100vh; flex-direction: column; padding: 20px; box-sizing: border-box; }
         .page.active { display: flex; }
-
-        .balance-card { text-align: center; margin-bottom: 15px; }
-        .balance-val { font-size: 38px; color: #ffd700; font-weight: 900; text-shadow: 0 0 15px rgba(255,215,0,0.3); }
-
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .card small { color: #888; font-size: 11px; display: block; margin-bottom: 5px; }
-        .card span { font-weight: bold; font-size: 18px; }
-
-        #fishAnim { width: 220px; height: 220px; margin: 0 auto; display: none; }
-        #idle-text { color: #2a3a5a; font-weight: bold; font-size: 18px; text-align: center; margin-top: 20px;}
-
-        /* Сетка кнопок */
-        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .button-full { grid-column: span 2; }
-
-        .btn { 
-            background: #4CAF50; border: none; padding: 16px 10px; border-radius: 15px; color: white; 
-            font-weight: bold; width: 100%; font-size: 14px; box-shadow: 0 4px 0 #2d5a27; transition: 0.1s;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        .balance-val { font-size: 36px; color: gold; font-weight: bold; text-align: center; margin: 10px 0; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .card { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid #333; text-align: center; }
+        .btn { background: #4CAF50; border: none; padding: 16px; border-radius: 12px; color: white; font-weight: bold; width: 100%; margin-top: 8px; box-shadow: 0 4px 0 #2d5a27; }
         .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2d5a27; }
         .btn-blue { background: #0288d1; box-shadow: 0 4px 0 #01579b; }
         .btn-red { background: #e53935; box-shadow: 0 4px 0 #b71c1c; }
-        .btn-orange { background: #ff9800; box-shadow: 0 4px 0 #e68900; }
-        .btn-purple { background: #6a1b9a; box-shadow: 0 4px 0 #4a148c; }
-
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 75px; background: #000; display: flex; border-top: 1px solid #333; z-index: 1000; }
+        .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 70px; background: #000; display: flex; border-top: 1px solid #333; }
         .nav-item { flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: center; font-size: 11px; color: #555; }
-        .nav-item.active { color: #ffd700; font-weight: bold; }
-
-        /* Модалки */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 5000; }
-        .modal-inner { background: #1a2235; padding: 25px; border-radius: 20px; width: 85%; box-sizing: border-box; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #0d1425; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
-        
-        .top-list { max-height: 300px; overflow-y: auto; margin: 15px 0; }
-        .top-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+        .nav-item.active { color: gold; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-inner { background: #1a2235; padding: 20px; border-radius: 15px; width: 80%; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #070b1a; color: white; box-sizing: border-box; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: gold; color: black; padding: 10px 20px; border-radius: 50px; font-weight: bold; transition: 0.5s; z-index: 2000; }
+        #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
-
     <div id="toast"></div>
 
     <div id="wModal" class="modal">
         <div class="modal-inner">
-            <h3 style="margin:0">💳 ВЫВОД TC</h3>
-            <small style="color:#888">Минимальная сумма: 30,000 TC</small>
-            <input type="text" id="wallet" placeholder="Кошелек TON (UQ...)">
-            <input type="number" id="wAmount" placeholder="Количество TC">
-            <button class="btn" onclick="submitWithdraw()">ОТПРАВИТЬ ЗАЯВКУ</button>
-            <button class="btn" style="background:#444; box-shadow:0 4px 0 #222" onclick="closeW()">ЗАКРЫТЬ</button>
+            <h3>💳 ВЫВОД</h3>
+            <input type="text" id="wallet" placeholder="Ваш кошелек">
+            <input type="number" id="wAmount" placeholder="Сумма (min 30000)">
+            <button class="btn" onclick="submitWithdraw()">ОТПРАВИТЬ</button>
+            <button class="btn" style="background:#444" onclick="closeW()">ОТМЕНА</button>
         </div>
     </div>
 
     <div id="topModal" class="modal">
         <div class="modal-inner">
-            <h3 style="margin:0">🏆 ТОП РЫБАКОВ</h3>
-            <div class="top-list" id="topContent">
-                <div style="text-align:center; padding:20px;">Загрузка данных...</div>
-            </div>
-            <button class="btn btn-blue" onclick="document.getElementById('topModal').style.display='none'">ПОНЯТНО</button>
+            <h3>🏆 ТОП ИГРОКОВ</h3>
+            <div id="topList"></div>
+            <button class="btn btn-blue" onclick="document.getElementById('topModal').style.display='none'">ЗАКРЫТЬ</button>
         </div>
     </div>
 
     <div id="p-game" class="page active">
-        <div class="balance-card">
-            <div style="font-size: 11px; color: #888;">ТЕКУЩИЙ БАЛАНС</div>
-            <div class="balance-val"><span id="b1">0.00</span> TC</div>
-        </div>
-
+        <div class="balance-val"><span id="b1">0.00</span> TC</div>
         <div class="stat-grid">
-            <div class="card"><small>ЭНЕРГИЯ</small><span id="u-en">0</span></div>
-            <div class="card"><small>РАНГ</small><span id="u-lvl">1</span></div>
+            <div class="card"><small>ЭНЕРГИЯ</small><br><span id="u-en">0</span></div>
+            <div class="card"><small>РАНГ</small><br><span id="u-lvl">1</span></div>
         </div>
-
-        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center; flex-direction:column;">
-            <img src="fish_anim.webp" id="fishAnim">
-            <div id="idle-text">🌊 Закидывай удочку!</div>
+        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center;">
+            <img src="fish_anim.webp" id="fishAnim" style="width:200px; display:none;">
+            <div id="idle-text">🌊 Начинаем рыбалку!</div>
         </div>
-
-        <button class="btn" id="cBtn" onclick="doFish()" style="padding: 22px;">🎣 ЗАБРОСИТЬ УДОЧКУ</button>
+        <button class="btn" id="cBtn" onclick="doFish()">🎣 ЗАБРОСИТЬ УДОЧКУ</button>
     </div>
 
-    <div id="p-sadok" class="page">
-        <h2 style="text-align:center; margin-top:0;">🎒 ПАНЕЛЬ УПРАВЛЕНИЯ</h2>
-        
+    <div id="p-menu" class="page">
+        <h2>🎒 ПАНЕЛЬ УПРАВЛЕНИЯ</h2>
         <div class="stat-grid">
-            <div class="card"><small>ВЕС В САДКЕ</small><span><span id="s-fish">0.00</span> кг</span></div>
-            <div class="card"><small>УДОЧКА</small><span><span id="s-rod">100</span>%</span></div>
+            <div class="card"><small>САДОК</small><br><span id="s-fish">0.00</span> кг</div>
+            <div class="card"><small>УДОЧКА</small><br><span id="s-rod">100</span>%</div>
         </div>
-
-        <div class="button-grid">
-            <button class="btn" onclick="doAction('sell_fish')">
-                <span>💰 ПРОДАТЬ</span>
-                <small style="font-size:9px; color:#eee">0.1 TC / кг</small>
-            </button>
-            <button class="btn btn-blue" onclick="doAction('repair_rod')">
-                <span>🛠 ПОЧИНИТЬ</span>
-                <small style="font-size:9px; color:#eee">Цена: 10 TC</small>
-            </button>
+        <div class="grid-btns">
+            <button class="btn" onclick="doAction('sell_fish')">💰 ПРОДАТЬ</button>
+            <button class="btn btn-blue" onclick="doAction('repair_rod')">🛠 ЧИНИТЬ</button>
+            <button class="btn" style="background:#6a1b9a" onclick="openTop()">🏆 ТОП</button>
+            <button class="btn btn-red" onclick="openW()">💳 ВЫВОД</button>
         </div>
-
-        <div class="button-grid">
-            <button class="btn btn-purple" onclick="openTop()">
-                <span>🏆 ТОП</span>
-            </button>
-            <button class="btn btn-red" onclick="openW()">
-                <span>💳 ВЫВОД</span>
-            </button>
-        </div>
-
-        <div class="button-grid">
-            <button class="btn btn-orange button-full" onclick="shareRef()">
-                <span>🔗 ПРИГЛАСИТЬ ДРУГА (+🎁 БОНУС)</span>
-            </button>
-        </div>
-
-        <div class="card" style="margin-top:20px; text-align:left;">
-            <small>ИНФОРМАЦИЯ:</small>
-            <div style="font-size:12px; line-height:1.4">
-                • Вывод доступен от 30,000 TC<br>
-                • За каждого друга вы получаете подарок!<br>
-                • Золотой час: х2 улов каждый вечер.
-            </div>
-        </div>
+        <button class="btn" style="background:orange" onclick="shareRef()">🔗 ПРИГЛАСИТЬ ДРУГА</button>
     </div>
 
     <div class="nav-bar">
         <div class="nav-item active" onclick="tab('game', this)">🎮 ИГРА</div>
-        <div class="nav-item" onclick="tab('sadok', this)">🎒 МЕНЮ И СКЛАД</div>
+        <div class="nav-item" onclick="tab('menu', this)">🎒 МЕНЮ</div>
     </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     const url = 'https://tama-bot-server.onrender.com/api/action';
+    let lastData = {};
     tg.ready(); tg.expand();
 
-    const s_splash = new Audio('https://www.myinstants.com/media/sounds/splash.mp3');
-    const s_money = new Audio('https://www.myinstants.com/media/sounds/coins.mp3');
-
     function showToast(txt) {
-        const t = document.getElementById('toast');
-        t.innerText = txt; t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
-    }
-
-    function getUID() { return tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "569502967"; }
-
-    function tab(id, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('p-' + id).classList.add('active');
-        el.classList.add('active');
-        load();
+        const t = document.getElementById('toast'); t.innerText = txt;
+        t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000);
     }
 
     async function load() {
-        try {
-            const r = await fetch(`${url}?userId=${getUID()}`);
-            const d = await r.json();
-            updateUI(d);
-        } catch(e) {}
+        const r = await fetch(`${url}?userId=${tg.initDataUnsafe?.user?.id || "569502967"}`);
+        lastData = await r.json();
+        updateUI(lastData);
     }
 
     function updateUI(d) {
         document.getElementById('b1').innerText = d.balance.toFixed(2);
-        document.getElementById('s-fish').innerText = d.fish.toFixed(2);
-        document.getElementById('s-rod').innerText = d.rod_durability;
         document.getElementById('u-en').innerText = d.energy;
         document.getElementById('u-lvl').innerText = d.level;
+        document.getElementById('s-fish').innerText = d.fish.toFixed(2);
+        document.getElementById('s-rod').innerText = d.rod_durability;
     }
 
     async function doAction(act, extra = {}) {
         const r = await fetch(url, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ userId: getUID(), action: act, ...extra })
+            body: JSON.stringify({ userId: tg.initDataUnsafe?.user?.id || "569502967", userName: tg.initDataUnsafe?.user?.first_name || "Рыбак", action: act, ...extra })
         });
         const d = await r.json();
-        if (d.msg && act !== 'catch_fish') showToast(d.msg);
-        if (act === 'sell_fish') s_money.play();
+        if (d.msg) showToast(d.msg);
         updateUI(d);
         return d;
     }
 
     async function doFish() {
-        const btn = document.getElementById('cBtn');
-        btn.disabled = true;
-        s_splash.play();
-        const data = await doAction('catch_fish');
+        document.getElementById('cBtn').disabled = true;
+        const d = await doAction('catch_fish');
         document.getElementById('fishAnim').style.display = 'block';
         document.getElementById('idle-text').style.display = 'none';
-        
-        setTimeout(() => { if (data?.msg) showToast(data.msg); }, 1500);
         setTimeout(() => {
             document.getElementById('fishAnim').style.display = 'none';
             document.getElementById('idle-text').style.display = 'block';
-            btn.disabled = false;
-        }, 3000);
+            document.getElementById('cBtn').disabled = false;
+        }, 2500);
+    }
+
+    function tab(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('p-' + id).classList.add('active');
+        el.classList.add('active');
     }
 
     function openW() { document.getElementById('wModal').style.display = 'flex'; }
     function closeW() { document.getElementById('wModal').style.display = 'none'; }
-
-    async function submitWithdraw() {
+    function submitWithdraw() {
         const wallet = document.getElementById('wallet').value;
         const amount = document.getElementById('wAmount').value;
-        if (!wallet || amount < 30000) return showToast("Ошибка: сумма или кошелек");
-        await doAction('withdraw', { wallet, amount });
+        if (amount < 30000) return showToast("Минимум 30к!");
+        doAction('withdraw', { wallet, amount });
         closeW();
     }
 
     function openTop() {
+        const list = lastData.top.map((u, i) => `<div>${i+1}. ${u.n} - ${u.b} TC</div>`).join('');
+        document.getElementById('topList').innerHTML = list || "Пока пусто";
         document.getElementById('topModal').style.display = 'flex';
-        // Здесь можно добавить fetch для получения реального топа, но пока заглушка
-        document.getElementById('topContent').innerHTML = `
-            <div class="top-item"><span>1. Boss</span><span>150,000 TC</span></div>
-            <div class="top-item"><span>2. Shark</span><span>89,400 TC</span></div>
-            <div class="top-item"><span>3. You</span><span>${document.getElementById('b1').innerText} TC</span></div>
-        `;
     }
 
     function shareRef() {
-        const link = `https://t.me/Tama_fishing_2026_bot?start=${getUID()}`;
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Лови рыбу и зарабатывай TC!`);
+        const link = `https://t.me/Tama_fishing_2026_bot?start=${tg.initDataUnsafe?.user?.id || ""}`;
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Лови рыбу и зарабатывай!`);
     }
 
     load();
