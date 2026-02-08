@@ -3,105 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tamacoin Fishing Pro</title>
+    <title>Tama Fishing Mobile</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { margin: 0; padding: 0; background: #87CEEB; overflow: hidden; font-family: sans-serif; }
-        
-        /* Сцена озера */
-        .lake { position: relative; width: 100vw; height: 60vh; background: linear-gradient(180deg, #4da6ff, #0066cc); border-bottom: 5px solid #004d99; }
-        
-        /* Камыши */
-        .reed { position: absolute; bottom: 0; width: 20px; height: 100px; background: #2d5a27; border-radius: 10px 10px 0 0; }
-        .reed::after { content: ''; position: absolute; top: -20px; left: 0; width: 20px; height: 40px; background: #4b3621; border-radius: 10px; }
-        
-        /* Облака */
-        .cloud { position: absolute; background: white; width: 60px; height: 20px; border-radius: 20px; opacity: 0.8; animation: moveClouds 20s linear infinite; }
-        @keyframes moveClouds { from { left: -100px; } to { left: 100vw; } }
+        :root { --water: #2c7bb6; --sky: #abd9e9; }
+        body { margin: 0; background: var(--sky); font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
 
-        /* Удочка и Поплавок */
-        .rod { position: absolute; right: 20%; bottom: 80px; width: 5px; height: 150px; background: #4b3621; transform: rotate(45deg); transition: 0.5s; }
-        .line { position: absolute; top: 0; left: 2px; width: 1px; height: 200px; background: white; transform: rotate(-45deg); transform-origin: top; }
-        .bobber { position: absolute; bottom: -200px; left: -140px; width: 15px; height: 25px; background: red; border-radius: 50% 50% 5px 5px; border: 2px solid white; display: none; }
+        /* Сцена */
+        .world { position: relative; height: 60vh; background: linear-gradient(to bottom, #74ebd5, #acb6e5); overflow: hidden; }
+        .water { position: absolute; bottom: 0; width: 100%; height: 100px; background: var(--water); opacity: 0.8; z-index: 10; }
 
-        /* Анимация поклевки */
-        .bite { animation: shake 0.5s infinite; }
-        @keyframes shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+        /* Удочка */
+        .rod-container { position: absolute; right: -20px; bottom: 80px; width: 200px; height: 200px; transform: rotate(-15deg); transition: 0.5s; z-index: 5; }
+        .rod-stick { width: 6px; height: 250px; background: #4b3621; border-radius: 5px; transform-origin: bottom; transition: 0.3s; }
+        .line { position: absolute; top: 0; left: 3px; width: 1px; height: 180px; background: white; transform-origin: top; transition: 0.3s; }
 
-        /* Интерфейс */
-        .ui { height: 40vh; background: #1a2a6c; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; }
-        .btn { background: #4CAF50; border: none; color: white; padding: 15px; width: 100%; font-size: 18px; border-radius: 12px; font-weight: bold; margin-bottom: 10px; }
-        #status { color: #88bdff; text-align: center; font-size: 14px; }
+        /* Поплавок */
+        .bobber { position: absolute; bottom: -10px; left: -7px; width: 14px; height: 20px; background: red; border: 2px solid white; border-radius: 50% 50% 2px 2px; }
+
+        /* Рыбка */
+        .fish { 
+            position: absolute; width: 40px; height: 30px; background: orange; border-radius: 50% 50% 50% 50%;
+            display: none; z-index: 15; left: 30%; bottom: 80px; box-shadow: 0 0 10px gold;
+        }
+        .fish::after { content: '🐟'; font-size: 25px; position: absolute; top: -5px; left: 5px; }
+
+        /* Анимации */
+        @keyframes bite { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(15px); } }
+        @keyframes rodBend { 0% { transform: rotate(0deg); } 50% { transform: rotate(15deg); } }
+        @keyframes catchFish { 
+            0% { bottom: 50px; left: 30%; transform: rotate(0deg); opacity: 1; }
+            100% { bottom: 300px; left: 80%; transform: rotate(360deg); opacity: 0; }
+        }
+
+        .active-bite { animation: bite 0.4s infinite; }
+        .active-bend { animation: rodBend 0.4s infinite; }
+        .jump-fish { display: block !important; animation: catchFish 0.8s ease-out forwards; }
+
+        /* Кнопки */
+        .ui { height: 40vh; background: #1a2a6c; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 15px; }
+        .btn { width: 100%; max-width: 300px; padding: 18px; border: none; border-radius: 15px; color: white; font-size: 20px; font-weight: bold; cursor: pointer; }
+        .btn-go { background: #4CAF50; box-shadow: 0 5px #2d5a27; }
+        .btn-go:active { transform: translateY(3px); box-shadow: 0 2px #2d5a27; }
+        #status { color: #88bdff; font-weight: 500; }
     </style>
 </head>
 <body>
 
-    <div class="lake">
-        <div class="cloud" style="top: 20px; animation-duration: 25s;"></div>
-        <div class="cloud" style="top: 60px; animation-duration: 35s; left: 50%;"></div>
-        
-        <div class="reed" style="left: 10px; height: 120px;"></div>
-        <div class="reed" style="left: 40px; height: 90px;"></div>
-        <div class="reed" style="right: 20px; height: 110px;"></div>
-
-        <div class="rod" id="rod">
+<div class="world">
+    <div class="water"></div>
+    <div class="rod-container" id="rodBox">
+        <div class="rod-stick" id="rodStick">
             <div class="line">
                 <div class="bobber" id="bobber"></div>
             </div>
         </div>
     </div>
+    <div class="fish" id="fish"></div>
+</div>
 
-    <div class="ui">
-        <button class="btn" id="catchBtn" onclick="startFishing()">ЗАБРОСИТЬ УДОЧКУ 🎣</button>
-        <button class="btn" style="background:#f44336" onclick="sendAction('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ 💰</button>
-        <div id="status">Готов к рыбалке</div>
-    </div>
+<div class="ui">
+    <button class="btn btn-go" id="mainBtn" onclick="handleFishing()">ЗАБРОСИТЬ 🎣</button>
+    <button class="btn" style="background:#f44336" onclick="sendToServer('sell_fish')">ПРОДАТЬ 💰</button>
+    <div id="status">Готов к рыбалке</div>
+</div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        const SERVER_URL = 'https://tama-bot-server.onrender.com/api/action';
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    const SERVER_URL = 'https://tama-bot-server.onrender.com/api/action';
 
-        async function startFishing() {
-            const bobber = document.getElementById('bobber');
-            const status = document.getElementById('status');
-            const btn = document.getElementById('catchBtn');
+    async function handleFishing() {
+        const btn = document.getElementById('mainBtn');
+        const bobber = document.getElementById('bobber');
+        const rod = document.getElementById('rodStick');
+        const fish = document.getElementById('fish');
+        const status = document.getElementById('status');
 
-            btn.disabled = true;
-            status.innerText = "Забрасываем... Ожидание поклевки...";
+        btn.disabled = true;
+        status.innerText = "Закинули... Ждем...";
+
+        // 1. Поклевка через 1.5 сек
+        setTimeout(() => {
+            bobber.classList.add('active-bite');
+            rod.classList.add('active-bend');
+            status.innerText = "КЛЮЕТ! Тянем...";
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+        }, 1500);
+
+        // 2. Вытягивание через 3 сек
+        setTimeout(async () => {
+            bobber.classList.remove('active-bite');
+            rod.classList.remove('active-bend');
             
-            // Показываем поплавок и включаем "тряску" через 1 сек
-            bobber.style.display = 'block';
-            setTimeout(() => { bobber.classList.add('bite'); }, 1000);
-
-            // Через 3 секунды отправляем запрос на сервер
-            setTimeout(async () => {
-                await sendAction('catch_fish');
-                bobber.style.display = 'none';
-                bobber.classList.remove('bite');
+            // Анимация рыбки
+            fish.classList.add('jump-fish');
+            
+            await sendToServer('catch_fish');
+            
+            setTimeout(() => {
+                fish.classList.remove('jump-fish');
                 btn.disabled = false;
-            }, 3500);
-        }
+                status.innerText = "Успешный улов!";
+            }, 800);
 
-        async function sendAction(actionName) {
-            const status = document.getElementById('status');
-            const user = tg.initDataUnsafe?.user;
+        }, 3500);
+    }
 
-            try {
-                const response = await fetch(SERVER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: user.id, action: actionName })
-                });
+    async function sendToServer(act) {
+        const user = tg.initDataUnsafe?.user;
+        if (!user) return;
+        
+        try {
+            await fetch(SERVER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, action: act })
+            });
+        } catch (e) { console.error("Error:", e); }
+    }
+</script>
 
-                if (response.ok) {
-                    status.innerText = "✅ Успешно! Результат в чате.";
-                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                }
-            } catch (e) {
-                status.innerText = "❌ Ошибка связи с сервером";
-            }
-        }
-    </script>
 </body>
 </html>
