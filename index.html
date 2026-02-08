@@ -27,7 +27,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Уведомления (Toast) */
+        /* Уведомления */
         #toast {
             position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150%);
             background: var(--gold); color: #000;
@@ -60,11 +60,28 @@
         .stat-item small { display: block; font-size: 10px; color: #8892b0; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
         .stat-item b { font-size: 20px; font-weight: 800; }
 
-        /* Зона рыбалки */
-        .fishing-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
-        #fishAnim { width: 180px; display: none; filter: drop-shadow(0 0 20px var(--blue)); }
+        /* Зона рыбалки - УВЕЛИЧЕНА */
+        .fishing-area { 
+            flex-grow: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative;
+            padding: 20px 0;
+        }
+        #fishAnim { 
+            width: 85%; 
+            max-width: 320px; 
+            display: none; 
+            filter: drop-shadow(0 0 30px var(--blue)); 
+            animation: fishPop 0.3s ease-out;
+        }
+        @keyframes fishPop {
+            from { transform: scale(0.6); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
 
-        /* Фиксированные кнопки внизу */
+        /* Кнопки внизу */
         .bottom-actions {
             position: fixed; bottom: 95px; left: 0; width: 100%;
             padding: 0 20px; box-sizing: border-box; z-index: 100;
@@ -86,9 +103,9 @@
         }
         .btn:active { transform: scale(0.97); }
 
-        /* Выпадающие меню (Аккордеоны) */
+        /* Выпадающие меню */
         .section { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 24px; margin-bottom: 15px; overflow: hidden; transition: 0.3s; }
-        .section-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; }
+        .section-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; cursor: pointer; }
         .section-content { 
             max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out;
             background: rgba(0,0,0,0.2);
@@ -111,7 +128,6 @@
             padding: 16px; border-radius: 14px; color: white; font-size: 16px;
             margin-bottom: 12px; box-sizing: border-box; outline: none;
         }
-        input:focus { border-color: var(--blue); }
 
         /* Навигация */
         .navbar {
@@ -123,7 +139,7 @@
         .nav-link { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #556080; text-decoration: none; transition: 0.3s; }
         .nav-link.active { color: var(--gold); }
         .nav-link span { font-size: 24px; margin-bottom: 4px; }
-        .nav-link label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-link label { font-size: 10px; font-weight: 700; text-transform: uppercase; }
 
         /* Модалка сундуков */
         .modal {
@@ -132,8 +148,7 @@
             flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
         }
         .box-wrap { display: flex; gap: 25px; margin-top: 40px; }
-        .box-item { font-size: 70px; cursor: pointer; transition: 0.3s; filter: drop-shadow(0 0 20px rgba(255,215,0,0.2)); }
-        .box-item:hover { transform: scale(1.1) rotate(5deg); }
+        .box-item { font-size: 70px; cursor: pointer; transition: 0.3s; }
     </style>
 </head>
 <body>
@@ -171,7 +186,7 @@
         </div>
         <div class="section-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span>Рыбы в сумке: <b id="u-fish">0</b> кг</span>
+                <span>В сумке: <b id="u-fish">0</b> кг</span>
             </div>
             <button class="btn btn-blue" style="padding:15px; font-size:15px;" onclick="doAction('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ</button>
         </div>
@@ -206,7 +221,7 @@
         <div class="section-content">
             <input type="text" id="wallet" placeholder="TON Кошелек (UQ...)">
             <input type="number" id="amount" placeholder="Минимум 30 000 TC">
-            <button class="btn btn-blue" style="background: #e91e63; box-shadow: 0 6px 20px rgba(233, 30, 99, 0.3);" onclick="withdraw()">ОТПРАВИТЬ ЗАЯВКУ</button>
+            <button class="btn btn-blue" style="background: #e91e63;" onclick="withdraw()">ОТПРАВИТЬ ЗАЯВКУ</button>
         </div>
     </div>
 </div>
@@ -223,7 +238,6 @@
         <div class="box-item" onclick="selectBox(this)">🎁</div>
         <div class="box-item" onclick="selectBox(this)">🎁</div>
     </div>
-    <p style="margin-top:40px; color:#556080;">Внутри до 50,000 TC</p>
 </div>
 
 <nav class="navbar">
@@ -238,7 +252,6 @@
     
     tg.ready();
     tg.expand();
-    tg.enableClosingConfirmation();
 
     function showToast(text) {
         const toast = document.getElementById('toast');
@@ -248,8 +261,7 @@
     }
 
     function toggleSection(header) {
-        const section = header.parentElement;
-        section.classList.toggle('open');
+        header.parentElement.classList.toggle('open');
     }
 
     function showPage(pageId, navEl) {
@@ -275,7 +287,6 @@
         document.getElementById('u-en').innerText = d.energy;
         document.getElementById('u-boxes').innerText = d.boxes || 0;
         document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
-        
         document.getElementById('btn-open-box').style.display = (d.boxes > 0) ? 'flex' : 'none';
 
         if(d.top) {
@@ -313,12 +324,11 @@
         setTimeout(() => {
             anim.style.display = 'none';
             doAction('catch_fish');
-        }, 1100);
+        }, 1200); // 1.2 секунды как заказывал
     }
 
     function openBoxModal() { 
         document.getElementById('box-modal').style.display = 'flex'; 
-        tg.HapticFeedback.notificationOccurred('warning');
     }
     
     function selectBox(el) {
@@ -334,12 +344,12 @@
     function withdraw() {
         const w = document.getElementById('wallet').value;
         const a = document.getElementById('amount').value;
-        if(!w || a < 30000) return showToast("Минимум 30,000 TC!");
+        if(!w || a < 30000) return showToast("Заполни данные!");
         doAction('withdraw', {wallet: w, amount: parseFloat(a)});
     }
 
     loadData();
-    setInterval(loadData, 30000);
+    setInterval(loadData, 25000);
 </script>
 </body>
 </html>
