@@ -1,33 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tama Fishing PRO</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { 
+            margin: 0; padding: 0; background: #0a1128; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            color: white; overflow: hidden; -webkit-user-select: none; 
+        }
+        
+        /* Контейнеры страниц */
+        .page { 
+            display: none; height: 100vh; flex-direction: column; 
+            padding: 20px; box-sizing: border-box; 
+            padding-bottom: 100px; /* Запас под меню */
+        }
+        .page.active { display: flex; }
+        
+        /* Нижняя навигация */
+        .nav-bar { 
+            position: fixed; bottom: 0; width: 100%; height: 80px; 
+            background: rgba(0, 0, 0, 0.95); display: flex; 
+            border-top: 1px solid #333; z-index: 1000; 
+            backdrop-filter: blur(10px);
+        }
+        .nav-item { 
+            flex: 1; text-align: center; display: flex; 
+            flex-direction: column; justify-content: center; 
+            align-items: center; color: #666; font-size: 11px; font-weight: bold; 
+        }
+        .nav-item.active { color: #ffd700; }
+        .nav-item .icon { font-size: 24px; margin-bottom: 4px; }
+        
+        /* Карточки */
+        .card { 
+            background: rgba(255,255,255,0.05); padding: 20px; 
+            border-radius: 20px; margin-bottom: 15px; 
+            text-align: center; border: 1px solid rgba(255,255,255,0.1); 
+        }
+        .btn { 
+            background: #4CAF50; border: none; padding: 18px; 
+            border-radius: 15px; color: white; font-weight: bold; 
+            width: 100%; margin-top: 10px; font-size: 16px; 
+            box-shadow: 0 4px 0 #2d5a27; transition: 0.1s;
+        }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2d5a27; }
+        .btn:disabled { opacity: 0.5; box-shadow: none; transform: translateY(4px); }
+
+        /* Игровые элементы */
+        #fishAnim { width: 220px; height: 220px; margin: 20px auto; display: none; object-fit: contain; }
+        .balance-header { font-size: 32px; color: #ffd700; font-weight: 900; text-align: center; margin: 10px 0; text-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        .stat-label { color: #888; font-size: 14px; margin-bottom: 5px; }
+        .stat-value { font-size: 20px; font-weight: bold; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div id="p-game" class="page active">
+        <div class="stat-label" style="text-align: center; margin-top: 10px;">ВАШ БАЛАНС</div>
+        <div class="balance-header"><span id="b1">0.00</span> TC</div>
+        
+        <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+            <img src="" id="fishAnim" alt="Fish">
+            <div id="idle-text" style="color: #444; font-style: italic;">Закидывай удочку...</div>
+        </div>
+        
+        <div style="padding-bottom: 10px;">
+            <button class="btn" id="cBtn" onclick="doFish()">ЗАБРОСИТЬ УДОЧКУ 🎣</button>
+        </div>
+    </div>
+
+    <div id="p-sadok" class="page">
+        <h2 style="text-align: center; margin-bottom: 25px;">🎒 МОЙ САДОК</h2>
+        <div class="card">
+            <div class="stat-label">РЫБЫ В САДКЕ</div>
+            <div class="stat-value"><span id="s-fish">0.00</span> кг</div>
+            <div style="height: 15px;"></div>
+            <div class="stat-label">ПРОЧНОСТЬ УДОЧКИ</div>
+            <div class="stat-value"><span id="s-rod">100</span>%</div>
+        </div>
+        <button class="btn" onclick="doAction('sell_fish')">ПРОДАТЬ УЛОВ (0.5 TC/кг) 💰</button>
+        <button class="btn" onclick="doAction('repair_rod')" style="background: #0288d1; box-shadow: 0 4px 0 #01579b;">ПОЧИНИТЬ (5 TC) 🛠</button>
+        <button class="btn" onclick="tg.showAlert('Заявка принята! Ожидайте уведомления от админа.')" style="background: #e53935; box-shadow: 0 4px 0 #b71c1c; margin-top: 30px;">ВЫВЕСТИ (ОТ 30,000 TC)</button>
+    </div>
+
+    <div id="p-shop" class="page">
+        <h2 style="text-align: center; margin-bottom: 25px;">🛒 МАГАЗИН</h2>
+        <div class="card">
+            <div class="stat-value">📡 Эхолот (3 заряда)</div>
+            <p style="color: #888; font-size: 13px;">Увеличивает шанс на редкую рыбу</p>
+            <button class="btn" onclick="tg.showAlert('Оплата TON будет доступна в следующем обновлении!')">0.5 USDT</button>
+        </div>
+        <div class="card">
+            <div class="stat-value">🌊 Озеро Надежды</div>
+            <p style="color: #888; font-size: 13px;">Новая локация с дорогим уловом</p>
+            <button class="btn" onclick="tg.showAlert('Оплата TON будет доступна в следующем обновлении!')">1.0 USDT</button>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="tab('game', this)">
+            <span class="icon">🎮</span><span>ИГРА</span>
+        </div>
+        <div class="nav-item" onclick="tab('sadok', this)">
+            <span class="icon">🎒</span><span>САДОК</span>
+        </div>
+        <div class="nav-item" onclick="tab('shop', this)">
+            <span class="icon">🛒</span><span>МАГАЗИН</span>
+        </div>
+    </div>
+
 <script>
     const tg = window.Telegram.WebApp;
+    // URL твоего сервера на Render
     const url = 'https://tama-bot-server.onrender.com/api/action';
     
-    // Ждем, пока TelegramWebApp инициализируется
     tg.ready();
+    tg.expand();
 
+    // Получаем реальный ID юзера или тестовый
     function getUID() {
-        return tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "569502967"; 
+        return tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "569502967";
     }
 
+    // Переключение вкладок
+    function tab(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('p-' + id).classList.add('active');
+        el.classList.add('active');
+        load();
+    }
+
+    // Загрузка данных с сервера
     async function load() {
         const uid = getUID();
         try {
             const r = await fetch(`${url}?userId=${uid}`);
-            const d = await r.json();
-            document.getElementById('b1').innerText = d.balance.toFixed(2);
-            document.getElementById('s-fish').innerText = d.fish.toFixed(2);
-            document.getElementById('s-rod').innerText = d.rod_durability;
-        } catch(e) { console.log("Ошибка загрузки"); }
+            if (r.ok) {
+                const d = await r.json();
+                document.getElementById('b1').innerText = Number(d.balance).toFixed(2);
+                document.getElementById('s-fish').innerText = Number(d.fish).toFixed(2);
+                document.getElementById('s-rod').innerText = d.rod_durability;
+            }
+        } catch(e) { console.error("Ошибка сети"); }
     }
 
+    // Общая функция действий
     async function doAction(act) {
         const uid = getUID();
-        await fetch(url, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ userId: uid, action: act })
-        });
-        load();
+        try {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ userId: uid, action: act })
+            });
+            const d = await r.json();
+            load();
+            return d;
+        } catch(e) { console.error("Ошибка действия"); }
     }
-    // ... остальной код анимации допиши сюда
+
+    // Логика рыбалки
+    async function doFish() {
+        const btn = document.getElementById('cBtn');
+        const anim = document.getElementById('fishAnim');
+        const idle = document.getElementById('idle-text');
+        
+        btn.disabled = true;
+        idle.style.display = 'none';
+
+        // Вибрация телефона
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+        setTimeout(async () => {
+            // Показываем рыбу (убедись, что файл fish_anim.webp есть в корне GitHub)
+            anim.src = "fish_anim.webp?t=" + new Date().getTime();
+            anim.style.display = 'block';
+            
+            await doAction('catch_fish');
+
+            setTimeout(() => {
+                anim.style.display = 'none';
+                idle.style.display = 'block';
+                btn.disabled = false;
+                load();
+            }, 2000);
+        }, 1000);
+    }
+
+    // Первая загрузка
+    load();
 </script>
+</body>
+</html>
