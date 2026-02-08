@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing NEXT</title>
+    <title>Tama Fishing Polish</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { margin: 0; padding: 0; background: #070b1a; color: white; font-family: sans-serif; overflow: hidden; }
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: gold; color: #000; padding: 12px 25px; border-radius: 50px; font-weight: bold; z-index: 10000; transition: 0.5s; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: gold; color: #000; padding: 10px 20px; border-radius: 50px; font-weight: bold; z-index: 10000; transition: 0.5s; }
         #toast.show { transform: translateX(-50%) translateY(0); }
 
         .page { display: none; height: 100vh; flex-direction: column; padding: 20px; box-sizing: border-box; }
@@ -18,24 +18,26 @@
         .card { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
 
         .game-zone { position: relative; flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #fishAnim { width: 250px; height: 250px; display: none; margin-bottom: 80px; }
-        #idle-text { font-size: 18px; color: #3a4a6a; font-weight: bold; margin-bottom: 20px; }
+        #fishAnim { width: 260px; height: 260px; display: none; margin-bottom: 20px; }
+        #idle-text { font-size: 16px; color: #3a4a6a; font-weight: bold; margin-bottom: 10px; }
 
-        /* КНОПКА: Тонкая, ниже и скрываемая */
+        /* ИДЕАЛЬНАЯ КНОПКА: Широкая, очень тонкая, снизу */
         #cBtn { 
             position: absolute;
-            top: 70%; /* Опустили еще ниже для красоты */
+            bottom: 15%; /* Привязка к нижнему краю игровой зоны */
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             background: #4CAF50; border: none; 
-            padding: 12px 30px; 
-            border-radius: 25px; 
+            padding: 8px 0; /* Вполовину тоньше */
+            border-radius: 10px; 
             color: white; font-weight: bold; 
-            width: 65%; 
-            font-size: 16px; 
-            box-shadow: 0 4px 0 #2d5a27; z-index: 100;
+            width: 90%; /* Максимально широкая */
+            font-size: 14px; /* Компактный текст */
+            box-shadow: 0 3px 0 #2d5a27; z-index: 100;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        #cBtn:active { transform: translate(-50%, -48%); box-shadow: 0 1px 0 #2d5a27; }
+        #cBtn:active { transform: translateX(-50%) translateY(2px); box-shadow: 0 1px 0 #2d5a27; }
 
         .btn-action { background: #0288d1; border: none; padding: 15px; border-radius: 15px; color: white; font-weight: bold; box-shadow: 0 4px 0 #01579b; width: 100%; }
         .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -43,10 +45,6 @@
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: #000; display: flex; border-top: 1px solid #333; }
         .nav-item { flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: center; font-size: 12px; color: #555; }
         .nav-item.active { color: gold; font-weight: bold; }
-
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 9000; }
-        .modal-inner { background: #1a2235; padding: 20px; border-radius: 20px; width: 85%; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #070b1a; color: white; border: 1px solid #333; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -59,9 +57,9 @@
             <div class="card"><small>РАНГ</small><span id="u-lvl">1</span></div>
         </div>
         <div class="game-zone">
-            <div id="idle-text">🏝 Клёв будет бешеный!</div>
+            <div id="idle-text">🏝 ТИХАЯ ЗАВОДЬ</div>
             <img src="fish_anim.webp" id="fishAnim">
-            <button id="cBtn" onclick="doFish()">🎣 ЗАБРОСИТЬ УДОЧКУ</button>
+            <button id="cBtn" onclick="doFish()">ЗАБРОСИТЬ УДОЧКУ</button>
         </div>
     </div>
 
@@ -77,7 +75,6 @@
             <button class="btn-action" style="background:#6a1b9a" onclick="openTop()">🏆 ТОП</button>
             <button class="btn-action" style="background:#e53935" onclick="openW()">💳 ВЫВОД</button>
         </div>
-        <button class="btn-action" style="margin-top:15px; background:orange;" onclick="shareRef()">🔗 ПРИГЛАСИТЬ</button>
     </div>
 
     <div class="nav-bar">
@@ -93,7 +90,7 @@
 
     function showToast(txt) {
         const t = document.getElementById('toast'); t.innerText = txt;
-        t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000);
+        t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000);
     }
 
     async function load() {
@@ -134,20 +131,21 @@
         const anim = document.getElementById('fishAnim');
         const txt = document.getElementById('idle-text');
 
-        // КНОПКА ИСЧЕЗАЕТ ПОЛНОСТЬЮ
         btn.style.display = 'none';
         txt.style.display = 'none';
         anim.style.display = 'block';
 
         const d = await doAction('catch_fish');
         
-        setTimeout(() => { if (d.msg) showToast(d.msg); }, 800);
+        // Уведомление чуть быстрее
+        setTimeout(() => { if (d.msg) showToast(d.msg); }, 600);
 
+        // Сократили до 1.5 секунд (1 заброс)
         setTimeout(() => {
             anim.style.display = 'none';
             txt.style.display = 'block';
-            btn.style.display = 'block'; // КНОПКА ВОЗВРАЩАЕТСЯ
-        }, 3000);
+            btn.style.display = 'block';
+        }, 1500);
     }
 
     function tab(id, el) {
