@@ -6,20 +6,24 @@
     <title>Tama Fishing PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; color: white; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            background-color: #0a1128; /* Темно-синий фон, если ничего не прогрузится */
+            font-family: 'Arial', sans-serif; 
+            color: white; 
+        }
 
         .game-screen {
             position: relative;
             width: 100vw;
             height: 100vh;
-            background: #1a2a6c url('background.jpg') no-repeat center center;
-            background-size: cover;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
         }
 
-        /* Счётчик рыбы */
         .inventory-counter {
             position: absolute;
             top: 20px;
@@ -32,23 +36,23 @@
             z-index: 100;
         }
 
-        /* Твоя анимация */
-        #fish_Anim.webp {
+        /* Настройка анимации */
+        #fishAnim {
             position: absolute;
-            bottom: 30%;
+            bottom: 35%;
             left: 50%;
             transform: translateX(-50%);
             width: 280px; 
             height: auto;
             z-index: 50;
-            display: none;
+            display: none; /* Скрыто по умолчанию */
             pointer-events: none;
+            border: none;
         }
 
-        /* Окно с результатом */
         .result-modal {
             position: absolute;
-            top: 40%;
+            top: 45%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
             width: 260px;
@@ -65,10 +69,10 @@
 
         .controls {
             padding: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
         }
 
@@ -93,20 +97,20 @@
 <body>
 
 <div class="game-screen">
-    <div class="inventory-counter">🎒 Рыбы: <span id="fishCount">0</span></div>
+    <div class="inventory-counter">🎒 Инвентарь: <span id="fishCount">0</span></div>
 
-    <img src="fishing-nature.webp" id="fishAnim">
+    <img src="fish_anim.webp" id="fishAnim" alt="Анимация улова">
 
     <div class="result-modal" id="resultModal">
-        <h2 style="margin:0; color:#f44336; font-size: 24px;">НОВЫЙ УЛОВ!</h2>
+        <h2 style="margin:0; color:#f44336;">УЛОВ!</h2>
         <p id="fishType" style="font-size:20px; margin:15px 0; font-weight:bold"></p>
         <p id="fishWeight" style="color:#0288d1; font-weight:bold; font-size: 18px;"></p>
         <button onclick="closeModal()" style="background:#4CAF50; color:white; border:none; padding:12px 25px; border-radius:12px; font-weight:bold; width: 100%;">ЗАБРАТЬ</button>
     </div>
 
     <div class="controls">
-        <button class="btn btn-catch" id="catchBtn" onclick="startFishing()">ЗАБРОСИТЬ УДОЧКУ 🎣</button>
-        <button class="btn btn-sell" onclick="sendToServer('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ 💰</button>
+        <button class="btn btn-catch" id="catchBtn" onclick="startFishing()">ЗАБРОСИТЬ 🎣</button>
+        <button class="btn btn-sell" onclick="sendToServer('sell_fish')">ПРОДАТЬ РЫБУ 💰</button>
     </div>
 </div>
 
@@ -114,7 +118,7 @@
     const tg = window.Telegram.WebApp;
     const SERVER_URL = 'https://tama-bot-server.onrender.com/api/action';
     let localFishCount = 0;
-    const fishNames = ["Карась", "Окунь", "Щука", "Золотая рыбка", "Сазан", "Судак", "Лещ"];
+    const fishNames = ["Карась", "Окунь", "Щука", "Золотая рыбка", "Сазан", "Судак"];
 
     async function startFishing() {
         const btn = document.getElementById('catchBtn');
@@ -122,23 +126,21 @@
 
         btn.disabled = true;
 
-        // Имитируем ожидание без текста
+        // Ждем немного (эффект рыбалки)
         setTimeout(() => {
-            // Даем сильную вибрацию в момент "поклевки"
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             
-            // Сразу запускаем анимацию
+            // Показываем анимацию
             anim.style.display = 'block'; 
             
-            // Отправляем запрос на сервер
             sendToServer('catch_fish');
 
-            // Через 2 секунды (длительность анимации) показываем результат
+            // Через 2 секунды показываем результат
             setTimeout(() => {
                 anim.style.display = 'none';
                 showResult();
             }, 2000); 
-        }, 1500 + Math.random() * 2000); // Случайное время ожидания для реализма
+        }, 1000 + Math.random() * 2000);
     }
 
     function showResult() {
@@ -171,12 +173,10 @@
             if (act === 'sell_fish') {
                 localFishCount = 0;
                 document.getElementById('fishCount').innerText = "0";
-                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Ошибка сети"); }
     }
 </script>
 
 </body>
 </html>
-
