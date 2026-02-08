@@ -3,61 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing</title>
+    <title>Tamacoin Fishing Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a2a6c; color: white; text-align: center; padding: 20px; }
-        .btn { background: #4CAF50; border: none; color: white; padding: 15px; width: 100%; font-size: 18px; border-radius: 12px; margin: 10px 0; }
-        #status { font-size: 14px; color: #ffeb3b; margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; }
+        body { margin: 0; padding: 0; background: #87CEEB; overflow: hidden; font-family: sans-serif; }
+        
+        /* Сцена озера */
+        .lake { position: relative; width: 100vw; height: 60vh; background: linear-gradient(180deg, #4da6ff, #0066cc); border-bottom: 5px solid #004d99; }
+        
+        /* Камыши */
+        .reed { position: absolute; bottom: 0; width: 20px; height: 100px; background: #2d5a27; border-radius: 10px 10px 0 0; }
+        .reed::after { content: ''; position: absolute; top: -20px; left: 0; width: 20px; height: 40px; background: #4b3621; border-radius: 10px; }
+        
+        /* Облака */
+        .cloud { position: absolute; background: white; width: 60px; height: 20px; border-radius: 20px; opacity: 0.8; animation: moveClouds 20s linear infinite; }
+        @keyframes moveClouds { from { left: -100px; } to { left: 100vw; } }
+
+        /* Удочка и Поплавок */
+        .rod { position: absolute; right: 20%; bottom: 80px; width: 5px; height: 150px; background: #4b3621; transform: rotate(45deg); transition: 0.5s; }
+        .line { position: absolute; top: 0; left: 2px; width: 1px; height: 200px; background: white; transform: rotate(-45deg); transform-origin: top; }
+        .bobber { position: absolute; bottom: -200px; left: -140px; width: 15px; height: 25px; background: red; border-radius: 50% 50% 5px 5px; border: 2px solid white; display: none; }
+
+        /* Анимация поклевки */
+        .bite { animation: shake 0.5s infinite; }
+        @keyframes shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+
+        /* Интерфейс */
+        .ui { height: 40vh; background: #1a2a6c; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; }
+        .btn { background: #4CAF50; border: none; color: white; padding: 15px; width: 100%; font-size: 18px; border-radius: 12px; font-weight: bold; margin-bottom: 10px; }
+        #status { color: #88bdff; text-align: center; font-size: 14px; }
     </style>
 </head>
 <body>
-    <h1>🎣 Tamacoin Fishing</h1>
-    <button class="btn" onclick="sendToBot('catch_fish')">ЗАБРОС УДОЧКИ</button>
-    <button class="btn" style="background:#f44336" onclick="sendToBot('sell_fish')">ПРОДАТЬ УЛОВ</button>
-    
-    <div id="status">Статус: Готов к рыбалке</div>
+
+    <div class="lake">
+        <div class="cloud" style="top: 20px; animation-duration: 25s;"></div>
+        <div class="cloud" style="top: 60px; animation-duration: 35s; left: 50%;"></div>
+        
+        <div class="reed" style="left: 10px; height: 120px;"></div>
+        <div class="reed" style="left: 40px; height: 90px;"></div>
+        <div class="reed" style="right: 20px; height: 110px;"></div>
+
+        <div class="rod" id="rod">
+            <div class="line">
+                <div class="bobber" id="bobber"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui">
+        <button class="btn" id="catchBtn" onclick="startFishing()">ЗАБРОСИТЬ УДОЧКУ 🎣</button>
+        <button class="btn" style="background:#f44336" onclick="sendAction('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ 💰</button>
+        <div id="status">Готов к рыбалке</div>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-
-        // ВНИМАНИЕ: Проверь, чтобы эта ссылка совпадала с твоей на Render!
         const SERVER_URL = 'https://tama-bot-server.onrender.com/api/action';
 
-        async function sendToBot(actionName) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerText = "Отправка: " + actionName + "...";
+        async function startFishing() {
+            const bobber = document.getElementById('bobber');
+            const status = document.getElementById('status');
+            const btn = document.getElementById('catchBtn');
 
-            // Берем ID пользователя из Telegram
+            btn.disabled = true;
+            status.innerText = "Забрасываем... Ожидание поклевки...";
+            
+            // Показываем поплавок и включаем "тряску" через 1 сек
+            bobber.style.display = 'block';
+            setTimeout(() => { bobber.classList.add('bite'); }, 1000);
+
+            // Через 3 секунды отправляем запрос на сервер
+            setTimeout(async () => {
+                await sendAction('catch_fish');
+                bobber.style.display = 'none';
+                bobber.classList.remove('bite');
+                btn.disabled = false;
+            }, 3500);
+        }
+
+        async function sendAction(actionName) {
+            const status = document.getElementById('status');
             const user = tg.initDataUnsafe?.user;
-            if (!user) {
-                statusDiv.innerText = "Ошибка: Запусти через Telegram!";
-                return;
-            }
 
             try {
                 const response = await fetch(SERVER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: user.id,
-                        action: actionName
-                    })
+                    body: JSON.stringify({ userId: user.id, action: actionName })
                 });
 
-                const result = await response.json();
-                
                 if (response.ok) {
-                    statusDiv.innerText = "✅ Успешно! Проверь чат.";
-                    // Добавим легкую вибрацию при успехе
-                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-                } else {
-                    statusDiv.innerText = "❌ Ошибка сервера: " + response.status;
+                    status.innerText = "✅ Успешно! Результат в чате.";
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 }
             } catch (e) {
-                statusDiv.innerText = "❌ Ошибка сети: " + e.message;
-                console.error(e);
+                status.innerText = "❌ Ошибка связи с сервером";
             }
         }
     </script>
