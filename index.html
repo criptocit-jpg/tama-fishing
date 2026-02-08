@@ -1,139 +1,60 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tama Fishing Boxes</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { margin: 0; padding: 0; background: #070b1a; color: white; font-family: sans-serif; overflow: hidden; }
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: gold; color: #000; padding: 10px 20px; border-radius: 50px; font-weight: bold; z-index: 10000; transition: 0.5s; }
-        #toast.show { transform: translateX(-50%) translateY(0); }
-        .page { display: none; height: 100vh; flex-direction: column; padding: 20px; box-sizing: border-box; }
-        .page.active { display: flex; }
-        .balance-val { font-size: 38px; color: gold; font-weight: 900; text-align: center; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
-        .card { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 15px; border: 1px solid #333; text-align: center; }
-        .btn-action { background: #0288d1; border: none; padding: 15px; border-radius: 15px; color: white; font-weight: bold; width: 100%; margin-top: 5px; box-shadow: 0 4px 0 #01579b; }
-        
-        /* МОДАЛКА КОРОБОК */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 9999; }
-        .modal-inner { text-align: center; width: 90%; }
-        .box-container { display: flex; justify-content: space-around; margin: 30px 0; }
-        .box-item { font-size: 50px; cursor: pointer; transition: 0.3s; filter: grayscale(0.5); }
-        .box-item:hover { transform: scale(1.2); filter: grayscale(0); }
-        .box-item.shake { animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: rotate(0); } 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } 100% { transform: rotate(0); } }
-
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: #000; display: flex; border-top: 1px solid #333; }
-        .nav-item { flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: center; font-size: 12px; color: #555; }
-        .nav-item.active { color: gold; font-weight: bold; }
-        
-        #box-badge { background: red; color: white; border-radius: 50%; padding: 2px 7px; font-size: 10px; position: absolute; top: 10px; right: 20%; }
-    </style>
-</head>
-<body>
-    <div id="toast"></div>
-
-    <div id="boxModal" class="modal">
-        <div class="modal-inner">
-            <h2 id="box-title">ВЫБЕРИ ОДНУ КОРОБКУ</h2>
-            <p id="box-desc">Внутри может быть до 50,000 TC!</p>
-            <div class="box-container">
-                <div class="box-item" onclick="pickBox(this)">🎁</div>
-                <div class="box-item" onclick="pickBox(this)">🎁</div>
-                <div class="box-item" onclick="pickBox(this)">🎁</div>
-            </div>
-            <p id="box-status" style="color: gold; font-weight: bold;"></p>
-        </div>
-    </div>
-
-    <div id="p-game" class="page active">
-        <div class="balance-val"><span id="b1">0.00</span> TC</div>
-        <div class="stat-grid">
-            <div class="card"><small>ЭНЕРГИЯ</small><br><span id="u-en">0</span></div>
-            <div class="card"><small>ЯЩИКИ</small><br><span id="u-boxes" style="color:red; font-weight:bold">0</span></div>
-        </div>
-        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center">
-             <button id="openBoxBtn" class="btn-action" style="display:none; background: gold; color:black" onclick="startBoxGame()">📦 ОТКРЫТЬ ЯЩИК!</button>
-             <div id="game-ui" style="text-align:center">
-                <img src="fish_anim.webp" id="fishAnim" style="width:200px; display:none">
-                <button class="btn-action" style="background:#4CAF50" onclick="doFish()">ЗАБРОСИТЬ УДОЧКУ</button>
-             </div>
-        </div>
-    </div>
-
-    <div id="p-menu" class="page">
-        <h2>背包 РЮКЗАК</h2>
-        <button class="btn-action" onclick="doAction('sell_fish')">ПРОДАТЬ РЫБУ</button>
-        <button class="btn-action" onclick="shareRef()">🔗 ПОЗВАТЬ ДРУГА (+1 📦)</button>
-    </div>
-
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="tab('game', this)">🎮 ИГРА</div>
-        <div class="nav-item" onclick="tab('menu', this)">🎒 МЕНЮ</div>
-    </div>
-
 <script>
     const tg = window.Telegram.WebApp;
+    // УБЕДИСЬ ЧТО ТУТ ТВОЙ АДРЕС БЕЗ ЛИШНИХ СЛЕШЕЙ
     const url = 'https://tama-bot-server.onrender.com/api/action';
     tg.ready(); tg.expand();
 
-    function showToast(txt) {
-        const t = document.getElementById('toast'); t.innerText = txt;
-        t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000);
+    async function load() {
+        try {
+            const userId = tg.initDataUnsafe?.user?.id || "7883085758";
+            const r = await fetch(`${url}?userId=${userId}`);
+            const d = await r.json();
+            updateUI(d);
+        } catch(e) { console.error("Ошибка загрузки:", e); }
     }
 
-    async function load() {
-        const r = await fetch(`${url}?userId=${tg.initDataUnsafe?.user?.id || "569502967"}`);
-        const d = await r.json();
-        updateUI(d);
+    async function doAction(act, extraData = {}) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: tg.initDataUnsafe?.user?.id || "7883085758",
+                    userName: tg.initDataUnsafe?.user?.first_name || "Рыбак",
+                    action: act,
+                    ...extraData
+                })
+            });
+            const data = await response.json();
+            if (data.msg) showToast(data.msg);
+            updateUI(data);
+        } catch(e) { 
+            showToast("Ошибка связи с сервером"); 
+            console.error(e);
+        }
+    }
+
+    // Привязываем кнопки к функциям
+    function doFish() {
+        // Анимация заброса
+        const img = document.getElementById('fishAnim');
+        img.style.display = 'block';
+        setTimeout(() => {
+            img.style.display = 'none';
+            doAction('catch_fish');
+        }, 1100);
     }
 
     function updateUI(d) {
-        document.getElementById('b1').innerText = Number(d.balance).toFixed(2);
-        document.getElementById('u-en').innerText = d.energy;
-        document.getElementById('u-boxes').innerText = d.boxes || 0;
+        // Обновляем все цифры на экране
+        if(document.getElementById('b1')) document.getElementById('b1').innerText = Number(d.balance).toFixed(2);
+        if(document.getElementById('u-en')) document.getElementById('u-en').innerText = d.energy;
+        if(document.getElementById('u-boxes')) document.getElementById('u-boxes').innerText = d.boxes || 0;
         
-        // Если есть коробки, показываем кнопку открытия
-        document.getElementById('openBoxBtn').style.display = (d.boxes > 0) ? 'block' : 'none';
-        document.getElementById('game-ui').style.display = (d.boxes > 0) ? 'none' : 'block';
+        // Показ кнопки сундуков
+        const boxBtn = document.getElementById('openBoxBtn');
+        if(boxBtn) boxBtn.style.display = (d.boxes > 0) ? 'block' : 'none';
     }
 
-    function startBoxGame() {
-        document.getElementById('boxModal').style.display = 'flex';
-        document.getElementById('box-title').innerText = "ВЫБЕРИ ОДНУ КОРОБКУ";
-        document.getElementById('box-status').innerText = "";
-        document.querySelectorAll('.box-item').forEach(b => { b.style.opacity = "1"; b.classList.remove('shake'); b.innerText = "🎁"; });
-    }
-
-    async function pickBox(el) {
-        el.classList.add('shake');
-        setTimeout(async () => {
-            const r = await fetch(url, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId: tg.initDataUnsafe?.user?.id, action: 'open_box' })
-            });
-            const d = await r.json();
-            
-            el.classList.remove('shake');
-            el.innerText = "💰";
-            document.getElementById('box-title').innerText = "ПОЗДРАВЛЯЕМ!";
-            document.getElementById('box-status').innerText = d.msg;
-            
-            setTimeout(() => {
-                document.getElementById('boxModal').style.display = 'none';
-                updateUI(d);
-            }, 2500);
-        }, 1500);
-    }
-
-    async function doFish() { /* твоя логика рыбалки */ }
-    async function doAction(act) { /* общая логика */ }
-    function tab(id, el) { /* переключение вкладок */ }
-    
-    load();
+    load(); // Загрузка при старте
 </script>
-</body>
-</html>
