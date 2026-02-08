@@ -6,50 +6,58 @@
     <title>Tama Fishing</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a2a6c; color: white; text-align: center; margin: 0; padding: 20px; }
-        .btn { background: #4CAF50; border: none; color: white; padding: 15px; width: 100%; font-size: 18px; border-radius: 12px; margin: 10px 0; font-weight: bold; }
-        .btn:active { transform: scale(0.98); background: #45a049; }
-        #status { font-size: 14px; color: #88bdff; margin-top: 10px; }
+        body { font-family: sans-serif; background: #1a2a6c; color: white; text-align: center; padding: 20px; }
+        .btn { background: #4CAF50; border: none; color: white; padding: 15px; width: 100%; font-size: 18px; border-radius: 12px; margin: 10px 0; }
+        #status { font-size: 14px; color: #ffeb3b; margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; }
     </style>
 </head>
 <body>
     <h1>🎣 Tamacoin Fishing</h1>
     <button class="btn" onclick="sendToBot('catch_fish')">ЗАБРОС УДОЧКИ</button>
     <button class="btn" style="background:#f44336" onclick="sendToBot('sell_fish')">ПРОДАТЬ УЛОВ</button>
-    <div id="status">Готов к рыбалке</div>
+    
+    <div id="status">Статус: Готов к рыбалке</div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Ссылка на твой новый сервер Render
+        // ВНИМАНИЕ: Проверь, чтобы эта ссылка совпадала с твоей на Render!
         const SERVER_URL = 'https://tama-bot-server.onrender.com/api/action';
 
         async function sendToBot(actionName) {
-            const status = document.getElementById('status');
-            status.innerText = "Забрасываем... 🎣";
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerText = "Отправка: " + actionName + "...";
 
-            // Собираем данные игрока
-            const userData = {
-                userId: tg.initDataUnsafe.user.id,
-                action: actionName
-            };
+            // Берем ID пользователя из Telegram
+            const user = tg.initDataUnsafe?.user;
+            if (!user) {
+                statusDiv.innerText = "Ошибка: Запусти через Telegram!";
+                return;
+            }
 
             try {
-                // Отправляем запрос на Render БЕЗ закрытия окна
                 const response = await fetch(SERVER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
+                    body: JSON.stringify({
+                        userId: user.id,
+                        action: actionName
+                    })
                 });
 
+                const result = await response.json();
+                
                 if (response.ok) {
-                    status.innerText = "Успешно! Проверь чат бота.";
+                    statusDiv.innerText = "✅ Успешно! Проверь чат.";
+                    // Добавим легкую вибрацию при успехе
+                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
                 } else {
-                    status.innerText = "Ошибка сервера";
+                    statusDiv.innerText = "❌ Ошибка сервера: " + response.status;
                 }
             } catch (e) {
-                status.innerText = "Связь потеряна...";
+                statusDiv.innerText = "❌ Ошибка сети: " + e.message;
+                console.error(e);
             }
         }
     </script>
