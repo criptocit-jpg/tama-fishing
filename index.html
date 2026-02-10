@@ -3,86 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Tamacoin Ultimate</title>
+    <title>Tamacoin Gold 3.4.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #FFD700; --blue: #0088CC; --bg: #050810; --glass: rgba(255,255,255,0.08); }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; overflow: hidden; }
-        .page { display: none; height: 100vh; padding: 20px; box-sizing: border-box; flex-direction: column; padding-bottom: 90px; }
-        .active { display: flex; }
-        .balance-val { font-size: 40px; font-weight: 900; color: var(--gold); text-align: center; }
-        .timer-box { font-size: 10px; color: #8892b0; text-align: center; margin-bottom: 10px; font-family: monospace; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .stat-card { background: var(--glass); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .stat-card small { display: block; font-size: 9px; color: #8892b0; }
-        .fishing-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        #fishAnim { width: 80%; display: none; filter: drop-shadow(0 0 20px var(--blue)); }
-        .btn { border: none; border-radius: 15px; padding: 15px; font-weight: 800; width: 100%; margin-top: 5px; cursor: pointer; }
-        .btn-blue { background: var(--blue); color: #fff; }
-        .btn-gold { background: var(--gold); color: #000; }
-        .navbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: #000; display: flex; border-top: 1px solid #222; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #555; text-decoration: none; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; user-select: none; }
+        
+        .page { display: none; height: 100vh; padding: 20px; box-sizing: border-box; flex-direction: column; padding-bottom: 90px; overflow-y: auto; }
+        .active { display: flex; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Шапка */
+        .header-ui { text-align: center; margin-bottom: 15px; flex-shrink: 0; }
+        .balance-val { font-size: 42px; font-weight: 900; color: var(--gold); }
+        .timer-box { font-size: 10px; color: #8892b0; font-family: monospace; letter-spacing: 1px; }
+
+        /* Статистика */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: var(--glass); padding: 12px; border-radius: 18px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-card small { display: block; font-size: 9px; color: #8892b0; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-card b { font-size: 18px; }
+
+        /* Игровая зона */
+        .fishing-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 200px; }
+        #fishAnim { width: 90%; max-height: 80%; object-fit: contain; display: none; filter: drop-shadow(0 0 30px var(--blue)); }
+
+        /* Магазин */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .item-card { background: var(--glass); border-radius: 18px; padding: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .item-icon { font-size: 24px; display: block; margin-bottom: 5px; }
+        .price { color: var(--gold); font-size: 12px; font-weight: 800; display: block; margin: 5px 0; }
+
+        /* Кнопки */
+        .btn { border: none; border-radius: 20px; font-weight: 800; font-size: 16px; cursor: pointer; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .btn-blue { background: var(--blue); color: #fff; padding: 18px; box-shadow: 0 4px 15px rgba(0,136,204,0.3); }
+        .btn-gold { background: var(--gold); color: #000; padding: 15px; margin-bottom: 8px; }
+        .btn:active { transform: scale(0.96); }
+
+        /* Навигация */
+        .navbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: rgba(0,0,0,0.9); display: flex; border-top: 1px solid #222; backdrop-filter: blur(10px); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #555; text-decoration: none; font-weight: 700; }
         .nav-item.active { color: var(--gold); }
-        .nav-item span { font-size: 20px; }
-        input { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #1a1a1a; color: #fff; margin: 5px 0; }
+        .nav-item span { font-size: 22px; margin-bottom: 3px; }
+
+        input { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #151a25; color: #fff; margin: 8px 0; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
 <div id="game" class="page active">
-    <div class="balance-val" id="b-val">0 TC</div>
-    <div class="timer-box" id="timers">--:--:--</div>
+    <div class="header-ui">
+        <div class="balance-val" id="b-val">0 TC</div>
+        <div class="timer-box" id="timers">ЗАГРУЗКА...</div>
+    </div>
     <div class="stats-grid">
         <div class="stat-card"><small>ЭНЕРГИЯ</small><b id="u-en">0</b></div>
-        <div class="stat-item stat-card"><small>САДОК (кг)</small><b id="u-fish">0.0</b></div>
+        <div class="stat-card"><small>АРТЕФАКТЫ</small><b id="u-art">0/5</b></div>
     </div>
     <div class="fishing-area"><img src="fish_anim.webp" id="fishAnim"></div>
-    <div style="background:var(--glass); padding:10px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between;">
-        <small>ГЛУБОКОВОДНЫЙ (x10)</small><input type="checkbox" id="isDeep" style="width:20px;">
+    <div style="background:var(--glass); padding:12px; border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:12px;"><b>ГЛУБОКОВОДНЫЙ</b><br><small style="color:#888">Риск обрыва | Улов x10</small></div>
+        <input type="checkbox" id="isDeep" style="width:22px; height:22px; margin:0;">
     </div>
-    <button class="btn btn-gold" onclick="doAction('get_bonus')">БОНУС 🎁</button>
-    <button class="btn btn-blue" onclick="startFishing()">ЗАБРОСИТЬ 🎣</button>
+    <button class="btn btn-gold" onclick="doAction('get_bonus')">ЕЖЕДНЕВНЫЙ БОНУС 🎁</button>
+    <button class="btn btn-blue" onclick="startFishing()">ЗАБРОСИТЬ УДОЧКУ 🎣</button>
 </div>
 
 <div id="shop" class="page">
-    <h2>МАГАЗИН 🌟</h2>
-    <div class="stat-card">
-        <p>Удочка "Профи" — 50 Stars</p>
-        <button class="btn btn-blue" onclick="doAction('buy_item')">КУПИТЬ</button>
+    <h2 style="color:var(--blue)">ТОРГОВЫЙ УЗЕЛ 🛒</h2>
+    <div class="stat-card" style="border: 1px solid var(--blue); margin-bottom: 15px;">
+        <small>ВАШ УЛОВ В САДКЕ</small>
+        <b style="font-size:24px;"><span id="shop-fish">0.00</span> кг</b>
+        <button class="btn btn-blue" style="padding:10px; margin-top:10px; font-size:12px;" onclick="doAction('sell_fish')">ПРОДАТЬ ЗА TC</button>
     </div>
-    <div class="stat-card" style="margin-top:10px;">
-        <p>Коробка удачи — <span id="u-boxes">0</span> шт.</p>
-        <button class="btn btn-gold">ОТКРЫТЬ</button>
+    <div class="shop-grid">
+        <div class="item-card"><span class="item-icon">🎣</span><small>Спиннинг "Carbon"</small><span class="price">50 Stars</span><button class="btn btn-blue" style="padding:5px; font-size:10px;" onclick="buyItem()">КУПИТЬ</button></div>
+        <div class="item-card"><span class="item-icon">🔋</span><small>Энергетик</small><span class="price">10 Stars</span><button class="btn btn-blue" style="padding:5px; font-size:10px;" onclick="buyItem()">КУПИТЬ</button></div>
+        <div class="item-card"><span class="item-icon">📡</span><small>Эхолот</small><span class="price">120 Stars</span><button class="btn btn-blue" style="padding:5px; font-size:10px;" onclick="buyItem()">КУПИТЬ</button></div>
+        <div class="item-card"><span class="item-icon">👑</span><small>Золотой червь</small><span class="price">100 Stars</span><button class="btn btn-blue" style="padding:5px; font-size:10px;" onclick="buyItem()">КУПИТЬ</button></div>
     </div>
 </div>
 
 <div id="wallet" class="page">
-    <h2>ВЫВОД TC</h2>
-    <input type="text" id="wallet-addr" placeholder="Адрес TON кошелька">
-    <input type="number" id="withdraw-amount" placeholder="Сумма (мин 30000)">
+    <h2 style="color:var(--gold)">ВЫВОД TC 💰</h2>
+    <div class="stat-card" style="margin-bottom:15px;">
+        <small>ДОСТУПНО ДЛЯ ВЫВОДА</small>
+        <b id="withdraw-balance">0 TC</b>
+    </div>
+    <input type="text" id="wallet-addr" placeholder="Адрес кошелька (TON)">
+    <input type="number" id="withdraw-amount" placeholder="Сумма (мин. 30,000)">
     <button class="btn btn-blue" onclick="withdraw()">СОЗДАТЬ ЗАЯВКУ</button>
 </div>
 
 <div id="info" class="page">
-    <h2>РЕФЕРАЛЫ</h2>
-    <p>Твоя ссылка:</p>
-    <code id="ref-link" style="background:#1a1a1a; padding:10px; display:block;">loading...</code>
-    <p style="font-size:12px; color:#888;">Даем 1 коробку за каждого друга!</p>
-    <hr>
-    <button class="btn btn-gold" onclick="doAction('sell_fish')">ПРОДАТЬ ВСЮ РЫБУ</button>
+    <h2 style="color:var(--gold)">КЛУБ РЫБАКОВ 👥</h2>
+    <div class="stat-card">
+        <h3>ИНФОРМАЦИЯ</h3>
+        <p style="font-size:12px; color:#8892b0; line-height:1.4;">1 кг = 0.5 TC. Золотой час: 19:00 (улов x2). Собери 5 артефактов и получи 30,000 TC!</p>
+    </div>
+    <div class="stat-card" style="margin-top:15px;">
+        <h3>ПРИГЛАСИ ДРУГА</h3>
+        <p style="font-size:11px; color:#8892b0;">Даем 1 Коробку Удачи за каждого!</p>
+        <code id="ref-link" style="background:#000; padding:10px; display:block; border-radius:10px; color:var(--gold); font-size:11px;">loading...</code>
+        <button class="btn btn-gold" style="padding:10px; margin-top:10px;" onclick="copyRef()">КОПИРОВАТЬ ССЫЛКУ</button>
+    </div>
 </div>
 
 <nav class="navbar">
     <a href="#" class="nav-item active" onclick="showPage('game', this)"><span>🎮</span>ИГРА</a>
-    <a href="#" class="nav-item" onclick="showPage('shop', this)"><span>🛒</span>ШОП</a>
+    <a href="#" class="nav-item" onclick="showPage('shop', this)"><span>🛒</span>МАРКЕТ</a>
     <a href="#" class="nav-item" onclick="showPage('wallet', this)"><span>💰</span>ВЫВОД</a>
-    <a href="#" class="nav-item" onclick="showPage('info', this)"><span>👥</span>РЕФ</a>
+    <a href="#" class="nav-item" onclick="showPage('info', this)"><span>👥</span>КЛУБ</a>
 </nav>
 
 <script>
     const tg = window.Telegram.WebApp;
     const API = 'https://tama-bot-server.onrender.com/api/action';
-    let nextB = 0;
+    let nextBonusTime = 0;
 
     function showPage(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -92,33 +129,32 @@
     }
 
     async function doAction(action) {
-        const res = await fetch(API, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                userId: tg.initDataUnsafe?.user?.id || "7883085758",
-                action, isDeep: document.getElementById('isDeep').checked
-            })
-        });
-        const d = await res.json();
-        if(d.msg) tg.showAlert(d.msg);
-        updateUI(d);
+        try {
+            const res = await fetch(API, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    userId: tg.initDataUnsafe?.user?.id || "7883085758",
+                    userName: tg.initDataUnsafe?.user?.first_name || "Рыбак",
+                    action, isDeep: document.getElementById('isDeep').checked
+                })
+            });
+            const d = await res.json();
+            if(d.msg) tg.showAlert(d.msg);
+            updateUI(d);
+        } catch(e) { console.error(e); }
     }
 
     function updateUI(d) {
-        document.getElementById('b-val').innerText = Math.floor(d.b).toLocaleString() + " TC";
+        const b = Math.floor(d.b).toLocaleString();
+        document.getElementById('b-val').innerText = b + " TC";
+        document.getElementById('withdraw-balance').innerText = b + " TC";
         document.getElementById('u-en').innerText = d.energy;
+        document.getElementById('u-art').innerText = (d.artifacts?.length || 0) + "/5";
         document.getElementById('u-fish').innerText = d.fish.toFixed(2);
-        document.getElementById('u-boxes').innerText = d.boxes || 0;
+        document.getElementById('shop-fish').innerText = d.fish.toFixed(2);
         document.getElementById('ref-link').innerText = `https://t.me/ТВОЙ_БОТ?start=${d.id}`;
-        nextB = d.lastBonus + 86400000;
-    }
-
-    function withdraw() {
-        const addr = document.getElementById('wallet-addr').value;
-        const am = document.getElementById('withdraw-amount').value;
-        if(!addr || am < 30000) return tg.showAlert("Ошибка данных");
-        doAction('withdraw');
+        nextBonusTime = d.lastBonus + 86400000;
     }
 
     function startFishing() {
@@ -127,15 +163,21 @@
         setTimeout(() => { document.getElementById('fishAnim').style.display = 'none'; doAction('catch_fish'); }, 1200);
     }
 
+    function buyItem() { tg.showAlert("Оплата Stars скоро!"); }
+    function copyRef() { navigator.clipboard.writeText(document.getElementById('ref-link').innerText); tg.showAlert("Скопировано!"); }
+    function withdraw() { doAction('withdraw'); }
+
     setInterval(() => {
         const now = new Date();
-        const goldDate = new Date(); goldDate.setHours(19,0,0,0);
-        if(now > goldDate) goldDate.setDate(goldDate.getDate()+1);
-        const ms = goldDate - now;
+        const gold = new Date(); gold.setHours(19,0,0,0);
+        if(now > gold) gold.setDate(gold.getDate()+1);
+        const ms = gold - now;
         const h = Math.floor(ms/3600000).toString().padStart(2,'0');
         const m = Math.floor((ms%3600000)/60000).toString().padStart(2,'0');
         const s = Math.floor((ms%60000)/1000).toString().padStart(2,'0');
-        document.getElementById('timers').innerText = `ЗОЛОТОЙ ЧАС: ${h}:${m}:${s}`;
+        
+        let bonusText = (nextBonusTime - now.getTime() > 0) ? "БОНУС ЧЕРЕЗ: " + new Date(nextBonusTime-now.getTime()).toISOString().substr(11,8) : "БОНУС ГОТОВ! 🎁";
+        document.getElementById('timers').innerText = `ЗОЛОТОЙ ЧАС: ${h}:${m}:${s} | ${bonusText}`;
     }, 1000);
 
     doAction('load');
