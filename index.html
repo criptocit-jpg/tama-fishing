@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold v3.6.1</title>
+    <title>Tamacoin Fishing Gold v3.6.5</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -18,71 +18,184 @@
         }
 
         body {
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             background: var(--bg);
             background-image: radial-gradient(circle at top right, #0a1530, var(--bg));
             color: white;
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* УВЕДОМЛЕНИЯ */
+        /* УВЕДОМЛЕНИЯ ВЕРХНИЕ */
         #toast {
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150%);
-            background: var(--gold); color: #000;
-            padding: 14px 28px; border-radius: 30px;
-            font-weight: 800; font-size: 14px; z-index: 10000; 
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150%);
+            background: var(--gold);
+            color: #000;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 14px;
+            z-index: 10000;
             transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
             text-transform: uppercase;
         }
-        #toast.show { transform: translateX(-50%) translateY(0); }
 
-        #wood-alert {
-            position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%) translateY(200%);
-            background: linear-gradient(90deg, #5d4037, #3e2723);
-            color: #d7ccc8; padding: 15px 30px; border-radius: 18px;
-            font-size: 14px; font-weight: 800; border: 2px solid #795548;
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 99;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
         }
-        #wood-alert.show { transform: translateX(-50%) translateY(0); }
 
-        .page { display: none; height: 100vh; flex-direction: column; padding: 25px 20px; box-sizing: border-box; overflow: hidden; }
-        .page.active { display: flex; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* УВЕДОМЛЕНИЯ ТИПА КОРЯГА (НИЖНИЕ) */
+        #wood-alert {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%) translateY(200%);
+            background: linear-gradient(90deg, #5d4037, #3e2723);
+            color: #d7ccc8;
+            padding: 15px 30px;
+            border-radius: 18px;
+            font-size: 14px;
+            font-weight: 800;
+            border: 2px solid #795548;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 99;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
 
-        /* ШАПКА И БАЛАНС */
-        .header-info { text-align: center; margin-top: 5px; flex-shrink: 0; }
-        .lvl-tag { background: var(--gold); color: #000; padding: 2px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; display: inline-block; }
-        .balance-label { font-size: 11px; color: #8892b0; letter-spacing: 3px; font-weight: 700; margin-top: 5px; }
-        .balance-val { font-size: 44px; font-weight: 900; color: #fff; margin-top: 2px; }
-        .balance-val span { color: var(--gold); }
+        #wood-alert.show {
+            transform: translateX(-50%) translateY(0);
+        }
 
-        /* ТАЙМЕРЫ */
-        .timers-container { display: flex; justify-content: space-between; margin: 10px 0; padding: 0 5px; }
-        .timer-box { font-size: 10px; color: #556080; font-weight: 700; font-variant-numeric: tabular-nums; }
-        .timer-box b { color: var(--gold); }
+        /* СТРУКТУРА СТРАНИЦ */
+        .page {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+            padding: 25px 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
 
-        /* СТАТИСТИКА */
-        .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 10px 0; flex-shrink: 0; }
+        .page.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ИНФОРМАЦИОННАЯ ШАПКА */
+        .header-info {
+            text-align: center;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .lvl-tag {
+            background: var(--gold);
+            color: #000;
+            padding: 2px 12px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .balance-label {
+            font-size: 11px;
+            color: #8892b0;
+            letter-spacing: 3px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .balance-val {
+            font-size: 44px;
+            font-weight: 900;
+            color: #fff;
+            margin-top: 2px;
+        }
+
+        .balance-val span {
+            color: var(--gold);
+        }
+
+        /* КОНТЕЙНЕР ТАЙМЕРОВ */
+        .timers-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 0 5px;
+        }
+
+        .timer-box {
+            font-size: 10px;
+            color: #556080;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-box b {
+            color: var(--gold);
+        }
+
+        /* БЛОК СТАТИСТИКИ */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin: 10px 0;
+            flex-shrink: 0;
+        }
+
         .stat-item {
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-radius: 18px; padding: 10px 5px;
-            text-align: center; backdrop-filter: blur(10px);
+            border-radius: 18px;
+            padding: 10px 5px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
-        .stat-item b { font-size: 16px; font-weight: 800; display: block; }
-        .stat-item small { display: block; font-size: 9px; color: #8892b0; margin-bottom: 2px; text-transform: uppercase; }
 
-        /* ИГРОВАЯ ЗОНА */
-        .fishing-area { 
-            flex-grow: 1; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
+        .stat-item b {
+            font-size: 16px;
+            font-weight: 800;
+            display: block;
+        }
+
+        .stat-item small {
+            display: block;
+            font-size: 9px;
+            color: #8892b0;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ИГРОВАЯ ЗОНА И РЫБАЛКА */
+        .fishing-area {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
             width: 100%;
             margin-bottom: 5px;
@@ -90,67 +203,218 @@
             border-radius: 25px;
             border: 1px solid var(--glass-border);
         }
-        #fishAnim { 
-            width: 100%; 
+
+        #fishAnim {
+            width: 100%;
             height: auto;
-            max-height: 80%; 
+            max-height: 80%;
             object-fit: contain;
-            display: none; 
-            filter: drop-shadow(0 0 40px var(--blue)); 
+            display: none;
+            filter: drop-shadow(0 0 40px var(--blue));
             animation: fishPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
+        @keyframes fishPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         #captcha-bag {
-            position: absolute; width: 75px; height: 75px; display: none;
-            z-index: 101; cursor: pointer; filter: drop-shadow(0 0 20px var(--gold));
+            position: absolute;
+            width: 75px;
+            height: 75px;
+            display: none;
+            z-index: 101;
+            cursor: pointer;
+            filter: drop-shadow(0 0 20px var(--gold));
             animation: floatBag 2s infinite ease-in-out;
         }
-        @keyframes floatBag { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(5px,-10px); } }
 
-        /* КНОПКИ */
-        .bottom-actions { position: relative; width: 100%; padding-bottom: 100px; flex-shrink: 0; }
-        .btn {
-            border: none; border-radius: 22px; color: white;
-            font-size: 18px; font-weight: 800; width: 100%;
-            cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center;
+        @keyframes floatBag {
+            0%, 100% { transform: translate(0,0); }
+            50% { transform: translate(5px,-10px); }
         }
+
+        /* КНОПКИ ДЕЙСТВИЙ */
+        .bottom-actions {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 22px;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .btn-blue {
             background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
-            padding: 22px; box-shadow: 0 6px 20px rgba(0, 136, 204, 0.3);
+            padding: 22px;
+            box-shadow: 0 6px 20px rgba(0, 136, 204, 0.3);
         }
+
         .btn-gold {
             background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dark) 100%);
-            color: #000; padding: 18px; margin-bottom: 10px;
+            color: #000;
+            padding: 18px;
+            margin-bottom: 10px;
         }
-        .btn:active { transform: scale(0.96); }
-        .btn:disabled { opacity: 0.5; filter: grayscale(1); }
 
-        /* СЕКЦИИ МЕНЮ */
-        .section { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; margin-bottom: 12px; overflow: hidden; }
-        .section-header { padding: 18px; display: flex; justify-content: space-between; font-weight: 700; cursor: pointer; }
-        .section-content { max-height: 0; overflow: hidden; transition: 0.3s; background: rgba(0,0,0,0.2); }
-        .section.open .section-content { max-height: 800px; padding: 18px; border-top: 1px solid var(--glass-border); }
-        
-        .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn-buy { background: #fff; color: #000; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 800; }
-        input { width: 100%; background: #000; border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; color: #fff; margin-bottom: 10px; box-sizing: border-box; }
+        .btn:active {
+            transform: scale(0.96);
+        }
 
-        /* НАВИГАЦИЯ */
+        .btn:disabled {
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+
+        /* МЕНЮ И АККОРДЕОНЫ */
+        .section {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: 0.3s;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .section.open .section-content {
+            max-height: 800px;
+            padding: 18px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .btn-buy {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-weight: 800;
+        }
+
+        input {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--glass-border);
+            padding: 15px;
+            border-radius: 12px;
+            color: #fff;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        /* НАВИГАЦИЯ НИЖНЯЯ */
         .navbar {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 85px;
-            background: rgba(5, 8, 16, 0.95); backdrop-filter: blur(15px);
-            display: flex; border-top: 1px solid var(--glass-border); z-index: 1000;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 85px;
+            background: rgba(5, 8, 16, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            border-top: 1px solid var(--glass-border);
+            z-index: 1000;
         }
-        .nav-link { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #556080; text-decoration: none; }
-        .nav-link.active { color: var(--gold); }
-        .nav-link span { font-size: 22px; margin-bottom: 2px; }
-        .nav-link label { font-size: 10px; text-transform: uppercase; font-weight: 700; }
 
-        /* МОДАЛКИ */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .box-wrap { display: flex; gap: 20px; }
-        .box-item { font-size: 60px; cursor: pointer; }
-        .card { background: var(--glass); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border); line-height: 1.6; }
+        .nav-link {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #556080;
+            text-decoration: none;
+        }
+
+        .nav-link.active {
+            color: var(--gold);
+        }
+
+        .nav-link span {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+
+        .nav-link label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* МОДАЛЬНЫЕ ОКНА */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .box-wrap {
+            display: flex;
+            gap: 20px;
+        }
+
+        .box-item {
+            font-size: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .box-item:hover {
+            transform: scale(1.1);
+        }
+
+        /* КАРТОЧКА ИНФО */
+        .card {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -190,6 +454,7 @@
 
 <div id="menu" class="page">
     <h1 style="font-size: 24px; margin-bottom: 20px;">Управление</h1>
+    
     <div class="section">
         <div class="section-header" onclick="toggleSection(this)"><span>🐟 МОЙ УЛОВ</span><span>▼</span></div>
         <div class="section-content">
@@ -197,6 +462,7 @@
             <button class="btn btn-blue" style="padding:15px; font-size:14px;" onclick="doAction('sell_fish')">ПРОДАТЬ ВЕСЬ УЛОВ</button>
         </div>
     </div>
+
     <div class="section">
         <div class="section-header" onclick="toggleSection(this)"><span>🛠️ МАСТЕРСКАЯ</span><span>▼</span></div>
         <div class="section-content">
@@ -204,18 +470,35 @@
             <button class="btn btn-gold" style="padding:15px; font-size:14px;" onclick="doAction('repair')">ПОЧИНИТЬ УДОЧКУ (50 TC)</button>
         </div>
     </div>
+
     <div class="section">
         <div class="section-header" onclick="toggleSection(this)"><span>🛒 МАГАЗИН</span><span>▼</span></div>
         <div class="section-content">
-            <div class="item-row"><div><b>Энергетик</b><br><small>+30 энергии (Лимит 3/день)</small></div><button class="btn-buy" onclick="doAction('buy_item', {itemId:'energy'})">500 TC</button></div>
-            <div class="item-row"><div><b>Новая леска</b><br><small>Снижает шанс обрыва</small></div><button class="btn-buy" onclick="doAction('buy_item', {itemId:'titan'})">1000 TC</button></div>
+            <div class="item-row">
+                <div><b>Энергетик</b><br><small>+30 энергии (Лимит 3/день)</small></div>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'energy'})">500 TC</button>
+            </div>
+            <div class="item-row">
+                <div><b>Новая леска</b><br><small>Снижает шанс обрыва</small></div>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'titan'})">1000 TC</button>
+            </div>
         </div>
     </div>
+
     <div class="section">
         <div class="section-header" onclick="toggleSection(this)"><span>📦 МОИ ЯЩИКИ</span><span>▼</span></div>
         <div class="section-content">
             <p>У вас есть: <b id="u-box-menu">0</b> ящиков</p>
             <button class="btn btn-blue" style="background:var(--gold); color:black;" onclick="doAction('open_box')">ОТКРЫТЬ ЯЩИК ✨</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header" onclick="toggleSection(this)"><span>💳 ВЫВОД</span><span>▼</span></div>
+        <div class="section-content">
+            <input type="text" id="wallet" placeholder="TON Адрес">
+            <input type="number" id="amount" placeholder="Сумма (30к+)">
+            <button class="btn btn-blue" style="background: var(--red);" onclick="withdraw()">ОТПРАВИТЬ ЗАЯВКУ</button>
         </div>
     </div>
 </div>
@@ -246,39 +529,47 @@
 
 <script>
     const tg = window.Telegram.WebApp;
-    // СЮДА ПИШЕМ ТВОЮ ССЫЛКУ ИЗ RENDER (Например: https://bot.onrender.com/api/action)
-    const API_URL = 'https://ТВОЙ_АДРЕС.onrender.com/api/action'; 
+    // ТВОЯ ЗОЛОТАЯ ССЫЛКА (УЖЕ ВШИТА)
+    const API_URL = 'https://tamacoin-fishing.onrender.com/api/action'; 
 
     let nextDaily = 0;
     let currentCastCount = 0;
 
-    tg.ready(); tg.expand();
+    tg.ready();
+    tg.expand();
 
     function showToast(text, isLong = false) {
         const t = document.getElementById('toast');
-        t.innerText = text; t.classList.add('show');
+        t.innerText = text;
+        t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), isLong ? 5000 : 3000);
     }
 
     function showWood(text) {
         const w = document.getElementById('wood-alert');
-        w.innerText = text; w.classList.add('show');
+        w.innerText = text;
+        w.classList.add('show');
         setTimeout(() => w.classList.remove('show'), 3500);
     }
 
     function animateValue(obj, start, end, duration) {
+        if (start === end) return;
         let startTimestamp = null;
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const currentVal = Math.floor(progress * (end - start) + start);
             obj.innerHTML = currentVal.toLocaleString() + ' <span>TC</span>';
-            if (progress < 1) window.requestAnimationFrame(step);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
         };
         window.requestAnimationFrame(step);
     }
 
-    function toggleSection(header) { header.parentElement.classList.toggle('open'); }
+    function toggleSection(header) {
+        header.parentElement.classList.toggle('open');
+    }
 
     function showPage(pageId, navEl) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -296,21 +587,29 @@
                 body: JSON.stringify({
                     userId: tg.initDataUnsafe?.user?.id || "7883085758",
                     userName: tg.initDataUnsafe?.user?.first_name || "Рыбак",
-                    action, ...extra
+                    action,
+                    ...extra
                 })
             });
             const data = await response.json();
             
             if(data.msg) {
-                if(action === 'catch_fish') showWood(data.msg);
-                else showToast(data.msg);
+                if(action === 'catch_fish') {
+                    showWood(data.msg);
+                } else {
+                    showToast(data.msg);
+                }
             }
             updateUI(data);
-        } catch(e) { console.error("Ошибка связи:", e); }
+        } catch(e) {
+            console.error("Критическая ошибка связи:", e);
+            showToast("СЕРВЕР НЕ ОТВЕЧАЕТ");
+        }
     }
 
     function updateUI(d) {
         if(!d || d.b === undefined) return;
+        
         const balEl = document.getElementById('b1');
         const oldB = parseInt(balEl.innerText.replace(/\s/g, '')) || 0;
         animateValue(balEl, oldB, Math.floor(d.b), 600);
@@ -327,10 +626,13 @@
         currentCastCount = d.castCount || 0;
 
         if(d.top) {
-            document.getElementById('top-list').innerHTML = d.top.map((u, i) => `
+            const topList = document.getElementById('top-list');
+            topList.innerHTML = d.top.map((u, i) => `
                 <div class="stat-item" style="display:flex; justify-content:space-between; margin-bottom:10px; padding:15px; border-radius:15px;">
-                    <b>${i+1}. ${u.n}</b><span style="color:var(--gold); font-weight:900;">${Math.floor(u.b).toLocaleString()} TC</span>
-                </div>`).join('');
+                    <b>${i+1}. ${u.n}</b>
+                    <span style="color:var(--gold); font-weight:900;">${Math.floor(u.b).toLocaleString()} TC</span>
+                </div>
+            `).join('');
         }
     }
 
@@ -343,13 +645,16 @@
             bag.style.top = Math.random() * (zone.clientHeight - 80) + "px";
             bag.style.display = 'block';
             document.getElementById('cast-btn').disabled = true;
+            document.getElementById('game-status').innerText = "ЛОВИ МЕШОЧЕК!";
             tg.HapticFeedback.notificationOccurred('warning');
         } else {
             const anim = document.getElementById('fishAnim');
             anim.style.display = 'block';
             tg.HapticFeedback.impactOccurred('heavy');
+            document.getElementById('game-status').innerText = "ТЯНЕШЬ...";
             setTimeout(() => {
                 anim.style.display = 'none';
+                document.getElementById('game-status').innerText = "ГОТОВ!";
                 doAction('catch_fish');
             }, 1300);
         }
@@ -358,15 +663,27 @@
     function catchBag() {
         document.getElementById('captcha-bag').style.display = 'none';
         document.getElementById('cast-btn').disabled = false;
+        document.getElementById('game-status').innerText = "ОТЛИЧНО!";
         doAction('catch_fish', {captchaPassed: true});
+    }
+
+    function withdraw() {
+        const w = document.getElementById('wallet').value;
+        const a = document.getElementById('amount').value;
+        if(!w || a < 30000) return showToast("ПРОВЕРЬ ДАННЫЕ!");
+        doAction('withdraw', {wallet: w, amount: parseFloat(a)});
     }
 
     setInterval(() => {
         const now = Date.now();
         const dDiff = nextDaily - now;
+        
         if(dDiff > 0) {
-            const h = Math.floor(dDiff/3600000), m = Math.floor((dDiff%3600000)/60000), s = Math.floor((dDiff%60000)/1000);
-            document.getElementById('daily-timer').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            const h = Math.floor(dDiff/3600000);
+            const m = Math.floor((dDiff%3600000)/60000);
+            const s = Math.floor((dDiff%60000)/1000);
+            document.getElementById('daily-timer').innerText = 
+                `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
             document.getElementById('btn-daily').disabled = true;
         } else {
             document.getElementById('daily-timer').innerText = "ГОТОВ!";
@@ -377,15 +694,19 @@
         if(date.getHours() === 19) {
             document.getElementById('gh-timer').innerText = "АКТИВЕН! 🔥";
         } else {
-            let target = new Date(); target.setHours(19, 0, 0, 0);
+            let target = new Date();
+            target.setHours(19, 0, 0, 0);
             if(date.getHours() >= 19) target.setDate(target.getDate() + 1);
             const gDiff = target - date;
-            const gh = Math.floor(gDiff/3600000), gm = Math.floor((gDiff%3600000)/60000), gs = Math.floor((gDiff%60000)/1000);
-            document.getElementById('gh-timer').innerText = `${gh.toString().padStart(2,'0')}:${gm.toString().padStart(2,'0')}:${gs.toString().padStart(2,'0')}`;
+            const gh = Math.floor(gDiff/3600000);
+            const gm = Math.floor((gDiff%3600000)/60000);
+            const gs = Math.floor((gDiff%60000)/1000);
+            document.getElementById('gh-timer').innerText = 
+                `${gh.toString().padStart(2,'0')}:${gm.toString().padStart(2,'0')}:${gs.toString().padStart(2,'0')}`;
         }
     }, 1000);
 
-    // Первая загрузка данных
+    // ЗАГРУЗКА ПРИ СТАРТЕ
     doAction('load_data');
 </script>
 </body>
