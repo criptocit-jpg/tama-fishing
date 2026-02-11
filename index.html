@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold v3.6.6</title>
+    <title>Tamacoin Fishing Gold v3.7.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -15,6 +15,7 @@
             --blue: #0088CC;
             --blue-dark: #005580;
             --red: #e91e63;
+            --green: #4caf50;
         }
 
         body {
@@ -29,7 +30,9 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* УВЕДОМЛЕНИЯ ВЕРХНИЕ */
+        /* ----------------------------------------- */
+        /* УВЕДОМЛЕНИЯ (TOASTS)                      */
+        /* ----------------------------------------- */
         #toast {
             position: fixed;
             top: 30px;
@@ -51,7 +54,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* УВЕДОМЛЕНИЯ ТИПА КОРЯГА (НИЖНИЕ) */
         #wood-alert {
             position: fixed;
             bottom: 120px;
@@ -74,7 +76,9 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* СТРУКТУРА СТРАНИЦ */
+        /* ----------------------------------------- */
+        /* СТРУКТУРА СТРАНИЦ                         */
+        /* ----------------------------------------- */
         .page {
             display: none;
             height: 100vh;
@@ -90,17 +94,13 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ИНФОРМАЦИОННАЯ ШАПКА */
+        /* ----------------------------------------- */
+        /* ШАПКА И БАЛАНС                            */
+        /* ----------------------------------------- */
         .header-info {
             text-align: center;
             margin-top: 5px;
@@ -138,7 +138,9 @@
             color: var(--gold);
         }
 
-        /* КОНТЕЙНЕР ТАЙМЕРОВ */
+        /* ----------------------------------------- */
+        /* ТАЙМЕРЫ                                   */
+        /* ----------------------------------------- */
         .timers-container {
             display: flex;
             justify-content: space-between;
@@ -157,7 +159,9 @@
             color: var(--gold);
         }
 
-        /* БЛОК СТАТИСТИКИ */
+        /* ----------------------------------------- */
+        /* СТАТИСТИКА                                */
+        /* ----------------------------------------- */
         .stats {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -190,7 +194,9 @@
             text-transform: uppercase;
         }
 
-        /* ИГРОВАЯ ЗОНА И РЫБАЛКА */
+        /* ----------------------------------------- */
+        /* ИГРОВАЯ ЗОНА                              */
+        /* ----------------------------------------- */
         .fishing-area {
             flex-grow: 1;
             display: flex;
@@ -235,7 +241,9 @@
             50% { transform: translate(5px,-10px); }
         }
 
-        /* КНОПКИ ДЕЙСТВИЙ */
+        /* ----------------------------------------- */
+        /* КНОПКИ                                    */
+        /* ----------------------------------------- */
         .bottom-actions {
             position: relative;
             width: 100%;
@@ -270,16 +278,12 @@
             margin-bottom: 10px;
         }
 
-        .btn:active {
-            transform: scale(0.96);
-        }
+        .btn:active { transform: scale(0.96); }
+        .btn:disabled { opacity: 0.5; filter: grayscale(1); }
 
-        .btn:disabled {
-            opacity: 0.5;
-            filter: grayscale(1);
-        }
-
-        /* МЕНЮ И АККОРДЕОНЫ */
+        /* ----------------------------------------- */
+        /* МЕНЮ И АККОРДЕОНЫ                         */
+        /* ----------------------------------------- */
         .section {
             background: var(--glass);
             border: 1px solid var(--glass-border);
@@ -304,7 +308,7 @@
         }
 
         .section.open .section-content {
-            max-height: 800px;
+            max-height: 1000px;
             padding: 18px;
             border-top: 1px solid var(--glass-border);
         }
@@ -337,7 +341,9 @@
             outline: none;
         }
 
-        /* НАВИГАЦИЯ НИЖНЯЯ */
+        /* ----------------------------------------- */
+        /* НАВИГАЦИЯ                                 */
+        /* ----------------------------------------- */
         .navbar {
             position: fixed;
             bottom: 0;
@@ -362,28 +368,32 @@
             text-decoration: none;
         }
 
-        .nav-link.active {
-            color: var(--gold);
-        }
+        .nav-link.active { color: var(--gold); }
+        .nav-link span { font-size: 22px; margin-bottom: 2px; }
+        .nav-link label { font-size: 10px; text-transform: uppercase; font-weight: 700; }
 
-        .nav-link span {
-            font-size: 22px;
-            margin-bottom: 2px;
-        }
-
-        .nav-link label {
-            font-size: 10px;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        /* КАРТОЧКА ИНФО */
+        /* ----------------------------------------- */
+        /* ИНФО-КАРТОЧКА                             */
+        /* ----------------------------------------- */
         .card {
             background: var(--glass);
             padding: 20px;
             border-radius: 20px;
             border: 1px solid var(--glass-border);
             line-height: 1.6;
+            margin-bottom: 80px;
+            overflow-y: auto;
+        }
+
+        .ref-box {
+            background: rgba(0, 136, 204, 0.1);
+            border: 1px dashed var(--blue);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            word-break: break-all;
+            font-size: 12px;
+            color: var(--blue);
         }
     </style>
 </head>
@@ -448,13 +458,17 @@
                 <div><b>Энергетик</b><br><small>+30 энергии (Лимит 3/день)</small></div>
                 <button class="btn-buy" onclick="doAction('buy_item', {itemId:'energy'})">500 TC</button>
             </div>
+            <div class="item-row">
+                <div><b>Титановая леска</b><br><small>Защита от обрыва</small></div>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'titan'})">1000 TC</button>
+            </div>
         </div>
     </div>
 
     <div class="section">
         <div class="section-header" onclick="toggleSection(this)"><span>📦 МОИ ЯЩИКИ</span><span>▼</span></div>
         <div class="section-content">
-            <p>У вас есть: <b id="u-box-menu">0</b> ящиков</p>
+            <p>Доступно: <b id="u-box-menu">0</b> шт.</p>
             <button class="btn btn-blue" style="background:var(--gold); color:black;" onclick="doAction('open_box')">ОТКРЫТЬ ЯЩИК ✨</button>
         </div>
     </div>
@@ -475,12 +489,29 @@
 </div>
 
 <div id="info" class="page">
-    <h1 style="text-align:center; margin-bottom:20px;">ℹ️ Информация</h1>
+    <h1 style="text-align:center; margin-bottom:20px;">ℹ️ Экономика</h1>
     <div class="card">
-        <p><b>Tamacoin Fishing</b> — Твой путь к мечте!</p>
-        <p>📍 1 кг рыбы = 10 TC.<br>
-        📍 Золотой час: каждый день в 19:00 (X2 улов).<br>
-        📍 План: Бот -> Контракт -> Биржа -> Мотоцикл 🏍️</p>
+        <p><b>💰 КУРС ОБМЕНА:</b><br>
+        📍 1 кг рыбы = 0.5 TC<br>
+        📍 Золотой час (19:00): Улов x2</p>
+
+        <p><b>⚒️ РАСХОДЫ:</b><br>
+        📍 Заброс: 2 энергии + 1% прочности<br>
+        📍 Ремонт: 50 TC<br>
+        📍 Энергетик: 500 TC (+30 энергии)</p>
+
+        <p><b>🎁 ЯЩИКИ:</b><br>
+        📍 Шанс 3%. Внутри от 100 до 800 TC</p>
+
+        <div class="ref-box">
+            <b>👥 РЕФЕРАЛЬНАЯ ССЫЛКА:</b><br>
+            Получай 10% от продаж друзей!<br>
+            <span id="ref-link">Загрузка...</span>
+        </div>
+        
+        <p style="text-align:center; margin-top:20px; font-size:12px; color:var(--gold);">
+            План: Бот -> Контракт -> Биржа -> Мотоцикл 🏍️
+        </p>
     </div>
 </div>
 
@@ -493,7 +524,7 @@
 
 <script>
     const tg = window.Telegram.WebApp;
-    // ТВОЯ АКТУАЛЬНАЯ ССЫЛКА (ОБНОВЛЕНО!)
+    // ТВОЯ АКТУАЛЬНАЯ ССЫЛКА (ПРОВЕРЕНО)
     const API_URL = 'https://tama-bot-server.onrender.com/api/action'; 
 
     let nextDaily = 0;
@@ -579,6 +610,10 @@
         document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
         document.getElementById('u-lvl').innerText = d.level || "САЛАГА 🌱";
         
+        // Реферальная ссылка
+        const myId = tg.initDataUnsafe?.user?.id || "7883085758";
+        document.getElementById('ref-link').innerText = `https://t.me/TAMA_FISH_BOT?start=${myId}`;
+
         nextDaily = (d.lastBonus || 0) + 86400000;
         currentCastCount = d.castCount || 0;
 
