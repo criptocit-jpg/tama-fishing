@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold v3.6.5</title>
+    <title>Tamacoin Fishing Gold v3.6.6</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -377,36 +377,6 @@
             font-weight: 700;
         }
 
-        /* МОДАЛЬНЫЕ ОКНА */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-
-        .box-wrap {
-            display: flex;
-            gap: 20px;
-        }
-
-        .box-item {
-            font-size: 60px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .box-item:hover {
-            transform: scale(1.1);
-        }
-
         /* КАРТОЧКА ИНФО */
         .card {
             background: var(--glass);
@@ -478,10 +448,6 @@
                 <div><b>Энергетик</b><br><small>+30 энергии (Лимит 3/день)</small></div>
                 <button class="btn-buy" onclick="doAction('buy_item', {itemId:'energy'})">500 TC</button>
             </div>
-            <div class="item-row">
-                <div><b>Новая леска</b><br><small>Снижает шанс обрыва</small></div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'titan'})">1000 TC</button>
-            </div>
         </div>
     </div>
 
@@ -514,9 +480,7 @@
         <p><b>Tamacoin Fishing</b> — Твой путь к мечте!</p>
         <p>📍 1 кг рыбы = 10 TC.<br>
         📍 Золотой час: каждый день в 19:00 (X2 улов).<br>
-        📍 Следи за прочностью: при 0% ловля невозможна.<br>
-        📍 Капча: каждые 5 забросов лови мешочек.</p>
-        <p style="color:var(--gold); font-weight:800; border-top:1px solid var(--glass-border); padding-top:10px;">План: Бот -> Контракт -> Биржа -> Мотоцикл 🏍️</p>
+        📍 План: Бот -> Контракт -> Биржа -> Мотоцикл 🏍️</p>
     </div>
 </div>
 
@@ -529,8 +493,8 @@
 
 <script>
     const tg = window.Telegram.WebApp;
-    // ТВОЯ ЗОЛОТАЯ ССЫЛКА (УЖЕ ВШИТА)
-    const API_URL = 'https://tamacoin-fishing.onrender.com/api/action'; 
+    // ТВОЯ АКТУАЛЬНАЯ ССЫЛКА (ОБНОВЛЕНО!)
+    const API_URL = 'https://tama-bot-server.onrender.com/api/action'; 
 
     let nextDaily = 0;
     let currentCastCount = 0;
@@ -560,9 +524,7 @@
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const currentVal = Math.floor(progress * (end - start) + start);
             obj.innerHTML = currentVal.toLocaleString() + ' <span>TC</span>';
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
+            if (progress < 1) window.requestAnimationFrame(step);
         };
         window.requestAnimationFrame(step);
     }
@@ -592,24 +554,19 @@
                 })
             });
             const data = await response.json();
-            
             if(data.msg) {
-                if(action === 'catch_fish') {
-                    showWood(data.msg);
-                } else {
-                    showToast(data.msg);
-                }
+                if(action === 'catch_fish') showWood(data.msg);
+                else showToast(data.msg);
             }
             updateUI(data);
         } catch(e) {
-            console.error("Критическая ошибка связи:", e);
+            console.error("Связь разорвана:", e);
             showToast("СЕРВЕР НЕ ОТВЕЧАЕТ");
         }
     }
 
     function updateUI(d) {
         if(!d || d.b === undefined) return;
-        
         const balEl = document.getElementById('b1');
         const oldB = parseInt(balEl.innerText.replace(/\s/g, '')) || 0;
         animateValue(balEl, oldB, Math.floor(d.b), 600);
@@ -638,23 +595,20 @@
 
     function startFishing() {
         if ((currentCastCount + 1) % 5 === 0) {
-            showToast("КЛЮНУЛО! ПОЙМАЙ МЕШОЧЕК! 🧺", true);
+            showToast("КЛЮНУЛО! ЛОВИ МЕШОЧЕК! 🧺", true);
             const bag = document.getElementById('captcha-bag');
             const zone = document.getElementById('lake-zone');
             bag.style.left = Math.random() * (zone.clientWidth - 80) + "px";
             bag.style.top = Math.random() * (zone.clientHeight - 80) + "px";
             bag.style.display = 'block';
             document.getElementById('cast-btn').disabled = true;
-            document.getElementById('game-status').innerText = "ЛОВИ МЕШОЧЕК!";
             tg.HapticFeedback.notificationOccurred('warning');
         } else {
             const anim = document.getElementById('fishAnim');
             anim.style.display = 'block';
             tg.HapticFeedback.impactOccurred('heavy');
-            document.getElementById('game-status').innerText = "ТЯНЕШЬ...";
             setTimeout(() => {
                 anim.style.display = 'none';
-                document.getElementById('game-status').innerText = "ГОТОВ!";
                 doAction('catch_fish');
             }, 1300);
         }
@@ -663,50 +617,31 @@
     function catchBag() {
         document.getElementById('captcha-bag').style.display = 'none';
         document.getElementById('cast-btn').disabled = false;
-        document.getElementById('game-status').innerText = "ОТЛИЧНО!";
         doAction('catch_fish', {captchaPassed: true});
     }
 
     function withdraw() {
         const w = document.getElementById('wallet').value;
         const a = document.getElementById('amount').value;
-        if(!w || a < 30000) return showToast("ПРОВЕРЬ ДАННЫЕ!");
+        if(!w || a < 30000) return showToast("ОШИБКА ДАННЫХ!");
         doAction('withdraw', {wallet: w, amount: parseFloat(a)});
     }
 
     setInterval(() => {
         const now = Date.now();
         const dDiff = nextDaily - now;
-        
         if(dDiff > 0) {
             const h = Math.floor(dDiff/3600000);
             const m = Math.floor((dDiff%3600000)/60000);
             const s = Math.floor((dDiff%60000)/1000);
-            document.getElementById('daily-timer').innerText = 
-                `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            document.getElementById('daily-timer').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
             document.getElementById('btn-daily').disabled = true;
         } else {
             document.getElementById('daily-timer').innerText = "ГОТОВ!";
             document.getElementById('btn-daily').disabled = false;
         }
-
-        const date = new Date();
-        if(date.getHours() === 19) {
-            document.getElementById('gh-timer').innerText = "АКТИВЕН! 🔥";
-        } else {
-            let target = new Date();
-            target.setHours(19, 0, 0, 0);
-            if(date.getHours() >= 19) target.setDate(target.getDate() + 1);
-            const gDiff = target - date;
-            const gh = Math.floor(gDiff/3600000);
-            const gm = Math.floor((gDiff%3600000)/60000);
-            const gs = Math.floor((gDiff%60000)/1000);
-            document.getElementById('gh-timer').innerText = 
-                `${gh.toString().padStart(2,'0')}:${gm.toString().padStart(2,'0')}:${gs.toString().padStart(2,'0')}`;
-        }
     }, 1000);
 
-    // ЗАГРУЗКА ПРИ СТАРТЕ
     doAction('load_data');
 </script>
 </body>
