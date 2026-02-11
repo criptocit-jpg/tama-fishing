@@ -1,8 +1,9 @@
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold v3.6.0</title>
+    <title>Tamacoin Fishing Gold v3.6.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -149,7 +150,6 @@
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .box-wrap { display: flex; gap: 20px; }
         .box-item { font-size: 60px; cursor: pointer; }
-
         .card { background: var(--glass); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border); line-height: 1.6; }
     </style>
 </head>
@@ -205,18 +205,17 @@
         </div>
     </div>
     <div class="section">
-        <div class="section-header" onclick="toggleSection(this)"><span>🛒 МАГАЗИН STARS</span><span>▼</span></div>
+        <div class="section-header" onclick="toggleSection(this)"><span>🛒 МАГАЗИН</span><span>▼</span></div>
         <div class="section-content">
-            <div class="item-row"><div><b>Титановая леска</b><br><small>Защита от обрыва</small></div><button class="btn-buy" onclick="doAction('buy_item', {itemId:'titan'})">150 ⭐</button></div>
-            <div class="item-row"><div><b>Энергетик</b><br><small>+30 энергии</small></div><button class="btn-buy" onclick="doAction('buy_item', {itemId:'energy'})">30 ⭐</button></div>
+            <div class="item-row"><div><b>Энергетик</b><br><small>+30 энергии (Лимит 3/день)</small></div><button class="btn-buy" onclick="doAction('buy_item', {itemId:'energy'})">500 TC</button></div>
+            <div class="item-row"><div><b>Новая леска</b><br><small>Снижает шанс обрыва</small></div><button class="btn-buy" onclick="doAction('buy_item', {itemId:'titan'})">1000 TC</button></div>
         </div>
     </div>
     <div class="section">
-        <div class="section-header" onclick="toggleSection(this)"><span>💳 ВЫВОД TC</span><span>▼</span></div>
+        <div class="section-header" onclick="toggleSection(this)"><span>📦 МОИ ЯЩИКИ</span><span>▼</span></div>
         <div class="section-content">
-            <input type="text" id="wallet" placeholder="TON Адрес">
-            <input type="number" id="amount" placeholder="Сумма (30к+)">
-            <button class="btn btn-blue" style="background: var(--red);" onclick="withdraw()">ОТПРАВИТЬ ЗАЯВКУ</button>
+            <p>У вас есть: <b id="u-box-menu">0</b> ящиков</p>
+            <button class="btn btn-blue" style="background:var(--gold); color:black;" onclick="doAction('open_box')">ОТКРЫТЬ ЯЩИК ✨</button>
         </div>
     </div>
 </div>
@@ -229,21 +228,12 @@
 <div id="info" class="page">
     <h1 style="text-align:center; margin-bottom:20px;">ℹ️ Информация</h1>
     <div class="card">
-        <p><b>Tamacoin Fishing</b> — Твоя золотая база для заработка.</p>
+        <p><b>Tamacoin Fishing</b> — Твой путь к мечте!</p>
         <p>📍 1 кг рыбы = 10 TC.<br>
         📍 Золотой час: каждый день в 19:00 (X2 улов).<br>
-        📍 Следи за прочностью удочки, иначе она сломается.<br>
-        📍 Уровни растут от твоего общего дохода.</p>
-        <p style="color:var(--gold); font-weight:800; border-top:1px solid var(--glass-border); padding-top:10px;">Версия: 3.6.0 "Diamond Edition"</p>
-    </div>
-</div>
-
-<div id="box-modal" class="modal">
-    <h2 style="color:var(--gold);">ВЫБЕРИ СВОЙ ПРИЗ</h2>
-    <div class="box-wrap">
-        <div class="box-item" onclick="selectBox(this)">🎁</div>
-        <div class="box-item" onclick="selectBox(this)">🎁</div>
-        <div class="box-item" onclick="selectBox(this)">🎁</div>
+        📍 Следи за прочностью: при 0% ловля невозможна.<br>
+        📍 Капча: каждые 5 забросов лови мешочек.</p>
+        <p style="color:var(--gold); font-weight:800; border-top:1px solid var(--glass-border); padding-top:10px;">План: Бот -> Контракт -> Биржа -> Мотоцикл 🏍️</p>
     </div>
 </div>
 
@@ -256,22 +246,24 @@
 
 <script>
     const tg = window.Telegram.WebApp;
-    const API_URL = 'https://твой-сервер.com/api/action';
+    // СЮДА ПИШЕМ ТВОЮ ССЫЛКУ ИЗ RENDER (Например: https://bot.onrender.com/api/action)
+    const API_URL = 'https://ТВОЙ_АДРЕС.onrender.com/api/action'; 
+
     let nextDaily = 0;
     let currentCastCount = 0;
 
     tg.ready(); tg.expand();
 
     function showToast(text, isLong = false) {
-        const toast = document.getElementById('toast');
-        toast.innerText = text; toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), isLong ? 5000 : 3000);
+        const t = document.getElementById('toast');
+        t.innerText = text; t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), isLong ? 5000 : 3000);
     }
 
     function showWood(text) {
-        const wood = document.getElementById('wood-alert');
-        wood.innerText = text; wood.classList.add('show');
-        setTimeout(() => wood.classList.remove('show'), 3500);
+        const w = document.getElementById('wood-alert');
+        w.innerText = text; w.classList.add('show');
+        setTimeout(() => w.classList.remove('show'), 3500);
     }
 
     function animateValue(obj, start, end, duration) {
@@ -309,31 +301,29 @@
             });
             const data = await response.json();
             
-            // ЛОГИКА ПУНКТА 4: Мешочек сверху, рыба снизу
             if(data.msg) {
                 if(action === 'catch_fish') showWood(data.msg);
                 else showToast(data.msg);
             }
-            
             updateUI(data);
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Ошибка связи:", e); }
     }
 
     function updateUI(d) {
-        if(!d) return;
+        if(!d || d.b === undefined) return;
         const balEl = document.getElementById('b1');
         const oldB = parseInt(balEl.innerText.replace(/\s/g, '')) || 0;
-        const newB = Math.floor(d.b || 0);
-        if(oldB !== newB) animateValue(balEl, oldB, newB, 600);
+        animateValue(balEl, oldB, Math.floor(d.b), 600);
 
-        document.getElementById('u-en').innerText = d.energy;
+        document.getElementById('u-en').innerText = d.energy || 0;
+        document.getElementById('u-dur').innerText = (d.durability || 0) + '%';
+        document.getElementById('u-dur2').innerText = d.durability || 0;
         document.getElementById('u-box').innerText = d.boxes || 0;
-        document.getElementById('u-dur').innerText = d.durability + '%';
-        document.getElementById('u-dur2').innerText = d.durability;
+        document.getElementById('u-box-menu').innerText = d.boxes || 0;
         document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
         document.getElementById('u-lvl').innerText = d.level || "САЛАГА 🌱";
         
-        nextDaily = d.lastBonus + 86400000;
+        nextDaily = (d.lastBonus || 0) + 86400000;
         currentCastCount = d.castCount || 0;
 
         if(d.top) {
@@ -345,7 +335,6 @@
     }
 
     function startFishing() {
-        // ЛОГИКА АНТИ-ФЕРМЕР
         if ((currentCastCount + 1) % 5 === 0) {
             showToast("КЛЮНУЛО! ПОЙМАЙ МЕШОЧЕК! 🧺", true);
             const bag = document.getElementById('captcha-bag');
@@ -354,7 +343,6 @@
             bag.style.top = Math.random() * (zone.clientHeight - 80) + "px";
             bag.style.display = 'block';
             document.getElementById('cast-btn').disabled = true;
-            document.getElementById('game-status').innerText = "ПОДБЕРИ МЕШОЧЕК!";
             tg.HapticFeedback.notificationOccurred('warning');
         } else {
             const anim = document.getElementById('fishAnim');
@@ -370,15 +358,11 @@
     function catchBag() {
         document.getElementById('captcha-bag').style.display = 'none';
         document.getElementById('cast-btn').disabled = false;
-        document.getElementById('game-status').innerText = "ОТЛИЧНО!";
         doAction('catch_fish', {captchaPassed: true});
     }
 
-    // ОБНОВЛЕНИЕ ТАЙМЕРОВ (Золотой час и Бонус)
     setInterval(() => {
         const now = Date.now();
-        
-        // Бонус
         const dDiff = nextDaily - now;
         if(dDiff > 0) {
             const h = Math.floor(dDiff/3600000), m = Math.floor((dDiff%3600000)/60000), s = Math.floor((dDiff%60000)/1000);
@@ -389,7 +373,6 @@
             document.getElementById('btn-daily').disabled = false;
         }
 
-        // Золотой час (19:00)
         const date = new Date();
         if(date.getHours() === 19) {
             document.getElementById('gh-timer').innerText = "АКТИВЕН! 🔥";
@@ -402,15 +385,8 @@
         }
     }, 1000);
 
-    function withdraw() {
-        const w = document.getElementById('wallet').value;
-        const a = document.getElementById('amount').value;
-        if(!w || a < 30000) return showToast("ПРОВЕРЬ ДАННЫЕ!");
-        doAction('withdraw', {wallet: w, amount: parseFloat(a)});
-    }
-
+    // Первая загрузка данных
     doAction('load_data');
-    setInterval(() => doAction('load_data'), 25000);
 </script>
 </body>
 </html>
