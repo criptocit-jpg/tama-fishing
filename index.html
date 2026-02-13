@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing 6.2</title>
+    <title>Tamacoin Fishing 6.2.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #FFD700; --dark: #0a0e1a; --wood: #5d4037; --glass: rgba(255,255,255,0.07); }
         body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
         
+        /* СТРАНИЦЫ */
         .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; flex-direction: column; padding-bottom: 110px; }
         .page.active { display: flex; }
         
-        /* КОРЯГА */
+        /* ПЛАШКА КОРЯГА */
         #wood-plate {
             position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
             background: var(--wood); border: 3px solid #3e2723; border-radius: 12px;
@@ -21,27 +22,35 @@
         }
         #wood-plate.show { transform: translate(-50%, -50%) scale(1); }
 
-        /* АККОРДЕОН */
-        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .acc-head { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
+        /* АККОРДЕОН (МАГАЗИН) */
+        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+        .acc-head { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; background: rgba(255,255,255,0.02); }
         .acc-body { display: none; padding: 10px; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
         .acc-item.open .acc-body { display: grid; }
 
-        /* ТАЙМЕРЫ */
+        /* ВЕРХНЯЯ ПАНЕЛЬ ТАЙМЕРОВ */
         .top-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--gold); margin-bottom: 10px; font-family: monospace; }
         
-        .lake-zone { flex-grow: 1; position: relative; background: radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        /* ЗОНА ЛОВЛИ */
+        .lake-zone { flex-grow: 1; position: relative; background: radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; border: 1px solid rgba(0,136,204,0.2); }
         #fish-anim { width: 100px; display: none; }
         
-        .btn-cast { width: 100%; padding: 20px; background: var(--gold); border: none; border-radius: 18px; font-weight: 900; font-size: 18px; color: #000; }
-        .btn-daily { background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; font-weight: bold; display: none; }
+        /* КНОПКИ */
+        .btn-cast { width: 100%; padding: 20px; background: var(--gold); border: none; border-radius: 18px; font-weight: 900; font-size: 18px; color: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .btn-daily { background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; font-weight: bold; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
+        /* НАВИГАЦИЯ */
         nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #0d121f; display: flex; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #5a6275; text-decoration: none; }
-        .nav-item.active { color: var(--gold); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #5a6275; text-decoration: none; transition: 0.3s; }
+        .nav-item.active { color: var(--gold); background: rgba(255,215,0,0.03); }
+        .nav-item i { font-size: 22px; font-style: normal; margin-bottom: 3px; }
         
+        /* СТАТИСТИКА */
         .stat-mini { background: var(--glass); padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; }
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; display:none; z-index:3000; font-weight:bold; }
+        .shop-btn { background: #2e7d32; color: white; border: none; padding: 5px; border-radius: 5px; width: 100%; margin-top: 5px; font-size: 10px; font-weight: bold; }
+        
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; display:none; z-index:3000; font-weight:bold; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.3); border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -56,13 +65,13 @@
 
 <div id="p-game" class="page active">
     <div class="top-row">
-        <div>ЗОЛОТОЙ ЧАС: <b id="t-gold">00:00:00</b></div>
-        <div>БОНУС: <b id="t-daily">00:00:00</b></div>
+        <div>ЗОЛОТОЙ ЧАС: <b id="t-gold">--:--:--</b></div>
+        <div>БОНУС: <b id="t-daily">--:--:--</b></div>
     </div>
     
     <div style="text-align:center; margin-bottom:10px;">
         <div id="u-b" style="font-size:36px; font-weight:900; color:var(--gold);">0</div>
-        <div style="font-size:10px; opacity:0.5;">БАЛАНС TC</div>
+        <div style="font-size:10px; opacity:0.5; letter-spacing: 1px;">TAMACON BALANCE</div>
     </div>
 
     <div style="display:flex; gap:5px; margin-bottom:10px;">
@@ -73,69 +82,71 @@
 
     <div class="lake-zone">
         <img src="fish_anim.webp" id="fish-anim">
-        <div id="status" style="opacity:0.4;">ГОТОВ К ЛОВЛЕ</div>
+        <div id="status" style="opacity:0.4; font-weight: bold;">ОКЕАН ЖДЕТ</div>
     </div>
 
-    <button id="btn-daily" class="btn-daily" onclick="api('get_daily')">ЗАБРАТЬ БОНУС 🎁</button>
-    <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
+    <div style="margin-top: auto;">
+        <button id="btn-daily" class="btn-daily" onclick="api('get_daily')">ЗАБРАТЬ БОНУС 🎁</button>
+        <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
+    </div>
 </div>
 
 <div id="p-sadok" class="page">
     <div class="acc-item open">
         <div class="acc-head">🐟 ВАШ УЛОВ</div>
-        <div class="acc-body" style="display:flex; justify-content:space-between; grid-template-columns:none;">
-            <span>Сумка: <b id="u-fish">0</b> кг</span>
-            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
+        <div class="acc-body" style="display:flex; justify-content:space-between; grid-template-columns:none; align-items: center;">
+            <span>Рыба в садке: <b id="u-fish">0</b> кг</span>
+            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 15px; border-radius:8px; font-weight:bold; color:#000;">ПРОДАТЬ</button>
         </div>
     </div>
 
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)">🛒 МАГАЗИН TC <span>▼</span></div>
         <div class="acc-body">
-            <div class="stat-mini"><b>Мякиш</b>100 TC<button onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Снасти</b>200 TC<button onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Энергия</b>50 TC<button onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Ремонт</b>50 TC<button onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
+            <div class="stat-mini"><b>Мякиш</b>100 TC<button class="shop-btn" onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
+            <div class="stat-mini"><b>Снасти</b>200 TC<button class="shop-btn" onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
+            <div class="stat-mini"><b>Энергия</b>50 TC<button class="shop-btn" onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
+            <div class="stat-mini"><b>Ремонт</b>50 TC<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
         </div>
     </div>
 
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)" style="color:var(--gold)">💎 VIP STARS <span>▼</span></div>
         <div class="acc-body">
-            <div class="stat-mini"><b>Титан</b>150 ⭐<button onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Прикорм</b>200 ⭐<button onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Снасти+</b>200 ⭐<button onclick="api('buy',{id:'strong'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Озеро</b>500 ⭐<button onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
+            <div class="stat-mini"><b>Титан</b>150 ⭐<button class="shop-btn" onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
+            <div class="stat-mini"><b>Прикорм</b>200 ⭐<button class="shop-btn" onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
+            <div class="stat-mini"><b>Снасти+</b>200 ⭐<button class="shop-btn" onclick="api('buy',{id:'strong'})">КУПИТЬ</button></div>
+            <div class="stat-mini"><b>Озеро</b>500 ⭐<button class="shop-btn" onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
         </div>
     </div>
 
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)">💳 ВЫВОД <span>▼</span></div>
         <div class="acc-body" style="grid-template-columns:1fr;">
-            <input id="w-wallet" placeholder="Номер кошелька" style="width:100%; padding:10px; margin-bottom:5px; background:rgba(0,0,0,0.3); border:1px solid #333; color:#fff;">
-            <input id="w-sum" type="number" placeholder="Сумма TC" style="width:100%; padding:10px; margin-bottom:5px; background:rgba(0,0,0,0.3); border:1px solid #333; color:#fff;">
-            <button onclick="withdraw()" style="background:#0088cc; color:white; border:none; padding:10px; border-radius:8px; width:100%;">ЗАКАЗАТЬ</button>
+            <input id="w-wallet" placeholder="Номер кошелька (TON)">
+            <input id="w-sum" type="number" placeholder="Сумма TC">
+            <button onclick="withdraw()" style="background:#0088cc; color:white; border:none; padding:12px; border-radius:10px; width:100%; font-weight: bold;">СОЗДАТЬ ЗАЯВКУ</button>
         </div>
     </div>
 </div>
 
 <div id="p-top" class="page">
-    <h2 style="text-align:center; color:var(--gold);">🏆 ТОП 10</h2>
+    <h2 style="text-align:center; color:var(--gold);">🏆 ТОП 10 РЫБАКОВ</h2>
     <div id="top-list"></div>
 </div>
 
 <div id="p-info" class="page">
-    <h2 style="color:var(--gold);">ИНФО</h2>
+    <h2 style="color:var(--gold);">ИНФОРМАЦИЯ</h2>
     <div class="acc-item open">
         <div class="acc-head">ОБ ИГРЕ</div>
-        <div class="acc-body" style="display:block; font-size:13px;">
-            Лови рыбу, продавай за TC и выводи в реал! <br><br>
-            <b>Золотой час:</b> 19:00 (улов x2).<br>
-            <b>Рефералка:</b> 10% от друзей.
+        <div class="acc-body" style="display:block; font-size:13px; line-height: 1.5;">
+            Лови рыбу, зарабатывай TC и выводи на реальный баланс! <br><br>
+            <b>🔥 Золотой час:</b> В 19:00 по серверу улов увеличивается в 2 раза.<br>
+            <b>👨‍👩‍👧 Рефералы:</b> Получай 10% от каждой продажи рыбы твоими друзьями.
         </div>
     </div>
-    <div style="margin-top:10px; font-size:11px;">ВАША ССЫЛКА:</div>
-    <div id="ref-link" style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; word-break:break-all; font-size:10px; color:var(--gold);"></div>
+    <div style="margin-top:20px; font-size:11px; opacity: 0.6;">ВАША ПРИГЛАСИТЕЛЬНАЯ ССЫЛКА:</div>
+    <div id="ref-link" style="background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; word-break:break-all; font-size:11px; color:var(--gold); border: 1px dashed rgba(255,215,0,0.3); margin-top: 5px;"></div>
 </div>
 
 <nav>
@@ -150,8 +161,10 @@
     const URL = 'https://tama-bot-server.onrender.com/api/action';
     let user = { lastBonus: 0 };
 
-    tg.ready(); tg.expand();
+    tg.ready();
+    tg.expand();
 
+    // Переключение страниц
     function showP(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -159,82 +172,114 @@
         el.classList.add('active');
     }
 
+    // Переключение аккордеона
     function toggleAcc(el) {
         el.parentElement.classList.toggle('open');
     }
 
+    // Всплывающее уведомление
+    function toast(txt) {
+        const t = document.getElementById('toast');
+        t.innerText = txt;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 2500);
+    }
+
+    // Главная функция связи с сервером
     async function api(action, payload = {}) {
         try {
             const uid = tg.initDataUnsafe?.user?.id || "7883085758";
             const uname = tg.initDataUnsafe?.user?.first_name || "Рыбак";
+            
             const r = await fetch(URL, {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({ userId: uid, userName: uname, action, payload })
             });
+            
+            if (!r.ok) throw new Error("Сервер не отвечает");
             const d = await r.json();
-            if (d.msg) {
-                const t = document.getElementById('toast');
-                t.innerText = d.msg; t.style.display='block';
-                setTimeout(()=>t.style.display='none', 2500);
-            }
+            
+            if (d.msg) toast(d.msg);
             render(d);
+            
             if (d.catchData) {
                 const w = document.getElementById('wood-plate');
                 document.getElementById('catch-res').innerHTML = d.catchData.type + '<br>' + d.catchData.w + ' кг';
                 w.classList.add('show');
             }
-        } catch(e) { console.error("API ERROR:", e); }
+        } catch(e) { 
+            console.error("API Error:", e);
+            // Даже при ошибке не даем интерфейсу "зависнуть"
+        }
     }
 
+    // Обновление данных на экране
     function render(d) {
+        if (!d || !d.id) return;
         user = d;
         document.getElementById('u-b').innerText = Math.floor(d.b).toLocaleString();
         document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
-        document.getElementById('u-en').innerText = d.energy;
-        document.getElementById('u-dur').innerText = Math.max(0, d.dur) + '%';
+        document.getElementById('u-en').innerText = d.energy || 0;
+        document.getElementById('u-dur').innerText = Math.max(0, d.dur || 0) + '%';
         document.getElementById('u-box').innerText = d.boxes || 0;
         document.getElementById('ref-link').innerText = "https://t.me/TamacoinBot?start=" + d.id;
         
         if(d.top) {
             document.getElementById('top-list').innerHTML = d.top.map((x,i)=>
-                `<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${x.b} TC</b></div>`
+                `<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;"><span>${i+1}. ${x.n}</span><b>${Math.floor(x.b)} TC</b></div>`
             ).join('');
         }
     }
 
+    // Анимация заброса
     function doCast() {
         const f = document.getElementById('fish-anim');
         const b = document.getElementById('btn-cast');
-        f.style.display = 'block'; b.disabled = true;
-        document.getElementById('status').innerText = "ЛЕСКА В ВОДЕ...";
+        const s = document.getElementById('status');
+        
+        f.style.display = 'block';
+        b.disabled = true;
+        s.innerText = "ЗАБРОС ЛЕСКИ...";
+        s.style.opacity = "1";
+
         setTimeout(() => {
-            f.style.display = 'none'; b.disabled = false;
-            document.getElementById('status').innerText = "ГОТОВ";
+            f.style.display = 'none';
+            b.disabled = false;
+            s.innerText = "ОКЕАН СПОКОЕН";
+            s.style.opacity = "0.4";
             api('cast');
         }, 1300);
     }
 
+    // Логика вывода
     function withdraw() {
         const wallet = document.getElementById('w-wallet').value;
         const sum = document.getElementById('w-sum').value;
-        if(!wallet || !sum) return;
+        if(!wallet || !sum) {
+            toast("Заполните все поля!");
+            return;
+        }
         api('withdraw', {wallet, sum: parseInt(sum)});
     }
 
+    // Таймеры (Золотой час и Бонус)
     setInterval(() => {
         const now = new Date();
-        // Золотой час
+        
+        // 1. Золотой час (до 19:00)
         let target = new Date();
         target.setHours(19,0,0,0);
         if (now > target) target.setDate(target.getDate() + 1);
         let diff = target - now;
+        
         const h = String(Math.floor(diff/3600000)).padStart(2,'0');
         const m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
         const s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+        
         document.getElementById('t-gold').innerText = (now.getHours() === 19) ? "АКТИВЕН! 🔥" : h + ":" + m + ":" + s;
         
-        // Бонус
+        // 2. Ежедневный бонус
         let bDiff = (user.lastBonus + 86400000) - Date.now();
         if(bDiff > 0) {
             const bh = String(Math.floor(bDiff/3600000)).padStart(2,'0');
@@ -248,6 +293,7 @@
         }
     }, 1000);
 
+    // Самый первый запрос данных при входе
     api('load');
 </script>
 </body>
