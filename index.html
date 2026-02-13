@@ -537,80 +537,68 @@
         </div>
         <div class="section-content">
             <div class="stars-section">
+                <span>СТОИМОСТЬ СТОИТ В TC</span>
+            </div>
+            
+            <div class="item-row">
+                <div>
+                    <b>Мячик</b><br>
+                    <small>Исключает срывы</small>
+                </div>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'safe_ball'})">50 TC</button>
+            </div>
+            
+            <div class="item-row">
+                <div>
+                    <b>Комплект Снастей</b><br>
+                    <small>Меньше ломается</small>
+                </div>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'fishing_kit'})">150 TC</button>
+            </div>
+            
+            <div class="item-row">
+                <div>
+                    <b>Энергетик</b><br>
+                    <small>+30 энергии</small>
+                </div>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'energy_drink'})">100 TC</button>
+            </div>
+            
+            <div class="stars-section">
                 <span>СТОИМОСТЬ СТОИТ В STARS</span>
                 <span style="font-size: 14px;">100 STARS = 2000 TC</span>
             </div>
             
             <div class="item-row-stars">
                 <div>
-                    <b>Энергетик</b><br>
-                    <small>+30 энергии</small>
+                    <b>Озеро Надежды</b><br>
+                    <small>Золотой Карп</small>
                 </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'energy'})">500 TC</button>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'golden_lake'})">150 STARS</button>
             </div>
             
             <div class="item-row-stars">
                 <div>
-                    <b>Золотая Удочка</b><br>
-                    <small>Прочность на 100%</small>
+                    <b>Титановая Удочка</b><br>
+                    <small>Не ломается 7 дней</small>
                 </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'golden_rod'})">5000 TC</button>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'titan_rod'})">200 STARS</button>
             </div>
             
             <div class="item-row-stars">
                 <div>
-                    <b>Буст Улова</b><br>
-                    <small>+2.0 кг рыбы</small>
+                    <b>Набор Профи</b><br>
+                    <small>Все + 30 дней</small>
                 </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'catch_boost'})">2000 TC</button>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'pro_set'})">500 STARS</button>
             </div>
             
             <div class="item-row-stars">
                 <div>
-                    <b>Супер Ящик</b><br>
-                    <small>+5 ящиков</small>
+                    <b>Золотой Карп</b><br>
+                    <small>5000 TC</small>
                 </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'super_box'})">3000 TC</button>
-            </div>
-            
-            <div class="item-row-stars">
-                <div>
-                    <b>Спец Наживка</b><br>
-                    <small>+20 энергии + 20 прочности</small>
-                </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'special_bait'})">1000 TC</button>
-            </div>
-            
-            <div class="item-row-stars">
-                <div>
-                    <b>Золотой Рыболов</b><br>
-                    <small>+50 энергии + 5.0 кг улова</small>
-                </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'golden_fisher'})">10000 TC</button>
-            </div>
-            
-            <div class="item-row-stars">
-                <div>
-                    <b>Буст Золотого Часа</b><br>
-                    <small>+40 энергии</small>
-                </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'gold_hour_boost'})">1500 TC</button>
-            </div>
-            
-            <div class="item-row-stars">
-                <div>
-                    <b>Золотой Конь</b><br>
-                    <small>+10 ящиков + 5.0 кг улова</small>
-                </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'trojan_horse'})">10000 TC</button>
-            </div>
-            
-            <div class="item-row-stars">
-                <div>
-                    <b>100 STARS</b><br>
-                    <span class="stars-badge">Трансформация</span>
-                </div>
-                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'stars_100'})">100 STARS</button>
+                <button class="btn-buy" onclick="doAction('buy_item', {itemId:'golden_carp'})">5000 TC</button>
             </div>
         </div>
     </div>
@@ -653,15 +641,16 @@
     <h1 style="text-align:center; margin-bottom:20px;">ℹ️ Экономика</h1>
     <div class="card">
         <p><b>💰 КУРС ОБМЕНА:</b><br>
-        📍 1 кг рыбы = 0.5 TC</p>
+        📍 1 кг рыбы = 2 TC</p>
         
         <p><b>⚒️ РАСХОДЫ:</b><br>
         📍 Заброс: 2 энергии + 1% прочности<br>
-        📍 Ремонт: 50 TC</p>
+        📍 Ремонт: 50 TC<br>
+        📍 Бонус: каждый день</p>
 
         <p><b>⭐ ЗВЕЗДЫ (STARS):</b><br>
         📍 100 STARS = 2000 TC<br>
-        📍 Все покупки в магазине могут быть оплачены звездами!</p>
+        📍 Все покупки за Stars в магазине!</p>
 
         <div class="ref-box">
             <b>👥 РЕФЕРАЛЬНАЯ ССЫЛКА:</b><br>
@@ -773,9 +762,8 @@
             if(data.msg && action !== 'load_data') {
                 if(action === 'catch_fish') {
                     showWood(data.msg);
-                } else {
-                    showToast(data.msg);
-                }
+            } else {
+                showToast(data.msg);
             }
             updateUI(data);
         } catch(e) {
@@ -879,7 +867,7 @@
             document.getElementById('btn-daily').disabled = false;
         }
 
-                // ЛОГИКА ТАЙМЕРА ЗОЛОТОГО ЧАСА (19:00)
+        // ЛОГИКА ТАЙМЕРА ЗОЛОТОГО ЧАСА (19:00)
         const gh = new Date(); 
         gh.setHours(19, 0, 0, 0);
         if (now > gh) {
@@ -888,7 +876,7 @@
         const gDiff = gh - now;
         const ghH = Math.floor(gDiff/3600000);
         const ghM = Math.floor((gDiff%3600000)/60000);
-        const ghS = Math.floor((gDiff%60000)/1000);
+        const ghS = Math.floor((gDiff%60000)/1000;
         
         document.getElementById('gh-timer').innerText = 
             `${ghH.toString().padStart(2,'0')}:${ghM.toString().padStart(2,'0')}:${ghS.toString().padStart(2,'0')}`;
@@ -904,4 +892,3 @@
 </script>
 </body>
 </html>
-
