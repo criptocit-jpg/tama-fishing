@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TAMACOIN FISHING WORLD v4.4.0</title>
+    <title>Tamacoin Fishing Gold</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <style>
         :root {
             --gold: #FFD700;
             --gold-dark: #B8860B;
             --bg: #050810;
-            --glass: rgba(255, 255, 255, 0.07);
+            --glass: rgba(255, 255, 255, 0.06);
             --glass-border: rgba(255, 255, 255, 0.12);
             --blue: #0088CC;
             --blue-dark: #005580;
@@ -19,230 +18,365 @@
             --green: #4caf50;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         body {
-            margin: 0; padding: 0;
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 50% 0%, #1a2a4a 0%, #050810 70%);
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            background-image: radial-gradient(circle at top right, #0a1530, var(--bg));
             color: white;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
-            height: 100vh;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* ИСПРАВЛЕНИЕ ПЛАШКИ: Теперь она исчезает полностью */
+        /* Уведомления */
+        #toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150%);
+            background: var(--gold);
+            color: #000;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 14px;
+            z-index: 10000;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+            text-transform: uppercase;
+            max-width: 70%;
+            left: 50%;
+            margin-left: -35%;
+            display: none;
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            display: block;
+        }
+
         #wood-alert {
             position: fixed;
-            top: 45%;
+            bottom: 120px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10000;
-            background: linear-gradient(135deg, #5d4037 0%, #3e2723 100%);
+            transform: translateX(-50%) translateY(200%);
+            background: linear-gradient(90deg, #5d4037, #3e2723);
             color: #d7ccc8;
-            padding: 20px 35px;
-            border-radius: 20px;
-            border: 3px solid #795548;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            text-align: center;
+            padding: 15px 30px;
+            border-radius: 18px;
+            font-size: 14px;
             font-weight: 800;
-            font-size: 18px;
-            display: none; /* Физическое скрытие */
-            animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes alertPop {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-
-        /* Модальное окно открытия ящика */
-        #prize-modal {
-            display: none;
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            background: white;
-            color: black;
-            padding: 30px;
-            border-radius: 30px;
-            z-index: 20000;
+            border: 2px solid #795548;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 99;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
-            box-shadow: 0 0 100px rgba(255,215,0,0.6);
+            display: none;
+        }
+
+        #wood-alert.show {
+            transform: translateX(-50%) translateY(0);
+            display: block;
         }
 
         .page {
             display: none;
             height: 100vh;
             flex-direction: column;
-            padding: 20px 20px 100px 20px;
-            overflow-y: auto;
+            padding: 25px 20px;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
-        .page.active { display: flex; animation: pageIn 0.3s ease-out; }
-
-        @keyframes pageIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        .page.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
         }
 
-        /* СТИЛИ ШАПКИ И ИНТЕРФЕЙСА */
-        .header-info { text-align: center; margin-bottom: 10px; }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-info {
+            text-align: center;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
         .lvl-tag {
-            display: inline-block;
             background: var(--gold);
             color: #000;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 2px 12px;
+            border-radius: 10px;
+            font-size: 10px;
             font-weight: 900;
             text-transform: uppercase;
-            margin-bottom: 8px;
-            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+            margin-bottom: 5px;
+            display: inline-block;
         }
 
-        .balance-display { font-size: 42px; font-weight: 900; letter-spacing: -1px; }
-        .balance-display span { color: var(--gold); font-size: 24px; }
+        .balance-label {
+            font-size: 11px;
+            color: #8892b0;
+            letter-spacing: 3px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
 
-        .stat-grid {
+        .balance-val {
+            font-size: 44px;
+            font-weight: 900;
+            color: #fff;
+            margin-top: 2px;
+        }
+
+        .balance-val span {
+            color: var(--gold);
+        }
+
+        .timers-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 0 5px;
+        }
+
+        .timer-box {
+            font-size: 10px;
+            color: #556080;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-box b {
+            color: var(--gold);
+        }
+
+        .stats {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin: 15px 0;
+            gap: 8px;
+            margin: 10px 0;
+            flex-shrink: 0;
         }
 
-        .stat-card {
+        .stat-item {
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 12px 5px;
+            border-radius: 18px;
+            padding: 10px 5px;
             text-align: center;
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
-        .stat-card b { display: block; font-size: 18px; color: white; }
-        .stat-card small { font-size: 9px; color: #8892b0; text-transform: uppercase; font-weight: 700; }
+        .stat-item b {
+            font-size: 16px;
+            font-weight: 800;
+            display: block;
+        }
 
-        .lake-container {
+        .stat-item small {
+            display: block;
+            font-size: 9px;
+            color: #8892b0;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .fishing-area {
             flex-grow: 1;
-            background: rgba(0,0,0,0.2);
-            border-radius: 30px;
-            border: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            margin-bottom: 15px;
-            overflow: hidden;
+            width: 100%;
+            margin-bottom: 5px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 25px;
+            border: 1px solid var(--glass-border);
         }
 
-        #fish-sprite {
-            width: 200px;
+        #fishAnim {
+            width: 100%;
+            height: auto;
+            max-height: 80%;
+            object-fit: contain;
             display: none;
-            filter: drop-shadow(0 0 30px var(--blue));
-            animation: fishSwim 1.5s ease-in-out;
+            filter: drop-shadow(0 0 40px var(--blue));
+            animation: fishPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        #bag-captcha {
+        @keyframes fishPop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        #captcha-bag {
             position: absolute;
-            width: 85px;
+            width: 75px;
+            height: 75px;
             display: none;
-            z-index: 100;
-            filter: drop-shadow(0 0 20px var(--gold));
+            z-index: 101;
             cursor: pointer;
+            filter: drop-shadow(0 0 20px var(--gold));
+            animation: floatBag 2s infinite ease-in-out;
         }
 
-        /* КНОПКИ */
+        @keyframes floatBag {
+            0%, 100% {
+                transform: translate(0,0);
+            }
+            50% {
+                transform: translate(5px,-10px);
+            }
+        }
+
+        #tr-xl {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--blue);
+            margin-top: 5px;
+            display: none;
+        }
+
+        .bottom-actions {
+            width: 100%;
+            flex-grow: 1;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 5px;
+            margin-bottom: 100px;
+        }
+
         .btn {
             border: none;
-            border-radius: 24px;
+            border-radius: 22px;
+            color: white;
+            font-size: 18px;
             font-weight: 800;
+            width: 100%;
             cursor: pointer;
-            transition: 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+            transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
         }
 
-        .btn-main {
+        .btn-blue {
             background: linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
             padding: 22px;
-            font-size: 20px;
-            color: white;
-            box-shadow: 0 8px 25px rgba(0, 136, 204, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 136, 204, 0.3);
         }
 
-        .btn-daily {
+        .btn-gold {
             background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dark) 100%);
-            color: black;
-            padding: 15px;
-            margin-bottom: 12px;
-            font-size: 16px;
+            color: #000;
+            padding: 18px;
         }
 
-        .btn:active { transform: scale(0.95); opacity: 0.9; }
-        .btn:disabled { background: #333; color: #666; cursor: default; box-shadow: none; }
+        .btn:active {
+            transform: scale(0.96);
+        }
 
-        /* МЕНЮ И СЕКЦИИ */
-        .menu-section {
+        .btn:disabled {
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+
+        .section {
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-radius: 22px;
+            border-radius: 20px;
             margin-bottom: 12px;
             overflow: hidden;
+            transition: max-height 0.4s ease;
         }
 
-        .section-head {
-            padding: 18px 22px;
+        .section-header {
+            padding: 18px;
             display: flex;
-            justify-content: space-between;
+            flex-direction: row;
             align-items: center;
+            justify-content: space-between;
             font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .section-body {
-            display: none;
-            padding: 20px;
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0;
             background: rgba(0,0,0,0.2);
             border-top: 1px solid var(--glass-border);
         }
 
-        .menu-section.open .section-body { display: block; }
+        .section.open .section-content {
+            max-height: 1000px;
+            padding: 18px;
+        }
 
-        .shop-item {
+        .item-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
 
-        .stars-btn {
-            background: linear-gradient(90deg, #FFD700, #FFA500);
+        .btn-buy {
+            background: #fff;
+            color: #000;
             border: none;
-            color: black;
-            padding: 8px 16px;
-            border-radius: 12px;
+            padding: 8px 14px;
+            border-radius: 10px;
             font-weight: 800;
-            font-size: 13px;
         }
 
-        /* НАВИГАЦИЯ */
-        .nav-bar {
+        input {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--glass-border);
+            padding: 15px;
+            border-radius: 12px;
+            color: #fff;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .navbar {
             position: fixed;
-            bottom: 0; left: 0;
+            bottom: 0;
+            left: 0;
             width: 100%;
             height: 85px;
-            background: rgba(5, 8, 16, 0.96);
+            background: rgba(5, 8, 16, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             display: flex;
             border-top: 1px solid var(--glass-border);
-            padding: 0 10px;
-            backdrop-filter: blur(15px);
+            z-index: 1000;
         }
 
-        .nav-item {
+        .nav-link {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -250,232 +384,94 @@
             justify-content: center;
             color: #556080;
             text-decoration: none;
-            transition: 0.2s;
+            user-select: none;
         }
 
-        .nav-item.active { color: var(--gold); }
-        .nav-item i { font-size: 24px; margin-bottom: 4px; }
-        .nav-item span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
-
-        /* Анимация ящика */
-        @keyframes boxAction {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1) rotate(5deg); }
-            100% { transform: scale(1); }
+        .nav-link.active, .nav-link:hover {
+            color: var(--gold);
         }
-        .box-moving { animation: boxAction 0.2s infinite; }
 
+        .nav-link span {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+
+        .nav-link label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .card {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            line-height: 1.6;
+            margin-bottom: 80px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .ref-box {
+            background: rgba(0, 136, 204, 0.1);
+            border: 1px dashed var(--blue);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            word-break: break-all;
+            font-size: 12px;
+            color: var(--blue);
+        }
+
+        .gold-time_notice {
+            position: fixed;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass);
+            color: var(--gold);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 2px solid var(--gold);
+            backdrop-filter: blur(10px);
+            display: block;
+            z-index: 101;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .gold-time_notice.show {
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
+
 <body>
+    <div id="toast"></div>
+    <div id="wood-alert"></div>
+    <div id="gold-time_notice">Вы участвуете в ЗОЛОТОМ ЧАСЕ! 🎉</div>
 
-<div id="wood-alert">ВЕС: 0.00 КГ</div>
-
-<div id="prize-modal">
-    <h2 style="margin-top:0">ВЫИГРЫШ! ✨</h2>
-    <div id="prize-amount" style="font-size: 36px; font-weight: 900; color: #B8860B; margin: 15px 0;">+0 TC</div>
-    <button class="btn btn-main" style="padding: 12px; font-size: 14px;" onclick="closePrize()">ОТЛИЧНО</button>
-</div>
-
-<div id="page-game" class="page active">
-    <div class="header-info">
-        <div id="user-level" class="lvl-tag">ЗАГРУЗКА...</div>
-        <div class="balance-display" id="display-balance">0 <span>TC</span></div>
-    </div>
-
-    <div class="stat-grid">
-        <div class="stat-card"><small>ЭНЕРГИЯ</small><b id="val-energy">0</b></div>
-        <div class="stat-card"><small>ПРОЧНОСТЬ</small><b id="val-durability">0%</b></div>
-        <div class="stat-card"><small>ЯЩИКИ</small><b id="val-boxes">0</b></div>
-    </div>
-
-    <div class="lake-container">
-        <img src="https://cdn-icons-png.flaticon.com/512/2953/2953363.png" id="bag-captcha" onclick="handleBagClick()">
-        <img src="https://cdn-icons-png.flaticon.com/512/2275/2275038.png" id="fish-sprite">
-        <div style="position:absolute; bottom:15px; font-size:10px; color:#556080; font-weight:700;">ВОДОЕМ ТАМАКОИН</div>
-    </div>
-
-    <div class="controls">
-        <button id="btn-daily-bonus" class="btn btn-daily" onclick="triggerAction('get_daily')">ЕЖЕДНЕВНЫЙ БОНУС 🎁</button>
-        <button id="btn-cast" class="btn btn-main" onclick="processFishing()">ЗАБРОСИТЬ УДОЧКУ 🎣</button>
-    </div>
-</div>
-
-<div id="page-menu" class="page">
-    <h2 style="margin-top:0">ИНВЕНТАРЬ И МАГАЗИН</h2>
-
-    <div class="menu-section">
-        <div class="section-head" onclick="toggleAccordion(this)"><span>📦 МОИ ЯЩИКИ</span><span>▼</span></div>
-        <div class="section-body" style="text-align:center;">
-            <p>Доступно: <b id="val-boxes-menu">0</b> шт.</p>
-            <img id="box-render" src="https://cdn-icons-png.flaticon.com/512/679/679821.png" style="width:100px; margin: 10px 0;">
-            <button class="btn btn-main" style="padding: 12px; font-size: 14px;" onclick="startBoxOpening()">ОТКРЫТЬ ЯЩИК ✨</button>
-        </div>
-    </div>
-
-    <div class="menu-section">
-        <div class="section-head" onclick="toggleAccordion(this)"><span>🐟 МОЙ УЛОВ</span><span>▼</span></div>
-        <div class="section-body">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>Вес в сумке: <b id="val-fish">0.00</b> кг</div>
-                <button class="stars-btn" style="background:var(--blue); color:white;" onclick="triggerAction('sell_fish')">ПРОДАТЬ</button>
+    <div id="game" class="page active">
+        <div class="header-info">
+            <div id="u-lvl" class="lvl-tag">ЗАГРУЗКА...</div>
+            <div class="balance-label">TC / энергия</div>
+            <div class="balance-val" id="b-container">
+                <span id="b1">0</span>
             </div>
         </div>
-    </div>
 
-    <div class="menu-section">
-        <div class="section-head" onclick="toggleAccordion(this)" style="background: var(--gold); color: black;">
-            <span>⭐️ ПРЕМИУМ МАГАЗИН</span><span>▼</span>
+        <div class="timers-container">
+            <div class="timer-box">БОНУС: <b id="daily-timer">00:00:00</b></div>
+            <div class="timer-box">ЗОЛОТОЙ ЧАС: <b id="gh-timer">00:00:00</b></div>
         </div>
-        <div class="section-body">
-            <div class="shop-item"><div><b>Старт Пак</b><br><small>5к TC + 5 ящиков</small></div><button class="stars-btn" onclick="triggerAction('buy_stars',{itemId:'item_1'})">50 ⭐️</button></div>
-            <div class="shop-item"><div><b>Лицензия X2</b><br><small>Цена рыбы x2 вечно</small></div><button class="stars-btn" onclick="triggerAction('buy_stars',{itemId:'item_2'})">499 ⭐️</button></div>
-            <div class="shop-item"><div><b>Набор "КИТ"</b><br><small>50к TC + Энергия</small></div><button class="stars-btn" onclick="triggerAction('buy_stars',{itemId:'item_3'})">999 ⭐️</button></div>
-            <div class="shop-item"><div><b>Неоновая Уда</b><br><small>Не ломается</small></div><button class="stars-btn" onclick="triggerAction('buy_stars',{itemId:'item_4'})">1499 ⭐️</button></div>
-            <div class="shop-item"><div><b>Склад ящиков</b><br><small>10 Мега-ящиков</small></div><button class="stars-btn" onclick="triggerAction('buy_stars',{itemId:'item_5'})">299 ⭐️</button></div>
-            <div class="shop-item"><div><b>VIP Статус</b><br><small>Энергия 200 ед.</small></div><button class="stars-btn" onclick="triggerAction('buy_stars',{itemId:'item_6'})">799 ⭐️</button></div>
-        </div>
-    </div>
 
-    <div class="menu-section">
-        <div class="section-head" onclick="toggleAccordion(this)"><span>💳 ВЫВОД СРЕДСТВ</span><span>▼</span></div>
-        <div class="section-body">
-            <input type="text" id="inp-wallet" placeholder="Ваш TON кошелек" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:15px; margin-bottom:10px;">
-            <input type="number" id="inp-amount" placeholder="Сумма (от 30 000)" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:15px; margin-bottom:15px;">
-            <button class="btn btn-main" style="background:var(--red);" onclick="requestWithdrawal()">ОТПРАВИТЬ ЗАЯВКУ</button>
-        </div>
-    </div>
-</div>
-
-<nav class="nav-bar">
-    <a href="javascript:void(0)" class="nav-item active" onclick="switchTab('page-game', this)"><i>🎮</i><span>Игра</span></a>
-    <a href="javascript:void(0)" class="nav-item" onclick="switchTab('page-menu', this)"><i>🎒</i><span>Меню</span></a>
-</nav>
-
-<script>
-    const tg = window.Telegram.WebApp;
-    const API_URL = 'https://tama-bot-server.onrender.com/api/action'; // ЗАМЕНИТЬ НА СВОЙ
-    
-    let userState = { castCount: 0 };
-
-    // ИСПРАВЛЕНИЕ: Плашка теперь исчезает физически
-    function showWoodAlert(text) {
-        const el = document.getElementById('wood-alert');
-        el.innerText = text;
-        el.style.display = 'block';
-        
-        setTimeout(() => {
-            el.style.display = 'none';
-        }, 2500);
-    }
-
-    function toggleAccordion(el) {
-        el.parentElement.classList.toggle('open');
-    }
-
-    function switchTab(pageId, navEl) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        navEl.classList.add('active');
-        tg.HapticFeedback.impactOccurred('light');
-    }
-
-    async function triggerAction(action, extra = {}) {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: tg.initDataUnsafe?.user?.id || "7883085758",
-                    userName: tg.initDataUnsafe?.user?.first_name || "Рыбак",
-                    action, ...extra
-                })
-            });
-            const data = await response.json();
-            
-            if (data.msg && action !== 'load_data') {
-                if (action === 'catch_fish') showWoodAlert(data.msg);
-                else tg.showAlert(data.msg);
-            }
-
-            if (data.winAmount) {
-                document.getElementById('prize-amount').innerText = `+${data.winAmount} TC`;
-                document.getElementById('prize-modal').style.display = 'block';
-            }
-
-            refreshUI(data);
-        } catch (e) {
-            console.error("API Error:", e);
-        }
-    }
-
-    function refreshUI(d) {
-        if (!d || !d.id) return;
-        userState.castCount = d.castCount;
-        
-        document.getElementById('display-balance').innerHTML = Math.floor(d.b).toLocaleString() + ' <span>TC</span>';
-        document.getElementById('val-energy').innerText = Math.floor(d.energy);
-        document.getElementById('val-durability').innerText = d.durability + '%';
-        document.getElementById('val-boxes').innerText = d.boxes;
-        document.getElementById('val-boxes-menu').innerText = d.boxes;
-        document.getElementById('val-fish').innerText = (d.fish || 0).toFixed(2);
-        document.getElementById('user-level').innerText = d.level || "САЛАГА 🌱";
-    }
-
-    function processFishing() {
-        if ((userState.castCount + 1) % 5 === 0) {
-            const bag = document.getElementById('bag-captcha');
-            bag.style.left = (Math.random() * 60 + 10) + "%";
-            bag.style.top = (Math.random() * 60 + 10) + "%";
-            bag.style.display = 'block';
-            document.getElementById('btn-cast').disabled = true;
-            tg.HapticFeedback.notificationOccurred('warning');
-        } else {
-            const fish = document.getElementById('fish-sprite');
-            fish.style.display = 'block';
-            tg.HapticFeedback.impactOccurred('medium');
-            setTimeout(() => {
-                fish.style.display = 'none';
-                triggerAction('catch_fish');
-            }, 1200);
-        }
-    }
-
-    function handleBagClick() {
-        document.getElementById('bag-captcha').style.display = 'none';
-        document.getElementById('btn-cast').disabled = false;
-        triggerAction('catch_fish', { captchaPassed: true });
-    }
-
-    function startBoxOpening() {
-        const count = parseInt(document.getElementById('val-boxes-menu').innerText);
-        if (count <= 0) return tg.showAlert("Нет ящиков!");
-        
-        const img = document.getElementById('box-render');
-        img.classList.add('box-moving');
-        tg.HapticFeedback.impactOccurred('heavy');
-
-        setTimeout(() => {
-            img.classList.remove('box-moving');
-            triggerAction('open_box');
-        }, 1500);
-    }
-
-    function closePrize() {
-        document.getElementById('prize-modal').style.display = 'none';
-    }
-
-    function requestWithdrawal() {
-        const wallet = document.getElementById('inp-wallet').value;
-        const amount = document.getElementById('inp-amount').value;
-        if (!wallet || amount < 30000) return tg.showAlert("Проверьте данные!");
-        triggerAction('withdraw', { wallet, amount });
-    }
-
-    tg.ready();
-    tg.expand();
-    triggerAction('load_data');
-</script>
-</body>
-</html>
+        <div class="stats">
+            <div class="stat-item">
+                <small>ЭНЕРГИЯ:</small>
+                <b id="u-en">0</b>/100
+            </div>
+            <div class="stat-item">
+                <small>УДОЧКА:</small>
+                <b id="u-dur">0%</b>
