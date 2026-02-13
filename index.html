@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 6.4</title>
+    <title>Tamacoin Fishing Gold 6.5</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #FFD700; --dark: #0a0e1a; --wood: #5d4037; --glass: rgba(255,255,255,0.07); }
@@ -12,7 +12,7 @@
         .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; flex-direction: column; padding-bottom: 110px; }
         .page.active { display: flex; }
         
-        /* ПЛАШКА УЛОВА */
+        /* УЛОВ */
         #wood-plate {
             position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
             background: var(--wood); border: 3px solid #3e2723; border-radius: 12px;
@@ -29,46 +29,31 @@
 
         .top-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--gold); margin-bottom: 10px; font-family: monospace; }
         
-        /* ЦЕНТРАЛЬНАЯ ЗОНА - МАКСИМАЛЬНЫЙ РАЗМЕР */
+        /* ОКЕАН - МАКСИМАЛЬНЫЙ */
         .lake-zone { 
-            flex-grow: 1; 
-            position: relative; 
+            flex-grow: 1; position: relative; 
             background: radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%); 
-            border-radius: 20px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin-bottom: 10px; 
-            border: 1px solid rgba(0,136,204,0.3);
-            overflow: hidden;
-            transition: 0.3s;
+            border-radius: 20px; display: flex; align-items: center; justify-content: center; 
+            margin-bottom: 10px; border: 1px solid rgba(0,136,204,0.3); overflow: hidden; transition: 0.3s;
         }
         .lake-zone.active { box-shadow: inset 0 0 50px rgba(0,136,204,0.5); border-color: var(--gold); }
 
-        /* АНИМАЦИЯ РЫБЫ - НА ВЕСЬ ЭКРАН */
         #fish-anim { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; /* Растягивает картинку максимально, сохраняя пропорции */
-            display: none; 
-            filter: drop-shadow(0 0 30px rgba(0,136,204,0.8));
+            width: 100%; height: 100%; object-fit: contain; 
+            display: none; filter: drop-shadow(0 0 30px rgba(0,136,204,0.8));
             animation: fish-big-pulse 0.8s infinite alternate ease-in-out;
             z-index: 10;
         }
 
-        @keyframes fish-big-pulse {
-            from { transform: scale(0.95); }
-            to { transform: scale(1.05); }
-        }
+        @keyframes fish-big-pulse { from { transform: scale(0.95); } to { transform: scale(1.05); } }
 
         /* КНОПКИ */
-        .btn-cast { width: 100%; padding: 22px; background: var(--gold); border: none; border-radius: 20px; font-weight: 900; font-size: 20px; color: #000; box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
+        .btn-cast { width: 100%; padding: 22px; background: var(--gold); border: none; border-radius: 20px; font-weight: 900; font-size: 20px; color: #000; }
         .btn-daily { background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; font-weight: bold; display: none; }
 
         nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #0d121f; display: flex; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #5a6275; text-decoration: none; }
-        .nav-item.active { color: var(--gold); background: rgba(255,215,0,0.03); }
-        .nav-item i { font-size: 22px; font-style: normal; margin-bottom: 3px; }
+        .nav-item.active { color: var(--gold); }
         
         .stat-mini { background: var(--glass); padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; }
         .shop-btn { background: #2e7d32; color: white; border: none; padding: 6px; border-radius: 6px; width: 100%; margin-top: 5px; font-weight: bold; }
@@ -94,7 +79,7 @@
     
     <div style="text-align:center; margin-bottom:10px;">
         <div id="u-b" style="font-size:38px; font-weight:900; color:var(--gold);">0</div>
-        <div style="font-size:10px; opacity:0.5; letter-spacing: 2px;">TAMACON</div>
+        <div style="font-size:10px; opacity:0.5;">TAMACON</div>
     </div>
 
     <div style="display:flex; gap:5px; margin-bottom:15px;">
@@ -121,6 +106,7 @@
             <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
         </div>
     </div>
+
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)">🛒 МАГАЗИН TC <span>▼</span></div>
         <div class="acc-body">
@@ -130,6 +116,17 @@
             <div class="stat-mini">Ремонт (50)<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
         </div>
     </div>
+
+    <div class="acc-item">
+        <div class="acc-head" onclick="toggleAcc(this)" style="color:var(--gold)">💎 VIP STARS <span>▼</span></div>
+        <div class="acc-body">
+            <div class="stat-mini">Титан (150)<button class="shop-btn" onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Прикорм (200)<button class="shop-btn" onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Снасти+ (200)<button class="shop-btn" onclick="api('buy',{id:'strong'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Озеро (500)<button class="shop-btn" onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
+        </div>
+    </div>
+
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)">💳 ВЫВОД <span>▼</span></div>
         <div class="acc-body" style="grid-template-columns:1fr;">
@@ -162,7 +159,6 @@
     const tg = window.Telegram.WebApp;
     const URL = 'https://tama-bot-server.onrender.com/api/action';
     let user = { lastBonus: 0 };
-
     tg.ready(); tg.expand();
 
     function showP(id, el) {
@@ -171,9 +167,7 @@
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
     }
-
     function toggleAcc(el) { el.parentElement.classList.toggle('open'); }
-
     function toast(txt) {
         const t = document.getElementById('toast');
         t.innerText = txt; t.style.display = 'block';
@@ -219,15 +213,9 @@
         const f = document.getElementById('fish-anim');
         const b = document.getElementById('btn-cast');
         const o = document.getElementById('ocean');
-        
-        f.style.display = 'block'; 
-        b.disabled = true;
-        o.classList.add('active'); // Подсвечиваем океан
-
+        f.style.display = 'block'; b.disabled = true; o.classList.add('active');
         setTimeout(() => {
-            f.style.display = 'none'; 
-            b.disabled = false;
-            o.classList.remove('active');
+            f.style.display = 'none'; b.disabled = false; o.classList.remove('active');
             api('cast');
         }, 1300);
     }
@@ -261,7 +249,6 @@
             document.getElementById('btn-daily').style.display = 'block';
         }
     }, 1000);
-
     api('load');
 </script>
 </body>
