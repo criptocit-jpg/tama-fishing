@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 6.3</title>
+    <title>Tamacoin Fishing Gold 6.4</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #FFD700; --dark: #0a0e1a; --wood: #5d4037; --glass: rgba(255,255,255,0.07); }
         body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
         
-        /* СТРАНИЦЫ */
         .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; flex-direction: column; padding-bottom: 110px; }
         .page.active { display: flex; }
         
-        /* ПЛАШКА КОРЯГА (УЛОВ) */
+        /* ПЛАШКА УЛОВА */
         #wood-plate {
             position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
             background: var(--wood); border: 3px solid #3e2723; border-radius: 12px;
@@ -22,16 +21,15 @@
         }
         #wood-plate.show { transform: translate(-50%, -50%) scale(1); }
 
-        /* АККОРДЕОНЫ (МАГАЗИН) */
+        /* АККОРДЕОНЫ */
         .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
         .acc-head { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; background: rgba(255,255,255,0.02); }
         .acc-body { display: none; padding: 10px; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
         .acc-item.open .acc-body { display: grid; }
 
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
         .top-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--gold); margin-bottom: 10px; font-family: monospace; }
         
-        /* ЦЕНТРАЛЬНАЯ ЗОНА (ОКЕАН) */
+        /* ЦЕНТРАЛЬНАЯ ЗОНА - МАКСИМАЛЬНЫЙ РАЗМЕР */
         .lake-zone { 
             flex-grow: 1; 
             position: relative; 
@@ -41,33 +39,32 @@
             align-items: center; 
             justify-content: center; 
             margin-bottom: 10px; 
-            border: 1px solid rgba(0,136,204,0.2);
+            border: 1px solid rgba(0,136,204,0.3);
             overflow: hidden;
+            transition: 0.3s;
         }
+        .lake-zone.active { box-shadow: inset 0 0 50px rgba(0,136,204,0.5); border-color: var(--gold); }
 
-        /* АНИМАЦИЯ РЫБЫ - ТЕПЕРЬ БОЛЬШАЯ */
+        /* АНИМАЦИЯ РЫБЫ - НА ВЕСЬ ЭКРАН */
         #fish-anim { 
-            width: 85%; 
-            max-width: 450px; 
-            height: auto;
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; /* Растягивает картинку максимально, сохраняя пропорции */
             display: none; 
-            filter: drop-shadow(0 0 25px rgba(0,136,204,0.6));
-            animation: fish-pulse 0.7s infinite alternate ease-in-out;
-            z-index: 5;
+            filter: drop-shadow(0 0 30px rgba(0,136,204,0.8));
+            animation: fish-big-pulse 0.8s infinite alternate ease-in-out;
+            z-index: 10;
         }
 
-        @keyframes fish-pulse {
-            from { transform: scale(1); rotate: -2deg; }
-            to { transform: scale(1.08); rotate: 2deg; }
+        @keyframes fish-big-pulse {
+            from { transform: scale(0.95); }
+            to { transform: scale(1.05); }
         }
 
-        #status { position: absolute; bottom: 15px; opacity: 0.4; font-weight: bold; font-size: 12px; letter-spacing: 1px; }
-        
         /* КНОПКИ */
-        .btn-cast { width: 100%; padding: 20px; background: var(--gold); border: none; border-radius: 18px; font-weight: 900; font-size: 18px; color: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .btn-cast { width: 100%; padding: 22px; background: var(--gold); border: none; border-radius: 20px; font-weight: 900; font-size: 20px; color: #000; box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
         .btn-daily { background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; font-weight: bold; display: none; }
 
-        /* НАВИГАЦИЯ */
         nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #0d121f; display: flex; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #5a6275; text-decoration: none; }
         .nav-item.active { color: var(--gold); background: rgba(255,215,0,0.03); }
@@ -84,9 +81,9 @@
 <div id="toast" class="toast"></div>
 
 <div id="wood-plate" onclick="this.classList.remove('show')">
-    <div style="font-size:10px; opacity:0.7; color:white;">ВЫ ВЫЛОВИЛИ:</div>
-    <p id="catch-res" style="font-size: 22px; font-weight: 900; margin: 10px 0; color: #fff;"></p>
-    <div style="font-size:9px; color:var(--gold);">КЛИКНИТЕ, ЧТОБЫ ЗАБРАТЬ</div>
+    <div style="font-size:10px; opacity:0.7; color:white;">УЛОВ:</div>
+    <p id="catch-res" style="font-size: 24px; font-weight: 900; margin: 10px 0; color: #fff;"></p>
+    <div style="font-size:9px; color:var(--gold);">НАЖМИ, ЧТОБЫ ЗАБРАТЬ</div>
 </div>
 
 <div id="p-game" class="page active">
@@ -96,83 +93,62 @@
     </div>
     
     <div style="text-align:center; margin-bottom:10px;">
-        <div id="u-b" style="font-size:36px; font-weight:900; color:var(--gold);">0</div>
-        <div style="font-size:10px; opacity:0.5;">TAMACON BALANCE</div>
+        <div id="u-b" style="font-size:38px; font-weight:900; color:var(--gold);">0</div>
+        <div style="font-size:10px; opacity:0.5; letter-spacing: 2px;">TAMACON</div>
     </div>
 
-    <div style="display:flex; gap:5px; margin-bottom:10px;">
+    <div style="display:flex; gap:5px; margin-bottom:15px;">
         <div class="stat-mini" style="flex:1;">⚡ <span id="u-en">0</span></div>
         <div class="stat-mini" style="flex:1;">🛠️ <span id="u-dur">0%</span></div>
         <div class="stat-mini" style="flex:1;">📦 <span id="u-box">0</span></div>
     </div>
 
-    <div class="lake-zone">
+    <div id="ocean" class="lake-zone">
         <img src="fish_anim.webp" id="fish-anim">
-        <div id="status">ОКЕАН ЖДЕТ</div>
     </div>
 
     <div style="margin-top: auto;">
-        <button id="btn-daily" class="btn-daily" onclick="api('get_daily')">ЗАБРАТЬ БОНУС 🎁</button>
+        <button id="btn-daily" class="btn-daily" onclick="api('get_daily')">🎁 ЗАБРАТЬ БОНУС</button>
         <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
     </div>
 </div>
 
 <div id="p-sadok" class="page">
     <div class="acc-item open">
-        <div class="acc-head">🐟 МОЙ УЛОВ</div>
+        <div class="acc-head">🐟 САДОК</div>
         <div class="acc-body" style="display:flex; justify-content:space-between; grid-template-columns:none; align-items: center;">
-            <span>Рыба: <b id="u-fish">0</b> кг</span>
-            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 15px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
+            <span>Вес: <b id="u-fish">0</b> кг</span>
+            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
         </div>
     </div>
-
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)">🛒 МАГАЗИН TC <span>▼</span></div>
         <div class="acc-body">
-            <div class="stat-mini"><b>Мякиш</b>100 TC<button class="shop-btn" onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Снасти</b>200 TC<button class="shop-btn" onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Энергия</b>50 TC<button class="shop-btn" onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Ремонт</b>50 TC<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Мякиш (100)<button class="shop-btn" onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Снасти (200)<button class="shop-btn" onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Энергия (50)<button class="shop-btn" onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Ремонт (50)<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
         </div>
     </div>
-
-    <div class="acc-item">
-        <div class="acc-head" onclick="toggleAcc(this)" style="color:var(--gold)">💎 VIP STARS <span>▼</span></div>
-        <div class="acc-body">
-            <div class="stat-mini"><b>Титан</b>150 ⭐<button class="shop-btn" onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Прикорм</b>200 ⭐<button class="shop-btn" onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Снасти+</b>200 ⭐<button class="shop-btn" onclick="api('buy',{id:'strong'})">КУПИТЬ</button></div>
-            <div class="stat-mini"><b>Озеро</b>500 ⭐<button class="shop-btn" onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
-        </div>
-    </div>
-
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)">💳 ВЫВОД <span>▼</span></div>
         <div class="acc-body" style="grid-template-columns:1fr;">
-            <input id="w-wallet" placeholder="Номер TON кошелька">
+            <input id="w-wallet" placeholder="TON Кошелек">
             <input id="w-sum" type="number" placeholder="Сумма TC">
-            <button onclick="withdraw()" style="background:#0088cc; color:white; border:none; padding:12px; border-radius:10px; width:100%; font-weight: bold;">ОТПРАВИТЬ ЗАЯВКУ</button>
+            <button onclick="withdraw()" style="background:#0088cc; color:white; border:none; padding:12px; border-radius:10px; width:100%; font-weight: bold;">ВЫВЕСТИ</button>
         </div>
     </div>
 </div>
 
-<div id="p-top" class="page">
-    <h2 style="text-align:center; color:var(--gold);">🏆 ЛУЧШИЕ РЫБАКИ</h2>
-    <div id="top-list"></div>
-</div>
+<div id="p-top" class="page"><h2 style="text-align:center; color:var(--gold);">🏆 ТОП</h2><div id="top-list"></div></div>
 
 <div id="p-info" class="page">
     <h2 style="color:var(--gold);">ИНФО</h2>
     <div class="acc-item open">
-        <div class="acc-head">КАК ИГРАТЬ</div>
-        <div class="acc-body" style="display:block; font-size:13px; line-height: 1.5;">
-            Лови рыбу и обменивай её на TC. <br><br>
-            <b>Золотой час (19:00):</b> Вес всей пойманной рыбы удваивается!<br>
-            <b>Энергия:</b> Восстанавливается сама каждые 5 минут.
-        </div>
+        <div class="acc-head">ПРАВИЛА</div>
+        <div class="acc-body" style="display:block; font-size:13px;">Лови рыбу, копи TC и выводи! Золотой час в 19:00.</div>
     </div>
-    <div style="margin-top:20px; font-size:11px;">ПРИГЛАСИТЬ ДРУЗЕЙ:</div>
-    <div id="ref-link" style="background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; word-break:break-all; font-size:11px; color:var(--gold); border: 1px dashed #444; margin-top: 5px;"></div>
+    <div id="ref-link" style="background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; word-break:break-all; font-size:11px; color:var(--gold); margin-top:10px;"></div>
 </div>
 
 <nav>
@@ -220,7 +196,7 @@
                 document.getElementById('catch-res').innerHTML = d.catchData.type + '<br>' + d.catchData.w + ' кг';
                 document.getElementById('wood-plate').classList.add('show');
             }
-        } catch(e) { console.error("API Error", e); }
+        } catch(e) { console.error(e); }
     }
 
     function render(d) {
@@ -242,12 +218,16 @@
     function doCast() {
         const f = document.getElementById('fish-anim');
         const b = document.getElementById('btn-cast');
-        const s = document.getElementById('status');
-        f.style.display = 'block'; b.disabled = true;
-        s.innerText = "ЗАБРОС ЛЕСКИ..."; s.style.opacity = "1";
+        const o = document.getElementById('ocean');
+        
+        f.style.display = 'block'; 
+        b.disabled = true;
+        o.classList.add('active'); // Подсвечиваем океан
+
         setTimeout(() => {
-            f.style.display = 'none'; b.disabled = false;
-            s.innerText = "ГОТОВ"; s.style.opacity = "0.4";
+            f.style.display = 'none'; 
+            b.disabled = false;
+            o.classList.remove('active');
             api('cast');
         }, 1300);
     }
@@ -255,7 +235,7 @@
     function withdraw() {
         const wallet = document.getElementById('w-wallet').value;
         const sum = document.getElementById('w-sum').value;
-        if(!wallet || !sum) return toast("Заполните поля!");
+        if(!wallet || !sum) return toast("Заполни поля!");
         api('withdraw', {wallet, sum: parseInt(sum)});
     }
 
