@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing 6.1</title>
+    <title>Tamacoin Fishing 6.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #FFD700; --dark: #0a0e1a; --wood: #5d4037; --glass: rgba(255,255,255,0.07); }
-        body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
         
-        .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; overflow-y: auto; padding-bottom: 110px; }
-        .active { display: flex; flex-direction: column; }
+        .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; flex-direction: column; padding-bottom: 110px; }
+        .page.active { display: flex; }
         
-        /* ПЛАШКА КОРЯГА */
+        /* КОРЯГА */
         #wood-plate {
             position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
             background: var(--wood); border: 3px solid #3e2723; border-radius: 12px;
@@ -20,48 +20,37 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #wood-plate.show { transform: translate(-50%, -50%) scale(1); }
-        #wood-plate p { font-size: 22px; font-weight: 900; margin: 10px 0; color: #fff; text-shadow: 1px 1px 2px black; }
 
-        /* ВЫПАДАЮЩИЕ СПИСКИ (ACCORDION) */
-        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-        .acc-head { padding: 15px; background: rgba(255,255,255,0.05); cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
-        .acc-body { display: none; padding: 10px; grid-template-columns: 1fr 1fr; gap: 8px; }
+        /* АККОРДЕОН */
+        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .acc-head { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
+        .acc-body { display: none; padding: 10px; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
         .acc-item.open .acc-body { display: grid; }
-        .acc-item.open .acc-head { border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--gold); }
 
-        /* ТАЙМЕРЫ И СТАТЫ */
-        .top-row { display: flex; justify-content: space-between; font-size: 10px; color: var(--gold); margin-bottom: 10px; font-family: monospace; }
-        .stat-bar { display: flex; gap: 5px; margin-bottom: 10px; }
-        .stat-mini { flex: 1; background: var(--glass); padding: 5px; border-radius: 8px; text-align: center; font-size: 11px; }
-
-        /* ЛОКАЦИЯ И КНОПКА */
-        .lake-zone { flex-grow: 1; position: relative; background: radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+        /* ТАЙМЕРЫ */
+        .top-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--gold); margin-bottom: 10px; font-family: monospace; }
+        
+        .lake-zone { flex-grow: 1; position: relative; background: radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         #fish-anim { width: 100px; display: none; }
         
-        /* КНОПКА ЗАБРОСА (ВНИЗУ) */
-        .main-action-area { padding-top: 10px; }
-        .btn-cast { width: 100%; padding: 20px; background: var(--gold); border: none; border-radius: 18px; font-weight: 900; font-size: 18px; color: #000; box-shadow: 0 -5px 15px rgba(255,215,0,0.2); }
-        .btn-cast:disabled { opacity: 0.5; background: #555; }
+        .btn-cast { width: 100%; padding: 20px; background: var(--gold); border: none; border-radius: 18px; font-weight: 900; font-size: 18px; color: #000; }
+        .btn-daily { background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; font-weight: bold; display: none; }
 
-        .btn-daily { background: #2e7d32; color: white; border: none; padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-weight: bold; }
-
-        /* NAV */
         nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #0d121f; display: flex; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #5a6275; text-decoration: none; }
         .nav-item.active { color: var(--gold); }
-        .nav-item i { font-size: 22px; font-style: normal; margin-bottom: 3px; }
-
-        input { background: rgba(0,0,0,0.3); border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
-        .marquee { background: rgba(255,215,0,0.05); padding: 5px; font-size: 10px; border-radius: 5px; overflow: hidden; white-space: nowrap; margin-bottom: 5px; }
+        
+        .stat-mini { background: var(--glass); padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; display:none; z-index:3000; font-weight:bold; }
     </style>
 </head>
 <body>
 
-<div id="toast" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--gold); color:#000; padding:10px 20px; border-radius:20px; display:none; z-index:3000; font-weight:bold;"></div>
+<div id="toast" class="toast"></div>
 
 <div id="wood-plate" onclick="this.classList.remove('show')">
     <div style="font-size:10px; opacity:0.7; color:white;">ВЫ ВЫЛОВИЛИ:</div>
-    <p id="catch-res">...</p>
+    <p id="catch-res" style="font-size: 22px; font-weight: 900; margin: 10px 0;"></p>
     <div style="font-size:9px; color:var(--gold);">КЛИКНИТЕ, ЧТОБЫ ЗАБРАТЬ</div>
 </div>
 
@@ -73,39 +62,35 @@
     
     <div style="text-align:center; margin-bottom:10px;">
         <div id="u-b" style="font-size:36px; font-weight:900; color:var(--gold);">0</div>
-        <div style="font-size:10px; opacity:0.5; letter-spacing:2px;">TAMACON BALANCE</div>
+        <div style="font-size:10px; opacity:0.5;">БАЛАНС TC</div>
     </div>
 
-    <div class="stat-bar">
-        <div class="stat-mini">⚡ <span id="u-en">0</span></div>
-        <div class="stat-mini">🛠️ <span id="u-dur">0%</span></div>
-        <div class="stat-mini">📦 <span id="u-box">0</span></div>
+    <div style="display:flex; gap:5px; margin-bottom:10px;">
+        <div class="stat-mini" style="flex:1;">⚡ <span id="u-en">0</span></div>
+        <div class="stat-mini" style="flex:1;">🛠️ <span id="u-dur">0%</span></div>
+        <div class="stat-mini" style="flex:1;">📦 <span id="u-box">0</span></div>
     </div>
-
-    <div class="marquee"><div id="log-line">Загрузка сети...</div></div>
 
     <div class="lake-zone">
         <img src="fish_anim.webp" id="fish-anim">
-        <div id="status" style="font-weight:bold; opacity:0.4;">ОКЕАН СПОКОЕН</div>
+        <div id="status" style="opacity:0.4;">ГОТОВ К ЛОВЛЕ</div>
     </div>
 
-    <div class="main-action-area">
-        <button id="btn-daily" class="btn-daily" onclick="api('get_daily')" style="display:none;">ПОЛУЧИТЬ БОНУС 🎁</button>
-        <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
-    </div>
+    <button id="btn-daily" class="btn-daily" onclick="api('get_daily')">ЗАБРАТЬ БОНУС 🎁</button>
+    <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
 </div>
 
 <div id="p-sadok" class="page">
     <div class="acc-item open">
-        <div class="acc-head">🐟 МОЙ САДОК</div>
-        <div class="acc-body" style="display:flex; justify-content:space-between; align-items:center; grid-template-columns: none;">
-            <span>Улов: <b id="u-fish">0</b> кг</span>
-            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">ПРОДАТЬ ВСЁ</button>
+        <div class="acc-head">🐟 ВАШ УЛОВ</div>
+        <div class="acc-body" style="display:flex; justify-content:space-between; grid-template-columns:none;">
+            <span>Сумка: <b id="u-fish">0</b> кг</span>
+            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
         </div>
     </div>
 
     <div class="acc-item">
-        <div class="acc-head" onclick="this.parentElement.classList.toggle('open')">🛒 МАГАЗИН (TC) <span>▼</span></div>
+        <div class="acc-head" onclick="toggleAcc(this)">🛒 МАГАЗИН TC <span>▼</span></div>
         <div class="acc-body">
             <div class="stat-mini"><b>Мякиш</b>100 TC<button onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
             <div class="stat-mini"><b>Снасти</b>200 TC<button onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
@@ -115,7 +100,7 @@
     </div>
 
     <div class="acc-item">
-        <div class="acc-head" onclick="this.parentElement.classList.toggle('open')" style="color:var(--gold)">💎 VIP (STARS) <span>▼</span></div>
+        <div class="acc-head" onclick="toggleAcc(this)" style="color:var(--gold)">💎 VIP STARS <span>▼</span></div>
         <div class="acc-body">
             <div class="stat-mini"><b>Титан</b>150 ⭐<button onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
             <div class="stat-mini"><b>Прикорм</b>200 ⭐<button onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
@@ -125,39 +110,39 @@
     </div>
 
     <div class="acc-item">
-        <div class="acc-head" onclick="this.parentElement.classList.toggle('open')">💳 ВЫВОД СРЕДСТВ <span>▼</span></div>
-        <div class="acc-body" style="grid-template-columns: 1fr; display:none;">
-            <input id="w-wallet" placeholder="Адрес кошелька (TON/Карта)">
-            <input id="w-sum" type="number" placeholder="Сумма TC">
-            <button onclick="withdraw()" style="background:#0088cc; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold;">СОЗДАТЬ ЗАЯВКУ</button>
+        <div class="acc-head" onclick="toggleAcc(this)">💳 ВЫВОД <span>▼</span></div>
+        <div class="acc-body" style="grid-template-columns:1fr;">
+            <input id="w-wallet" placeholder="Номер кошелька" style="width:100%; padding:10px; margin-bottom:5px; background:rgba(0,0,0,0.3); border:1px solid #333; color:#fff;">
+            <input id="w-sum" type="number" placeholder="Сумма TC" style="width:100%; padding:10px; margin-bottom:5px; background:rgba(0,0,0,0.3); border:1px solid #333; color:#fff;">
+            <button onclick="withdraw()" style="background:#0088cc; color:white; border:none; padding:10px; border-radius:8px; width:100%;">ЗАКАЗАТЬ</button>
         </div>
     </div>
 </div>
 
 <div id="p-top" class="page">
-    <h2 style="text-align:center; color:var(--gold);">🏆 ЛИДЕРЫ</h2>
+    <h2 style="text-align:center; color:var(--gold);">🏆 ТОП 10</h2>
     <div id="top-list"></div>
 </div>
 
 <div id="p-info" class="page">
     <h2 style="color:var(--gold);">ИНФО</h2>
     <div class="acc-item open">
-        <div class="acc-head">ПРАВИЛА</div>
-        <div class="acc-body" style="display:block; font-size:13px; opacity:0.8;">
-            Рыбалка: 2⚡ за заброс.<br>
-            Золотой час: Каждый день в 19:00.<br>
-            Рефералка: Получай 10% от продаж друзей!
+        <div class="acc-head">ОБ ИГРЕ</div>
+        <div class="acc-body" style="display:block; font-size:13px;">
+            Лови рыбу, продавай за TC и выводи в реал! <br><br>
+            <b>Золотой час:</b> 19:00 (улов x2).<br>
+            <b>Рефералка:</b> 10% от друзей.
         </div>
     </div>
-    <p style="font-size:11px; margin-top:20px;">ТВОЯ ССЫЛКА:</p>
-    <div id="ref-link" style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; font-size:10px; color:var(--gold);"></div>
+    <div style="margin-top:10px; font-size:11px;">ВАША ССЫЛКА:</div>
+    <div id="ref-link" style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; word-break:break-all; font-size:10px; color:var(--gold);"></div>
 </div>
 
 <nav>
-    <a href="#" class="nav-item active" onclick="showP('p-game',this)"><i>🎮</i>ИГРА</a>
-    <a href="#" class="nav-item" onclick="showP('p-sadok',this)"><i>🎒</i>САДОК</a>
-    <a href="#" class="nav-item" onclick="showP('p-top',this)"><i>🏆</i>ТОП</a>
-    <a href="#" class="nav-item" onclick="showP('p-info',this)"><i>ℹ️</i>ИНФО</a>
+    <a href="javascript:void(0)" class="nav-item active" onclick="showP('p-game',this)"><i>🎮</i>ИГРА</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-sadok',this)"><i>🎒</i>САДОК</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-top',this)"><i>🏆</i>ТОП</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-info',this)"><i>ℹ️</i>ИНФО</a>
 </nav>
 
 <script>
@@ -168,25 +153,24 @@
     tg.ready(); tg.expand();
 
     function showP(id, el) {
-        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
-        // Закрываем все аккордеоны при переходе, кроме первого в садке
-        if(id === 'p-sadok') {
-            document.querySelectorAll('.acc-body').forEach(b => b.style.display = 'none');
-            document.querySelectorAll('.acc-item').forEach(i => i.classList.remove('open'));
-            document.querySelector('.acc-item').classList.add('open');
-            document.querySelector('.acc-body').style.display = 'flex';
-        }
+    }
+
+    function toggleAcc(el) {
+        el.parentElement.classList.toggle('open');
     }
 
     async function api(action, payload = {}) {
         try {
+            const uid = tg.initDataUnsafe?.user?.id || "7883085758";
+            const uname = tg.initDataUnsafe?.user?.first_name || "Рыбак";
             const r = await fetch(URL, {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ userId: tg.initDataUnsafe.user?.id || "7883085758", userName: tg.initDataUnsafe.user?.first_name || "Рыбак", action, payload })
+                body: JSON.stringify({ userId: uid, userName: uname, action, payload })
             });
             const d = await r.json();
             if (d.msg) {
@@ -197,10 +181,10 @@
             render(d);
             if (d.catchData) {
                 const w = document.getElementById('wood-plate');
-                document.getElementById('catch-res').innerHTML = `${d.catchData.type}<br>${d.catchData.w} кг`;
+                document.getElementById('catch-res').innerHTML = d.catchData.type + '<br>' + d.catchData.w + ' кг';
                 w.classList.add('show');
             }
-        } catch(e) { console.log(e); }
+        } catch(e) { console.error("API ERROR:", e); }
     }
 
     function render(d) {
@@ -210,10 +194,12 @@
         document.getElementById('u-en').innerText = d.energy;
         document.getElementById('u-dur').innerText = Math.max(0, d.dur) + '%';
         document.getElementById('u-box').innerText = d.boxes || 0;
-        document.getElementById('log-line').innerText = d.logs.join('  •  ');
-        document.getElementById('ref-link').innerText = `https://t.me/TamacoinBot?start=${d.id}`;
+        document.getElementById('ref-link').innerText = "https://t.me/TamacoinBot?start=" + d.id;
+        
         if(d.top) {
-            document.getElementById('top-list').innerHTML = d.top.map((x,i)=>`<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${x.b} TC</b></div>`).join('');
+            document.getElementById('top-list').innerHTML = d.top.map((x,i)=>
+                `<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${x.b} TC</b></div>`
+            ).join('');
         }
     }
 
@@ -224,7 +210,7 @@
         document.getElementById('status').innerText = "ЛЕСКА В ВОДЕ...";
         setTimeout(() => {
             f.style.display = 'none'; b.disabled = false;
-            document.getElementById('status').innerText = "ОКЕАН СПОКОЕН";
+            document.getElementById('status').innerText = "ГОТОВ";
             api('cast');
         }, 1300);
     }
@@ -236,7 +222,6 @@
         api('withdraw', {wallet, sum: parseInt(sum)});
     }
 
-    // ТАЙМЕРЫ
     setInterval(() => {
         const now = new Date();
         // Золотой час
@@ -244,11 +229,10 @@
         target.setHours(19,0,0,0);
         if (now > target) target.setDate(target.getDate() + 1);
         let diff = target - now;
-        
         const h = String(Math.floor(diff/3600000)).padStart(2,'0');
         const m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
         const s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-        document.getElementById('t-gold').innerText = (now.getHours() === 19) ? "АКТИВЕН! 🔥" : `${h}:${m}:${s}`;
+        document.getElementById('t-gold').innerText = (now.getHours() === 19) ? "АКТИВЕН! 🔥" : h + ":" + m + ":" + s;
         
         // Бонус
         let bDiff = (user.lastBonus + 86400000) - Date.now();
@@ -256,6 +240,15 @@
             const bh = String(Math.floor(bDiff/3600000)).padStart(2,'0');
             const bm = String(Math.floor((bDiff%3600000)/60000)).padStart(2,'0');
             const bs = String(Math.floor((bDiff%60000)/1000)).padStart(2,'0');
-            document.getElementById('t-daily').innerText = `${bh}:${bm}:${bs}`;
+            document.getElementById('t-daily').innerText = bh + ":" + bm + ":" + bs;
             document.getElementById('btn-daily').style.display = 'none';
-        } else
+        } else {
+            document.getElementById('t-daily').innerText = "ГОТОВ";
+            document.getElementById('btn-daily').style.display = 'block';
+        }
+    }, 1000);
+
+    api('load');
+</script>
+</body>
+</html>
