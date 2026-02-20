@@ -43,6 +43,19 @@
 </head>
 <body>
 
+<div id="news-line" style="background: rgba(255, 215, 0, 0.1); color: var(--gold); padding: 5px 0; font-size: 10px; border-bottom: 1px solid rgba(255,215,0,0.2); overflow: hidden; white-space: nowrap;">
+    <div id="news-content" style="display: inline-block; animation: marquee 20s linear infinite;">
+        Загрузка последних событий... 🎣 🔥
+    </div>
+</div>
+
+<style>
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+</style>
+
 <div id="toast" class="toast"></div>
 
 <div id="wood-plate" onclick="this.classList.remove('show')">
@@ -168,13 +181,24 @@
         document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
         document.getElementById('u-en').innerText = d.energy || 0;
         document.getElementById('u-dur').innerText = Math.max(0, d.dur || 0) + '%';
-        document.getElementById('u-box').innerText = d.boxes || 0;
-        document.getElementById('ref-link').innerText = "Ваша ссылка: https://t.me/TamacoinBot?start=" + d.id;
-        if(d.top) {
-            document.getElementById('top-list').innerHTML = d.top.map((x,i)=>
-                `<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${Math.floor(x.b)} TC</b></div>`
-            ).join('');
+        
+        // Обновляем бегущую строку из логов сервера
+        if (d.logs && d.logs.length > 0) {
+            document.getElementById('news-content').innerText = d.logs.join('  |  ');
         }
+
+        // Ссылка и кнопка копирования
+        const refUrl = "https://t.me/ТВОЙ_БОТ?start=" + d.id;
+        document.getElementById('ref-link').innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <span>${refUrl}</span>
+                <button onclick="copyRef('${refUrl}')" style="background:var(--gold); border:none; padding:8px; border-radius:5px; font-weight:bold; color:black;">КОПИРОВАТЬ ССЫЛКУ</button>
+            </div>
+        `;
+    }
+
+    function copyRef(text) {
+        navigator.clipboard.writeText(text).then(() => toast("Ссылка скопирована!"));
     }
 
     function doCast() {
@@ -221,3 +245,4 @@
 </script>
 </body>
 </html>
+
