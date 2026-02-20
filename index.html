@@ -3,148 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Tamacoin Fishing</title>
+    <title>Tamacoin Crypto Fishing</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #FFD700; --dark: #0a0e1a; --glass: rgba(255,255,255,0.07); }
         body { margin: 0; background: var(--dark); color: white; font-family: sans-serif; overflow: hidden; height: 100vh; }
-        
-        #news-line { background: rgba(255, 215, 0, 0.1); color: var(--gold); padding: 8px; font-size: 11px; overflow: hidden; white-space: nowrap; border-bottom: 1px solid rgba(255,215,0,0.2); }
+        #news-line { background: rgba(255, 215, 0, 0.1); color: var(--gold); padding: 8px; font-size: 11px; overflow: hidden; white-space: nowrap; }
         #news-content { display: inline-block; animation: marquee 20s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
         .page { display: none; height: calc(100vh - 70px); padding: 15px; box-sizing: border-box; overflow-y: auto; flex-direction: column; }
         .page.active { display: flex; }
-
-        .stat-card { background: var(--glass); padding: 10px; border-radius: 12px; text-align: center; flex: 1; }
         .btn-main { width: 100%; padding: 18px; background: var(--gold); border: none; border-radius: 15px; font-weight: bold; font-size: 18px; margin-top: 10px; }
-        
-        .lake-zone { height: 180px; background: radial-gradient(circle, #1a2a44 0%, #000 100%); border-radius: 20px; margin: 15px 0; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid #1e3a5f; }
-        #fish-anim { width: 70px; display: none; }
-
-        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
-        .acc-head { padding: 15px; background: rgba(255,255,255,0.03); display: flex; justify-content: space-between; font-weight: bold; }
+        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; }
+        .acc-head { padding: 15px; display: flex; justify-content: space-between; font-weight: bold; }
         .acc-body { padding: 15px; display: none; }
         .acc-item.open .acc-body { display: block; }
-
         nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #070a14; display: flex; border-top: 1px solid #1e2638; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #4a5265; text-decoration: none; }
+        .nav-item { flex: 1; display: flex; flex-direction: center; align-items: center; justify-content: center; font-size: 10px; color: #4a5265; text-decoration: none; flex-direction: column;}
         .nav-item.active { color: var(--gold); }
-
-        .shop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .btn-buy { background: #2e7d32; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
-        input { width: 100%; padding: 12px; margin-bottom: 8px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
+        .top-list { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 10px; }
+        .top-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
 
-<div id="news-line"><div id="news-content">Система загружается...</div></div>
+<div id="news-line"><div id="news-content">Загрузка...</div></div>
 
 <div id="p-game" class="page active">
     <div style="text-align:center;">
         <div id="u-b" style="font-size:40px; font-weight:bold; color:var(--gold);">0</div>
         <div style="font-size:10px; opacity:0.5;">TAMACON (TC)</div>
     </div>
-
     <div style="display:flex; gap:10px; margin: 15px 0;">
-        <div class="stat-card">⚡ <span id="u-en">0</span></div>
-        <div class="stat-card">🛠️ <span id="u-dur">0</span>%</div>
+        <div style="flex:1; background:var(--glass); padding:10px; border-radius:10px; text-align:center;">⚡ <span id="u-en">0</span></div>
+        <div style="flex:1; background:var(--glass); padding:10px; border-radius:10px; text-align:center;">🛠️ <span id="u-dur">0</span>%</div>
     </div>
-
-    <div style="display:flex; gap:5px;">
-        <button id="l-sea" onclick="setLoc('sea')" style="flex:1; padding:10px; border-radius:10px; border:none; background:var(--gold);">🌊 МОРЕ</button>
-        <button id="l-lake" onclick="setLoc('hope_lake')" style="flex:1; padding:10px; border-radius:10px; border:none; background:#1e2638; color:white;">✨ ОЗЕРО</button>
+    <div style="display:flex; gap:5px; margin-bottom:10px;">
+        <button id="l-sea" onclick="setLoc('sea')" style="flex:1; padding:10px; border-radius:10px; background:var(--gold); border:none;">МОРЕ</button>
+        <button id="l-lake" onclick="setLoc('hope_lake')" style="flex:1; padding:10px; border-radius:10px; background:#1e2638; color:white; border:none;">ОЗЕРО</button>
     </div>
-
-    <div id="ocean" class="lake-zone">
-        <img src="https://cdn-icons-png.flaticon.com/512/2274/2274532.png" id="fish-anim">
-        <div id="catch-pop" style="position:absolute; display:none; background:var(--gold); color:black; padding:10px; border-radius:10px; font-weight:bold; text-align:center;"></div>
+    <div id="ocean" style="height:150px; background:radial-gradient(circle, #1a2a44 0%, #000 100%); border-radius:20px; display:flex; align-items:center; justify-content:center; position:relative;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2274/2274532.png" id="fish-anim" style="width:60px; display:none;">
     </div>
-
     <button id="btn-cast" class="btn-main" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
-    <button id="btn-daily" style="width:100%; padding:10px; margin-top:10px; background:#2e7d32; border:none; border-radius:10px; color:white; font-weight:bold; display:none;" onclick="api('get_daily')">🎁 БОНУС</button>
+    <button id="btn-daily" style="width:100%; padding:12px; margin-top:10px; background:#2e7d32; border:none; border-radius:10px; color:white; font-weight:bold; display:none;" onclick="api('get_daily')">🎁 БОНУС</button>
 </div>
 
 <div id="p-shop" class="page">
     <div class="acc-item open">
-        <div class="acc-head">🐟 ВАШ САДОК</div>
-        <div class="acc-body">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Рыба: <b id="u-fish">0</b> кг</span>
-                <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">ПРОДАТЬ</button>
-            </div>
-        </div>
+        <div class="acc-head">🐟 САДОК: <span id="u-fish">0</span> кг <button onclick="api('sell')" style="background:var(--gold); border:none; padding:5px 10px; border-radius:5px;">ПРОДАТЬ</button></div>
     </div>
-
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)">💎 VIP МАГАЗИН (TON) <span>▼</span></div>
         <div class="acc-body">
-            <div style="font-size:10px; background:rgba(255,215,0,0.1); padding:10px; border-radius:8px; margin-bottom:15px; border:1px dashed var(--gold);">
-                Отправьте оплату на кошелек, затем жмите кнопку:<br>
-                <code style="font-size:9px; color:var(--gold);">ТВОЙ_АДРЕС_КОШЕЛЬКА</code>
+            <p style="font-size:10px; color:var(--gold);">Кошелек: ТВОЙ_КОШЕЛЕК</p>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span>Лицензия Озеро</span>
+                <button onclick="api('request_buy',{id:'license'})" style="background:#2e7d32; color:white; border:none; padding:5px; border-radius:5px;">1 TON</button>
             </div>
-            <div class="shop-row"><span>🎫 Лицензия Озеро</span><button class="btn-buy" onclick="api('request_buy',{id:'license'})">1 TON</button></div>
-            <div class="shop-row"><span>📡 Эхолот</span><button class="btn-buy" onclick="api('request_buy',{id:'echo'})">0.5 TON</button></div>
-        </div>
-    </div>
-
-    <div class="acc-item">
-        <div class="acc-head" onclick="toggleAcc(this)">🛠️ СЕРВИС TC <span>▼</span></div>
-        <div class="acc-body">
-            <div class="shop-row"><span>Инструменты</span><button class="btn-buy" style="background:#444" onclick="api('buy_tc',{id:'repair'})">50 TC</button></div>
-            <div class="shop-row"><span>Энергетик</span><button class="btn-buy" style="background:#444" onclick="api('buy_tc',{id:'energy'})">50 TC</button></div>
-        </div>
-    </div>
-
-    <div class="acc-item">
-        <div class="acc-head" onclick="toggleAcc(this)">💳 ВЫВОД TC <span>▼</span></div>
-        <div class="acc-body">
-            <input id="w-wallet" placeholder="TON Кошелек">
-            <input id="w-sum" type="number" placeholder="Сумма (мин. 30,000)">
-            <button onclick="withdraw()" style="width:100%; padding:12px; background:#0088cc; border:none; border-radius:10px; color:white; font-weight:bold;">ВЫВЕСТИ</button>
         </div>
     </div>
 </div>
 
 <div id="p-info" class="page">
-    <h3 style="color:var(--gold)">ИНФОРМАЦИЯ</h3>
-    <p style="font-size:12px; opacity:0.7;">Ловите рыбу и зарабатывайте будущую монету проекта!</p>
-    <div id="ref-box" style="background:var(--glass); padding:15px; border-radius:12px;">
-        <div style="font-size:11px; color:var(--gold); margin-bottom:5px;">ВАША ССЫЛКА:</div>
-        <div id="ref-link" style="font-size:10px; word-break:break-all;"></div>
+    <button onclick="loadTop()" style="width:100%; padding:10px; background:var(--gold); border:none; border-radius:10px; font-weight:bold; margin-bottom:15px;">ОБНОВИТЬ ТОП 🏆</button>
+    <div id="top-container" class="top-list"></div>
+    <div style="margin-top:20px;">
+        <div style="font-size:11px; color:var(--gold);">РЕФ. ССЫЛКА:</div>
+        <div id="ref-link" style="font-size:10px; word-break:break-all; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;"></div>
     </div>
 </div>
 
 <nav>
-    <a href="#" class="nav-item active" onclick="showP('p-game',this)">ГЛАВНАЯ</a>
+    <a href="#" class="nav-item active" onclick="showP('p-game',this)">ИГРА</a>
     <a href="#" class="nav-item" onclick="showP('p-shop',this)">МАГАЗИН</a>
-    <a href="#" class="nav-item" onclick="showP('p-info',this)">ИНФО</a>
+    <a href="#" class="nav-item" onclick="showP('p-info',this)">ТОП/ИНФО</a>
 </nav>
 
 <script>
     const tg = window.Telegram.WebApp;
     const URL = 'https://ТВОЙ_СЕРВЕР.onrender.com/api/action';
-    let user = {};
-    let currentLoc = 'sea';
-
+    let user = {}; let currentLoc = 'sea';
     tg.expand();
-
-    function showP(id, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-    }
-
-    function toggleAcc(el) { el.parentElement.classList.toggle('open'); }
-
-    function setLoc(l) {
-        currentLoc = l;
-        document.getElementById('l-sea').style.background = (l==='sea') ? 'var(--gold)' : '#1e2638';
-        document.getElementById('l-sea').style.color = (l==='sea') ? 'black' : 'white';
-        document.getElementById('l-lake').style.background = (l==='hope_lake') ? 'var(--gold)' : '#1e2638';
-        document.getElementById('l-lake').style.color = (l==='hope_lake') ? 'black' : 'white';
-    }
 
     async function api(action, payload = {}) {
         const uid = tg.initDataUnsafe?.user?.id || "123";
@@ -156,10 +96,10 @@
                 body: JSON.stringify({ userId: uid, userName: uname, action, payload })
             });
             const d = await r.json();
-            if (d.msg) { tg.showAlert(d.msg); }
-            render(d);
-            if (d.catchData) { showCatch(d.catchData); }
-        } catch(e) { console.error(e); }
+            if (d.msg) tg.showAlert(d.msg);
+            if (d.top) { renderTop(d.top); } else { render(d); }
+            if (d.catchData) tg.showAlert("Поймано: " + d.catchData.w);
+        } catch(e) { tg.showAlert("Ошибка: " + e.message); }
     }
 
     function render(d) {
@@ -168,37 +108,36 @@
         document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
         document.getElementById('u-en').innerText = d.energy;
         document.getElementById('u-dur').innerText = d.dur;
-        if (d.logs) document.getElementById('news-content').innerText = d.logs.join('  •  ');
+        document.getElementById('news-content').innerText = d.logs ? d.logs.join('  •  ') : "";
         document.getElementById('btn-daily').style.display = (Date.now() - d.lastBonus > 86400000) ? 'block' : 'none';
-        
-        const rUrl = "https://t.me/ТВОЙ_БОТ?start=" + d.id;
-        document.getElementById('ref-link').innerText = rUrl;
+        document.getElementById('ref-link').innerText = "https://t.me/ТВОЙ_БОТ?start=" + d.id;
     }
 
-    function showCatch(c) {
-        const p = document.getElementById('catch-pop');
-        p.innerHTML = `${c.type}<br>${c.w}`;
-        p.style.display = 'block';
-        setTimeout(() => p.style.display = 'none', 2000);
+    function loadTop() { api('get_top'); }
+    function renderTop(top) {
+        const c = document.getElementById('top-container');
+        c.innerHTML = top.map((p, i) => `<div class="top-item"><span>${i+1}. ${p.n}</span><b>${p.b} TC</b></div>`).join('');
     }
 
     function doCast() {
         if (user.energy < 2) return tg.showAlert("Нет энергии!");
         const f = document.getElementById('fish-anim');
-        f.style.display = 'block';
-        document.getElementById('btn-cast').disabled = true;
-        setTimeout(() => {
-            f.style.display = 'none';
-            document.getElementById('btn-cast').disabled = false;
-            api('cast', { location: currentLoc });
-        }, 1200);
+        const b = document.getElementById('btn-cast');
+        f.style.display = 'block'; b.disabled = true;
+        setTimeout(() => { f.style.display = 'none'; b.disabled = false; api('cast', { location: currentLoc }); }, 1200);
     }
 
-    function withdraw() {
-        const w = document.getElementById('w-wallet').value;
-        const s = document.getElementById('w-sum').value;
-        if (!w || !s) return;
-        api('withdraw', { wallet: w, sum: s });
+    function showP(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+    }
+    function toggleAcc(el) { el.parentElement.classList.toggle('open'); }
+    function setLoc(l) {
+        currentLoc = l;
+        document.getElementById('l-sea').style.background = (l==='sea') ? 'var(--gold)' : '#1e2638';
+        document.getElementById('l-lake').style.background = (l==='hope_lake') ? 'var(--gold)' : '#1e2638';
     }
 
     api('load');
