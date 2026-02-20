@@ -2,82 +2,124 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Tamacoin Crypto Fishing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tamacoin Fishing</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #FFD700; --dark: #0a0e1a; --glass: rgba(255,255,255,0.07); }
-        body { margin: 0; background: var(--dark); color: white; font-family: sans-serif; overflow: hidden; height: 100vh; }
-        #news-line { background: rgba(255, 215, 0, 0.1); color: var(--gold); padding: 8px; font-size: 11px; overflow: hidden; white-space: nowrap; }
-        #news-content { display: inline-block; animation: marquee 20s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .page { display: none; height: calc(100vh - 70px); padding: 15px; box-sizing: border-box; overflow-y: auto; flex-direction: column; }
+        :root { --gold: #FFD700; --dark: #0a0e1a; --wood: #5d4037; --glass: rgba(255,255,255,0.07); }
+        body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
+        
+        /* Бегущая строка */
+        #news-line { background: rgba(0,0,0,0.5); color: var(--gold); padding: 8px 0; font-size: 11px; border-bottom: 1px solid #1e2638; overflow: hidden; white-space: nowrap; }
+        #news-content { display: inline-block; animation: marquee 25s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+
+        .page { display: none; height: calc(100vh - 75px); padding: 15px; box-sizing: border-box; flex-direction: column; overflow-y: auto; }
         .page.active { display: flex; }
-        .btn-main { width: 100%; padding: 18px; background: var(--gold); border: none; border-radius: 15px; font-weight: bold; font-size: 18px; margin-top: 10px; }
-        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; }
-        .acc-head { padding: 15px; display: flex; justify-content: space-between; font-weight: bold; }
-        .acc-body { padding: 15px; display: none; }
-        .acc-item.open .acc-body { display: block; }
-        nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #070a14; display: flex; border-top: 1px solid #1e2638; }
-        .nav-item { flex: 1; display: flex; flex-direction: center; align-items: center; justify-content: center; font-size: 10px; color: #4a5265; text-decoration: none; flex-direction: column;}
+
+        /* Плашка улова */
+        #wood-plate { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%) scale(0); background: var(--wood); border: 4px solid #3e2723; border-radius: 15px; padding: 25px; text-align: center; width: 260px; z-index: 2000; box-shadow: 0 0 50px rgba(0,0,0,0.8); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #wood-plate.show { transform: translate(-50%, -50%) scale(1); }
+
+        /* Переключатель локаций */
+        .loc-tabs { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #1e2638; }
+        .tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .tab.active { background: var(--gold); color: black; box-shadow: 0 2px 10px rgba(255,215,0,0.3); }
+
+        .lake-zone { height: 220px; position: relative; background: radial-gradient(circle, #1a2a44 0%, #000 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid #1e3a5f; transition: 0.5s; overflow: hidden; }
+        #fish-anim { width: 80px; display: none; filter: drop-shadow(0 0 10px var(--gold)); }
+
+        .btn-cast { width: 100%; padding: 20px; background: var(--gold); border: none; border-radius: 18px; font-weight: 900; font-size: 20px; color: #000; text-transform: uppercase; }
+        .btn-cast:disabled { background: #444; color: #888; }
+
+        .timer-badge { font-size: 10px; opacity: 0.6; margin-top: 5px; }
+
+        nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #070a14; display: flex; border-top: 1px solid #1e2638; padding-bottom: 10px; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: #4a5265; text-decoration: none; }
         .nav-item.active { color: var(--gold); }
-        .top-list { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 10px; }
-        .top-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
 
-<div id="news-line"><div id="news-content">Загрузка...</div></div>
+<div id="news-line"><div id="news-content">Загрузка данных из океана...</div></div>
+
+<div id="wood-plate" onclick="this.classList.remove('show')">
+    <div style="font-size:12px; color:#cfd8dc; text-transform:uppercase; letter-spacing:1px;">Великолепный улов!</div>
+    <div id="catch-name" style="font-size:18px; font-weight:bold; margin:10px 0; color:var(--gold);">Рыба</div>
+    <div id="catch-weight" style="font-size:32px; font-weight:900; color:white;">0.00 кг</div>
+    <div style="margin-top:15px; font-size:10px; color:#8d6e63;">КЛИКНИ, ЧТОБЫ ЗАБРАТЬ</div>
+</div>
 
 <div id="p-game" class="page active">
-    <div style="text-align:center;">
-        <div id="u-b" style="font-size:40px; font-weight:bold; color:var(--gold);">0</div>
-        <div style="font-size:10px; opacity:0.5;">TAMACON (TC)</div>
+    <div style="text-align:center; margin-bottom:10px;">
+        <div id="u-b" style="font-size:48px; font-weight:900; color:var(--gold);">0</div>
+        <div style="font-size:11px; opacity:0.5; letter-spacing:2px;">TAMACON COINS</div>
     </div>
-    <div style="display:flex; gap:10px; margin: 15px 0;">
-        <div style="flex:1; background:var(--glass); padding:10px; border-radius:10px; text-align:center;">⚡ <span id="u-en">0</span></div>
-        <div style="flex:1; background:var(--glass); padding:10px; border-radius:10px; text-align:center;">🛠️ <span id="u-dur">0</span>%</div>
+
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <div style="flex:1; background:var(--glass); padding:10px; border-radius:15px; text-align:center;">
+            <div style="font-size:18px;">⚡ <span id="u-en">0</span></div>
+            <div id="en-timer" class="timer-badge">FULL</div>
+        </div>
+        <div style="flex:1; background:var(--glass); padding:10px; border-radius:15px; text-align:center;">
+            <div style="font-size:18px;">🛠️ <span id="u-dur">0</span>%</div>
+            <div class="timer-badge">ПРОЧНОСТЬ</div>
+        </div>
     </div>
-    <div style="display:flex; gap:5px; margin-bottom:10px;">
-        <button id="l-sea" onclick="setLoc('sea')" style="flex:1; padding:10px; border-radius:10px; background:var(--gold); border:none;">МОРЕ</button>
-        <button id="l-lake" onclick="setLoc('hope_lake')" style="flex:1; padding:10px; border-radius:10px; background:#1e2638; color:white; border:none;">ОЗЕРО</button>
+
+    <div class="loc-tabs">
+        <div id="tab-sea" class="tab active" onclick="setLoc('sea')">🌊 МОРЕ</div>
+        <div id="tab-lake" class="tab" onclick="setLoc('hope_lake')">✨ ОЗЕРО VIP</div>
     </div>
-    <div id="ocean" style="height:150px; background:radial-gradient(circle, #1a2a44 0%, #000 100%); border-radius:20px; display:flex; align-items:center; justify-content:center; position:relative;">
-        <img src="https://cdn-icons-png.flaticon.com/512/2274/2274532.png" id="fish-anim" style="width:60px; display:none;">
+
+    <div id="ocean" class="lake-zone">
+        <img src="https://cdn-icons-png.flaticon.com/512/2274/2274532.png" id="fish-anim">
     </div>
-    <button id="btn-cast" class="btn-main" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
-    <button id="btn-daily" style="width:100%; padding:12px; margin-top:10px; background:#2e7d32; border:none; border-radius:10px; color:white; font-weight:bold; display:none;" onclick="api('get_daily')">🎁 БОНУС</button>
+
+    <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
+    <button id="btn-daily" style="width:100%; padding:15px; margin-top:10px; background:#2e7d32; border:none; border-radius:15px; color:white; font-weight:bold; display:none;" onclick="api('get_daily')">🎁 БОНУС</button>
 </div>
 
 <div id="p-shop" class="page">
-    <div class="acc-item open">
-        <div class="acc-head">🐟 САДОК: <span id="u-fish">0</span> кг <button onclick="api('sell')" style="background:var(--gold); border:none; padding:5px 10px; border-radius:5px;">ПРОДАТЬ</button></div>
+    <h2 style="color:var(--gold)">МАГАЗИН</h2>
+    <div style="background:var(--glass); padding:20px; border-radius:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <b>ВАШ САДОК</b><br>
+            <span id="u-fish" style="font-size:20px;">0</span> кг
+        </div>
+        <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">ПРОДАТЬ ВСЁ</button>
     </div>
-    <div class="acc-item">
-        <div class="acc-head" onclick="toggleAcc(this)">💎 VIP МАГАЗИН (TON) <span>▼</span></div>
-        <div class="acc-body">
-            <p style="font-size:10px; color:var(--gold);">Кошелек: ТВОЙ_КОШЕЛЕК</p>
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span>Лицензия Озеро</span>
-                <button onclick="api('request_buy',{id:'license'})" style="background:#2e7d32; color:white; border:none; padding:5px; border-radius:5px;">1 TON</button>
-            </div>
+
+    <div style="background:var(--glass); padding:15px; border-radius:15px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span>🎫 Лицензия Озеро</span>
+            <button onclick="api('request_buy',{id:'license'})" style="background:#0088cc; color:white; border:none; padding:8px 15px; border-radius:10px; font-weight:bold;">1 TON</button>
+        </div>
+        <p style="font-size:10px; opacity:0.6; margin-top:5px;">Открывает доступ к Озеру Надежды с крупной рыбой.</p>
+    </div>
+
+    <div style="background:var(--glass); padding:15px; border-radius:15px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span>🛠️ Полный ремонт</span>
+            <button onclick="api('repair')" style="background:#444; color:white; border:none; padding:8px 15px; border-radius:10px; font-weight:bold;">50 TC</button>
         </div>
     </div>
 </div>
 
 <div id="p-info" class="page">
-    <button onclick="loadTop()" style="width:100%; padding:10px; background:var(--gold); border:none; border-radius:10px; font-weight:bold; margin-bottom:15px;">ОБНОВИТЬ ТОП 🏆</button>
-    <div id="top-container" class="top-list"></div>
-    <div style="margin-top:20px;">
-        <div style="font-size:11px; color:var(--gold);">РЕФ. ССЫЛКА:</div>
-        <div id="ref-link" style="font-size:10px; word-break:break-all; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;"></div>
+    <h2 style="color:var(--gold)">ТОП РЫБАКОВ</h2>
+    <div id="top-list" style="background:var(--glass); border-radius:15px; padding:10px;"></div>
+    
+    <div style="margin-top:20px; background:rgba(255,215,0,0.05); padding:15px; border-radius:15px; border:1px dashed var(--gold);">
+        <div style="font-size:11px; color:var(--gold);">РЕФЕРАЛЬНАЯ ССЫЛКА:</div>
+        <div id="ref-link" style="font-size:11px; word-break:break-all; margin-top:5px;">Загрузка...</div>
     </div>
 </div>
 
 <nav>
     <a href="#" class="nav-item active" onclick="showP('p-game',this)">ИГРА</a>
-    <a href="#" class="nav-item" onclick="showP('p-shop',this)">МАГАЗИН</a>
-    <a href="#" class="nav-item" onclick="showP('p-info',this)">ТОП/ИНФО</a>
+    <a href="#" class="nav-item" onclick="showP('p-shop',this); api('load');">МАГАЗИН</a>
+    <a href="#" class="nav-item" onclick="showP('p-info',this); api('get_top');">ТОП</a>
 </nav>
 
 <script>
@@ -97,9 +139,9 @@
             });
             const d = await r.json();
             if (d.msg) tg.showAlert(d.msg);
-            if (d.top) { renderTop(d.top); } else { render(d); }
-            if (d.catchData) tg.showAlert("Поймано: " + d.catchData.w);
-        } catch(e) { tg.showAlert("Ошибка: " + e.message); }
+            if (d.top) renderTop(d.top); else render(d);
+            if (d.catchData) showCatch(d.catchData);
+        } catch(e) { console.error(e); }
     }
 
     function render(d) {
@@ -109,22 +151,61 @@
         document.getElementById('u-en').innerText = d.energy;
         document.getElementById('u-dur').innerText = d.dur;
         document.getElementById('news-content').innerText = d.logs ? d.logs.join('  •  ') : "";
-        document.getElementById('btn-daily').style.display = (Date.now() - d.lastBonus > 86400000) ? 'block' : 'none';
-        document.getElementById('ref-link').innerText = "https://t.me/ТВОЙ_БОТ?start=" + d.id;
+        document.getElementById('ref-link').innerText = "https://t.me/tama_fishing_2026_bot?start=" + d.id;
+        
+        // Логика бонуса
+        const nextB = d.lastBonus + 86400000;
+        const bBtn = document.getElementById('btn-daily');
+        if (Date.now() > nextB) {
+            bBtn.style.display = 'block'; bBtn.innerText = "🎁 ПОЛУЧИТЬ БОНУС";
+        } else {
+            bBtn.style.display = 'block'; bBtn.style.background = '#333';
+            updateBonusTimer(nextB);
+        }
     }
 
-    function loadTop() { api('get_top'); }
-    function renderTop(top) {
-        const c = document.getElementById('top-container');
-        c.innerHTML = top.map((p, i) => `<div class="top-item"><span>${i+1}. ${p.n}</span><b>${p.b} TC</b></div>`).join('');
+    function updateBonusTimer(next) {
+        const bBtn = document.getElementById('btn-daily');
+        const itv = setInterval(() => {
+            const left = next - Date.now();
+            if (left <= 0) { clearInterval(itv); render(user); return; }
+            const h = Math.floor(left/3600000);
+            const m = Math.floor((left%3600000)/60000);
+            const s = Math.floor((left%60000)/1000);
+            bBtn.innerText = `🎁 ${h}ч ${m}м ${s}с`;
+        }, 1000);
+    }
+
+    function showCatch(c) {
+        document.getElementById('catch-name').innerText = c.type;
+        document.getElementById('catch-weight').innerText = c.w;
+        document.getElementById('wood-plate').classList.add('show');
     }
 
     function doCast() {
-        if (user.energy < 2) return tg.showAlert("Нет энергии!");
+        if (user.energy < 2) return tg.showAlert("⚡ Мало энергии!");
         const f = document.getElementById('fish-anim');
         const b = document.getElementById('btn-cast');
         f.style.display = 'block'; b.disabled = true;
-        setTimeout(() => { f.style.display = 'none'; b.disabled = false; api('cast', { location: currentLoc }); }, 1200);
+        setTimeout(() => { f.style.display = 'none'; b.disabled = false; api('cast', { location: currentLoc }); }, 1300);
+    }
+
+    function setLoc(l) {
+        currentLoc = l;
+        document.getElementById('tab-sea').classList.toggle('active', l === 'sea');
+        document.getElementById('tab-lake').classList.toggle('active', l === 'hope_lake');
+        document.getElementById('ocean').style.background = (l === 'hope_lake') 
+            ? 'radial-gradient(circle, #2c3e50 0%, #000 100%)' 
+            : 'radial-gradient(circle, #1a2a44 0%, #000 100%)';
+    }
+
+    function renderTop(top) {
+        document.getElementById('top-list').innerHTML = top.map((p, i) => `
+            <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                <span>${i+1}. ${p.n}</span>
+                <b style="color:var(--gold)">${p.b} TC</b>
+            </div>
+        `).join('');
     }
 
     function showP(id, el) {
@@ -133,15 +214,8 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         el.classList.add('active');
     }
-    function toggleAcc(el) { el.parentElement.classList.toggle('open'); }
-    function setLoc(l) {
-        currentLoc = l;
-        document.getElementById('l-sea').style.background = (l==='sea') ? 'var(--gold)' : '#1e2638';
-        document.getElementById('l-lake').style.background = (l==='hope_lake') ? 'var(--gold)' : '#1e2638';
-    }
 
     api('load');
 </script>
 </body>
 </html>
-
