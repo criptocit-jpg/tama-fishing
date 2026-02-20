@@ -3,144 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 6.5</title>
+    <title>Tamacoin Crypto Fishing</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #FFD700; --dark: #0a0e1a; --wood: #5d4037; --glass: rgba(255,255,255,0.07); }
         body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
-        .page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; flex-direction: column; padding-bottom: 110px; }
+        
+        /* Бегущая строка */
+        #news-line { background: rgba(255, 215, 0, 0.1); color: var(--gold); padding: 8px 0; font-size: 11px; border-bottom: 1px solid rgba(255,215,0,0.2); overflow: hidden; white-space: nowrap; }
+        #news-content { display: inline-block; animation: marquee 25s linear infinite; padding-left: 100%; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+        .page { display: none; height: calc(100vh - 75px); padding: 15px; box-sizing: border-box; flex-direction: column; overflow-y: auto; }
         .page.active { display: flex; }
-        #wood-plate {
-            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            background: var(--wood); border: 3px solid #3e2723; border-radius: 12px;
-            padding: 15px; text-align: center; width: 75%; z-index: 2000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+
+        /* Плашка улова */
+        #wood-plate { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); background: var(--wood); border: 3px solid #3e2723; border-radius: 12px; padding: 20px; text-align: center; width: 70%; z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.9); transition: 0.4s; }
         #wood-plate.show { transform: translate(-50%, -50%) scale(1); }
-        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
-        .acc-head { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; background: rgba(255,255,255,0.02); }
-        .acc-body { display: none; padding: 10px; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
+
+        /* Элементы интерфейса */
+        .acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .acc-head { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; }
+        .acc-body { display: none; padding: 15px; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
         .acc-item.open .acc-body { display: grid; }
-        .top-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--gold); margin-bottom: 10px; font-family: monospace; }
-        .lake-zone { 
-            flex-grow: 1; position: relative; background: radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%); 
-            border-radius: 20px; display: flex; align-items: center; justify-content: center; 
-            margin-bottom: 10px; border: 1px solid rgba(0,136,204,0.3); overflow: hidden; 
-        }
-        .lake-zone.active { box-shadow: inset 0 0 50px rgba(0,136,204,0.5); border-color: var(--gold); }
-        #fish-anim { width: 100%; height: 100%; object-fit: contain; display: none; animation: fish-big-pulse 0.8s infinite alternate ease-in-out; }
-        @keyframes fish-big-pulse { from { transform: scale(0.95); } to { transform: scale(1.05); } }
-        .btn-cast { width: 100%; padding: 22px; background: var(--gold); border: none; border-radius: 20px; font-weight: 900; font-size: 20px; color: #000; }
-        .btn-daily { background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; font-weight: bold; display: none; }
-        nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #0d121f; display: flex; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
+
+        .lake-zone { height: 200px; position: relative; background: radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(0,136,204,0.3); transition: 0.5s; }
+        #fish-anim { width: 80px; display: none; animation: pulse 0.6s infinite alternate; }
+        @keyframes pulse { from { transform: scale(0.8); } to { transform: scale(1.2); } }
+
+        .btn-cast { width: 100%; padding: 20px; background: var(--gold); border: none; border-radius: 15px; font-weight: 900; font-size: 18px; color: #000; box-shadow: 0 4px 15px rgba(255,215,0,0.3); }
+        .btn-cast:disabled { background: #555; opacity: 0.6; }
+
+        nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #0d121f; display: flex; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #5a6275; text-decoration: none; }
         .nav-item.active { color: var(--gold); }
-        .stat-mini { background: var(--glass); padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; }
-        .shop-btn { background: #2e7d32; color: white; border: none; padding: 6px; border-radius: 6px; width: 100%; margin-top: 5px; font-weight: bold; }
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; display:none; z-index:3000; font-weight:bold; }
-        input { width: 100%; padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.4); border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
+
+        .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; display:none; z-index:3000; font-weight:bold; font-size: 13px; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.4); border: 1px solid #444; color: #fff; border-radius: 8px; }
+        .shop-btn { background: #2e7d32; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; width: 100%; }
     </style>
 </head>
 <body>
 
-<div id="news-line" style="background: rgba(255, 215, 0, 0.1); color: var(--gold); padding: 5px 0; font-size: 10px; border-bottom: 1px solid rgba(255,215,0,0.2); overflow: hidden; white-space: nowrap;">
-    <div id="news-content" style="display: inline-block; animation: marquee 20s linear infinite;">
-        Загрузка последних событий... 🎣 🔥
-    </div>
+<div id="news-line">
+    <div id="news-content">Ожидание сводок с водоемов... 🎣</div>
 </div>
-
-<style>
-@keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-}
-</style>
 
 <div id="toast" class="toast"></div>
 
 <div id="wood-plate" onclick="this.classList.remove('show')">
-    <div style="font-size:10px; opacity:0.7; color:white;">УЛОВ:</div>
-    <p id="catch-res" style="font-size: 24px; font-weight: 900; margin: 10px 0; color: #fff;"></p>
-    <div style="font-size:9px; color:var(--gold);">НАЖМИ, ЧТОБЫ ЗАБРАТЬ</div>
+    <div style="font-size:12px; opacity:0.8; color:white;">ВАШ УЛОВ:</div>
+    <p id="catch-res" style="font-size: 26px; font-weight: 900; margin: 15px 0; color: #fff;"></p>
+    <div style="font-size:10px; color:var(--gold);">НАЖМИ, ЧТОБЫ УБРАТЬ</div>
 </div>
 
 <div id="p-game" class="page active">
-    <div class="top-row">
-        <div>ЗОЛОТОЙ ЧАС: <b id="t-gold">--:--:--</b></div>
-        <div>БОНУС: <b id="t-daily">--:--:--</b></div>
+    <div style="text-align:center; margin: 10px 0;">
+        <div id="u-b" style="font-size:42px; font-weight:900; color:var(--gold);">0</div>
+        <div style="font-size:12px; opacity:0.6; letter-spacing: 2px;">TAMACON (TC)</div>
     </div>
-    <div style="text-align:center; margin-bottom:10px;">
-        <div id="u-b" style="font-size:38px; font-weight:900; color:var(--gold);">0</div>
-        <div style="font-size:10px; opacity:0.5;">TAMACON</div>
+
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <div style="flex:1; background:var(--glass); padding:10px; border-radius:12px; text-align:center;">⚡ <span id="u-en">0</span></div>
+        <div style="flex:1; background:var(--glass); padding:10px; border-radius:12px; text-align:center;">🛠️ <span id="u-dur">0%</span></div>
     </div>
-    <div style="display:flex; gap:5px; margin-bottom:15px;">
-        <div class="stat-mini" style="flex:1;">⚡ <span id="u-en">0</span></div>
-        <div class="stat-mini" style="flex:1;">🛠️ <span id="u-dur">0%</span></div>
-        <div class="stat-mini" style="flex:1;">📦 <span id="u-box">0</span></div>
+
+    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <button id="loc-sea" onclick="setLoc('sea')" style="flex:1; padding:12px; border-radius:10px; border:none; background: var(--gold); font-weight:bold;">🌊 МОРЕ</button>
+        <button id="loc-lake" onclick="setLoc('hope_lake')" style="flex:1; padding:12px; border-radius:10px; border:none; background: rgba(255,255,255,0.1); font-weight:bold; color:white;">✨ ОЗЕРО</button>
     </div>
-    <div id="ocean" class="lake-zone"><img src="fish_anim.webp" id="fish-anim"></div>
-    <div style="margin-top: auto;">
-        <button id="btn-daily" class="btn-daily" onclick="api('get_daily')">🎁 ЗАБРАТЬ БОНУС</button>
-        <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
+
+    <div id="ocean" class="lake-zone">
+        <img src="https://cdn-icons-png.flaticon.com/512/2274/2274532.png" id="fish-anim">
     </div>
+
+    <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
+    <button id="btn-daily" style="margin-top:10px; width:100%; padding:12px; background:#2e7d32; border:none; color:white; border-radius:10px; font-weight:bold; display:none;" onclick="api('get_daily')">🎁 БОНУС</button>
 </div>
 
-<div id="p-sadok" class="page">
+<div id="p-shop" class="page">
     <div class="acc-item open">
         <div class="acc-head">🐟 САДОК</div>
-        <div class="acc-body" style="display:flex; justify-content:space-between; grid-template-columns:none; align-items: center;">
+        <div class="acc-body" style="display:flex; justify-content:space-between; grid-template-columns:none;">
             <span>Вес: <b id="u-fish">0</b> кг</span>
-            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
+            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
         </div>
     </div>
+
     <div class="acc-item">
         <div class="acc-head" onclick="toggleAcc(this)">🛒 МАГАЗИН TC <span>▼</span></div>
         <div class="acc-body">
-            <div class="stat-mini">Мякиш (100)<button class="shop-btn" onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
-            <div class="stat-mini">Снасти (200)<button class="shop-btn" onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
-            <div class="stat-mini">Энергия (50)<button class="shop-btn" onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
-            <div class="stat-mini">Ремонт (50)<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
+            <div style="text-align:center; font-size:12px;">Мякиш (100)<button class="shop-btn" onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
+            <div style="text-align:center; font-size:12px;">Ремонт (50)<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
+            <div style="text-align:center; font-size:12px;">Энергия (50)<button class="shop-btn" onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
+            <div style="text-align:center; font-size:12px;">Лицензия (1000)<button class="shop-btn" onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
         </div>
     </div>
+
     <div class="acc-item">
-        <div class="acc-head" onclick="toggleAcc(this)" style="color:var(--gold)">💎 VIP STARS <span>▼</span></div>
-        <div class="acc-body">
-            <div class="stat-mini">Титан (150)<button class="shop-btn" onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
-            <div class="stat-mini">Прикорм (200)<button class="shop-btn" onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
-            <div class="stat-mini">Снасти+ (200)<button class="shop-btn" onclick="api('buy',{id:'strong'})">КУПИТЬ</button></div>
-            <div class="stat-mini">Озеро (500)<button class="shop-btn" onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
-        </div>
-    </div>
-    <div class="acc-item">
-        <div class="acc-head" onclick="toggleAcc(this)">💳 ВЫВОД <span>▼</span></div>
+        <div class="acc-head" onclick="toggleAcc(this)">💳 ВЫВОД (от 30к) <span>▼</span></div>
         <div class="acc-body" style="grid-template-columns:1fr;">
-            <input id="w-wallet" placeholder="TON Кошелек">
+            <input id="w-wallet" placeholder="Ваш TON Кошелек">
             <input id="w-sum" type="number" placeholder="Сумма TC">
-            <button onclick="withdraw()" style="background:#0088cc; color:white; border:none; padding:12px; border-radius:10px; width:100%; font-weight: bold;">ВЫВЕСТИ</button>
+            <button onclick="withdraw()" style="background:#0088cc; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold;">СОЗДАТЬ ЗАЯВКУ</button>
         </div>
     </div>
 </div>
 
-<div id="p-top" class="page"><h2 style="text-align:center; color:var(--gold);">🏆 ТОП</h2><div id="top-list"></div></div>
-
 <div id="p-info" class="page">
-    <h2 style="color:var(--gold);">ИНФО</h2>
-    <div id="ref-link" style="background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; word-break:break-all; font-size:11px; color:var(--gold);"></div>
+    <h3 style="color:var(--gold);">ПРАВИЛА ИГРЫ</h3>
+    <p style="font-size:13px; opacity:0.8;">Ловите рыбу, копите Tamacoin и готовьтесь к листингу! <br><br>
+    - 🌊 <b>Море:</b> бесплатно для всех.<br>
+    - ✨ <b>Озеро:</b> нужен VIP пропуск. Рыба x2, есть Золотой Карп (5000 TC).<br>
+    - 💳 <b>Вывод:</b> от 30,000 TC после проверки админом.</p>
+    
+    <div id="ref-section" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-top:20px;">
+        <div style="font-size:12px; color:var(--gold); margin-bottom:10px;">ВАША РЕФЕРАЛЬНАЯ ССЫЛКА:</div>
+        <div id="ref-link" style="font-size:11px; word-break:break-all; margin-bottom:10px;">Загрузка...</div>
+    </div>
 </div>
 
 <nav>
-    <a href="javascript:void(0)" class="nav-item active" onclick="showP('p-game',this)"><i>🎮</i>ИГРА</a>
-    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-sadok',this)"><i>🎒</i>САДОК</a>
-    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-top',this)"><i>🏆</i>ТОП</a>
-    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-info',this)"><i>ℹ️</i>ИНФО</a>
+    <a href="#" class="nav-item active" onclick="showP('p-game',this)">ИГРА</a>
+    <a href="#" class="nav-item" onclick="showP('p-shop',this)">МАГАЗИН</a>
+    <a href="#" class="nav-item" onclick="showP('p-info',this)">ИНФО</a>
 </nav>
 
 <script>
     const tg = window.Telegram.WebApp;
-    // ЗАМЕНИ НА СВОЙ URL ПОСЛЕ ДЕПЛОЯ
-    const URL = 'https://tama-bot-server.onrender.com/api/action';
-    let user = { lastBonus: 0 };
-    tg.ready(); tg.expand();
+    const URL = 'https://ТВОЙ-СЕРВЕР.onrender.com/api/action'; // ЗАМЕНИ НА СВОЙ
+    let user = {};
+    let currentLoc = 'sea';
+
+    tg.ready();
+    tg.expand();
 
     function showP(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -148,16 +144,27 @@
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
     }
+
     function toggleAcc(el) { el.parentElement.classList.toggle('open'); }
+    
     function toast(txt) {
         const t = document.getElementById('toast');
         t.innerText = txt; t.style.display = 'block';
         setTimeout(() => t.style.display = 'none', 2500);
     }
 
+    function setLoc(loc) {
+        currentLoc = loc;
+        document.getElementById('loc-sea').style.background = (loc === 'sea') ? 'var(--gold)' : 'rgba(255,255,255,0.1)';
+        document.getElementById('loc-sea').style.color = (loc === 'sea') ? 'black' : 'white';
+        document.getElementById('loc-lake').style.background = (loc === 'hope_lake') ? 'var(--gold)' : 'rgba(255,255,255,0.1)';
+        document.getElementById('loc-lake').style.color = (loc === 'hope_lake') ? 'black' : 'white';
+        document.getElementById('ocean').style.background = (loc === 'hope_lake') ? 'radial-gradient(circle, #2c3e50 0%, #000 100%)' : 'radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%)';
+    }
+
     async function api(action, payload = {}) {
         try {
-            const uid = tg.initDataUnsafe?.user?.id || "7883085758";
+            const uid = tg.initDataUnsafe?.user?.id || "12345";
             const uname = tg.initDataUnsafe?.user?.first_name || "Рыбак";
             const r = await fetch(URL, {
                 method: 'POST',
@@ -165,84 +172,61 @@
                 body: JSON.stringify({ userId: uid, userName: uname, action, payload })
             });
             const d = await r.json();
+            if (d.isBanned) { document.body.innerHTML = "<h1 style='color:red;text-align:center;margin-top:50px;'>ВЫ ЗАБАНЕНЫ</h1>"; return; }
             if (d.msg) toast(d.msg);
             render(d);
             if (d.catchData) {
-                document.getElementById('catch-res').innerHTML = d.catchData.type + '<br>' + d.catchData.w + ' кг';
+                document.getElementById('catch-res').innerHTML = `${d.catchData.type}<br><span style="color:var(--gold)">${d.catchData.w}</span>`;
                 document.getElementById('wood-plate').classList.add('show');
             }
         } catch(e) { console.error(e); }
     }
 
     function render(d) {
-        if (!d || !d.id) return;
         user = d;
         document.getElementById('u-b').innerText = Math.floor(d.b).toLocaleString();
         document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
         document.getElementById('u-en').innerText = d.energy || 0;
         document.getElementById('u-dur').innerText = Math.max(0, d.dur || 0) + '%';
         
-        // Обновляем бегущую строку из логов сервера
-        if (d.logs && d.logs.length > 0) {
-            document.getElementById('news-content').innerText = d.logs.join('  |  ');
+        // Бегущая строка
+        if (d.logs) {
+            document.getElementById('news-content').innerText = d.logs.join('  •  ');
         }
 
-        // Ссылка и кнопка копирования
-        const refUrl = "https://t.me/ТВОЙ_БОТ?start=" + d.id;
-        document.getElementById('ref-link').innerHTML = `
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <span>${refUrl}</span>
-                <button onclick="copyRef('${refUrl}')" style="background:var(--gold); border:none; padding:8px; border-radius:5px; font-weight:bold; color:black;">КОПИРОВАТЬ ССЫЛКУ</button>
-            </div>
-        `;
+        // Бонус
+        const canBonus = (Date.now() - d.lastBonus > 86400000);
+        document.getElementById('btn-daily').style.display = canBonus ? 'block' : 'none';
+
+        // Рефка
+        const rUrl = "https://t.me/ТВОЙ_БОТ?start=" + d.id;
+        document.getElementById('ref-link').innerHTML = `${rUrl} <br><button onclick="copyR('${rUrl}')" style="margin-top:10px; padding:5px 10px; background:var(--gold); border:none; border-radius:5px; font-size:10px; font-weight:bold;">КОПИРОВАТЬ</button>`;
     }
 
-    function copyRef(text) {
-        navigator.clipboard.writeText(text).then(() => toast("Ссылка скопирована!"));
+    function copyR(txt) {
+        const el = document.createElement('textarea'); el.value = txt; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); toast("Скопировано!");
     }
 
     function doCast() {
+        if (user.energy < 2) return toast("Нет энергии!");
         const f = document.getElementById('fish-anim');
         const b = document.getElementById('btn-cast');
-        const o = document.getElementById('ocean');
-        f.style.display = 'block'; b.disabled = true; o.classList.add('active');
+        f.style.display = 'block'; b.disabled = true;
         setTimeout(() => {
-            f.style.display = 'none'; b.disabled = false; o.classList.remove('active');
-            api('cast');
-        }, 1300);
+            f.style.display = 'none'; b.disabled = false;
+            api('cast', { location: currentLoc });
+        }, 1200);
     }
 
     function withdraw() {
-        const wallet = document.getElementById('w-wallet').value;
-        const sum = document.getElementById('w-sum').value;
-        if(!wallet || !sum) return toast("Заполни поля!");
-        api('withdraw', {wallet, sum: parseInt(sum)});
+        const w = document.getElementById('w-wallet').value;
+        const s = document.getElementById('w-sum').value;
+        if (!w || !s) return toast("Заполни поля!");
+        api('withdraw', { wallet: w, sum: s });
     }
 
-    setInterval(() => {
-        const now = new Date();
-        let target = new Date(); target.setHours(19,0,0,0);
-        if (now > target) target.setDate(target.getDate() + 1);
-        let diff = target - now;
-        const h = String(Math.floor(diff/3600000)).padStart(2,'0');
-        const m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-        const s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-        document.getElementById('t-gold').innerText = (now.getHours() === 19) ? "АКТИВЕН! 🔥" : h+":"+m+":"+s;
-        
-        let bDiff = (user.lastBonus + 86400000) - Date.now();
-        if(bDiff > 0) {
-            const bh = String(Math.floor(bDiff/3600000)).padStart(2,'0');
-            const bm = String(Math.floor((bDiff%3600000)/60000)).padStart(2,'0');
-            const bs = String(Math.floor((bDiff%60000)/1000)).padStart(2,'0');
-            document.getElementById('t-daily').innerText = bh+":"+bm+":"+bs;
-            document.getElementById('btn-daily').style.display = 'none';
-        } else {
-            document.getElementById('t-daily').innerText = "ГОТОВ";
-            document.getElementById('btn-daily').style.display = 'block';
-        }
-    }, 1000);
     api('load');
+    setInterval(() => api('load'), 60000); // Обновление логов раз в минуту
 </script>
 </body>
 </html>
-
