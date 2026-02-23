@@ -39,10 +39,14 @@
         .shop-btn { background: #2e7d32; color: white; border: none; padding: 6px; border-radius: 6px; width: 100%; margin-top: 5px; font-weight: bold; }
         .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; display:none; z-index:3000; font-weight:bold; }
         input { width: 100%; padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.4); border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
+
+        /* бегущая строка */
+        #ticker { position: fixed; top: 0; width: 100%; overflow: hidden; white-space: nowrap; background:#222; color:var(--gold); padding:5px 0; font-weight:bold; z-index:3001; }
     </style>
 </head>
 <body>
 
+<div id="ticker"></div>
 <div id="toast" class="toast"></div>
 
 <div id="wood-plate" onclick="this.classList.remove('show')">
@@ -95,7 +99,7 @@
             <div class="stat-mini">Титан (150)<button class="shop-btn" onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
             <div class="stat-mini">Прикорм (200)<button class="shop-btn" onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
             <div class="stat-mini">Снасти+ (200)<button class="shop-btn" onclick="api('buy',{id:'strong'})">КУПИТЬ</button></div>
-            <div class="stat-mini">Озеро (500)<button class="shop-btn" onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Озеро Надежды (500)<button class="shop-btn" onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
         </div>
     </div>
     <div class="acc-item">
@@ -123,101 +127,107 @@
 </nav>
 
 <script>
-    const tg = window.Telegram.WebApp;
-    // ЗАМЕНИ НА СВОЙ URL ПОСЛЕ ДЕПЛОЯ
-    const URL = 'https://tama-bot-server.onrender.com/api/action';
-    let user = { lastBonus: 0 };
-    tg.ready(); tg.expand();
+const tg=window.Telegram.WebApp;
+tg.ready(); tg.expand();
+const URL='https://tama-bot-server.onrender.com/api/action';
+let user={lastBonus:0};
 
-    function showP(id, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-    }
-    function toggleAcc(el) { el.parentElement.classList.toggle('open'); }
-    function toast(txt) {
-        const t = document.getElementById('toast');
-        t.innerText = txt; t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2500);
-    }
+function showP(id,el){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+}
+function toggleAcc(el){ el.parentElement.classList.toggle('open'); }
+function toast(txt){
+    const t=document.getElementById('toast'); t.innerText=txt; t.style.display='block';
+    setTimeout(()=>t.style.display='none',2500);
+}
 
-    async function api(action, payload = {}) {
-        try {
-            const uid = tg.initDataUnsafe?.user?.id || "7883085758";
-            const uname = tg.initDataUnsafe?.user?.first_name || "Рыбак";
-            const r = await fetch(URL, {
-                method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ userId: uid, userName: uname, action, payload })
-            });
-            const d = await r.json();
-            if (d.msg) toast(d.msg);
-            render(d);
-            if (d.catchData) {
-                document.getElementById('catch-res').innerHTML = d.catchData.type + '<br>' + d.catchData.w + ' кг';
-                document.getElementById('wood-plate').classList.add('show');
-            }
-        } catch(e) { console.error(e); }
-    }
+function updateTicker(events){
+    const ticker=document.getElementById('ticker');
+    if(!events||!events.length) return;
+    ticker.innerHTML=events.join(' | ');
+    ticker.style.animation='none';
+    void ticker.offsetWidth;
+    ticker.style.animation='scroll 20s linear infinite';
+}
 
-    function render(d) {
-        if (!d || !d.id) return;
-        user = d;
-        document.getElementById('u-b').innerText = Math.floor(d.b).toLocaleString();
-        document.getElementById('u-fish').innerText = (d.fish || 0).toFixed(2);
-        document.getElementById('u-en').innerText = d.energy || 0;
-        document.getElementById('u-dur').innerText = Math.max(0, d.dur || 0) + '%';
-        document.getElementById('u-box').innerText = d.boxes || 0;
-        document.getElementById('ref-link').innerText = "Ваша ссылка: https://t.me/TamacoinBot?start=" + d.id;
-        if(d.top) {
-            document.getElementById('top-list').innerHTML = d.top.map((x,i)=>
-                `<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${Math.floor(x.b)} TC</b></div>`
-            ).join('');
+const style=document.createElement('style');
+style.innerHTML=`@keyframes scroll {0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}`;
+document.head.appendChild(style);
+
+async function api(action,payload={}){
+    try{
+        const uid=tg.initDataUnsafe?.user?.id||"7883085758";
+        const uname=tg.initDataUnsafe?.user?.first_name||"Рыбак";
+        const r=await fetch(URL,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({userId:uid,userName:uname,action,payload})
+        });
+        const d=await r.json();
+        if(d.msg) toast(d.msg);
+        render(d);
+        if(d.events) updateTicker(d.events);
+        if(d.catchData){
+            document.getElementById('catch-res').innerHTML=d.catchData.type+'<br>'+d.catchData.w+' кг';
+            document.getElementById('wood-plate').classList.add('show');
         }
-    }
+    }catch(e){ console.error(e); }
+}
 
-    function doCast() {
-        const f = document.getElementById('fish-anim');
-        const b = document.getElementById('btn-cast');
-        const o = document.getElementById('ocean');
-        f.style.display = 'block'; b.disabled = true; o.classList.add('active');
-        setTimeout(() => {
-            f.style.display = 'none'; b.disabled = false; o.classList.remove('active');
-            api('cast');
-        }, 1300);
+function render(d){
+    if(!d||!d.id) return;
+    user=d;
+    document.getElementById('u-b').innerText=Math.floor(d.b).toLocaleString();
+    document.getElementById('u-fish').innerText=(d.fish||0).toFixed(2);
+    document.getElementById('u-en').innerText=d.energy||0;
+    document.getElementById('u-dur').innerText=Math.max(0,d.dur||0)+'%';
+    document.getElementById('u-box').innerText=d.boxes||0;
+    document.getElementById('ref-link').innerText="Ваша ссылка: https://t.me/TamacoinBot?start="+d.id;
+    if(d.top){
+        document.getElementById('top-list').innerHTML=d.top.map((x,i)=>
+            `<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${Math.floor(x.b)} TC</b></div>`
+        ).join('');
     }
+}
 
-    function withdraw() {
-        const wallet = document.getElementById('w-wallet').value;
-        const sum = document.getElementById('w-sum').value;
-        if(!wallet || !sum) return toast("Заполни поля!");
-        api('withdraw', {wallet, sum: parseInt(sum)});
-    }
+function doCast(){
+    const f=document.getElementById('fish-anim');
+    const b=document.getElementById('btn-cast');
+    const o=document.getElementById('ocean');
+    f.style.display='block'; b.disabled=true; o.classList.add('active');
+    setTimeout(()=>{
+        f.style.display='none'; b.disabled=false; o.classList.remove('active');
+        api('cast');
+    },1300);
+}
 
-    setInterval(() => {
-        const now = new Date();
-        let target = new Date(); target.setHours(19,0,0,0);
-        if (now > target) target.setDate(target.getDate() + 1);
-        let diff = target - now;
-        const h = String(Math.floor(diff/3600000)).padStart(2,'0');
-        const m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-        const s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-        document.getElementById('t-gold').innerText = (now.getHours() === 19) ? "АКТИВЕН! 🔥" : h+":"+m+":"+s;
-        
-        let bDiff = (user.lastBonus + 86400000) - Date.now();
-        if(bDiff > 0) {
-            const bh = String(Math.floor(bDiff/3600000)).padStart(2,'0');
-            const bm = String(Math.floor((bDiff%3600000)/60000)).padStart(2,'0');
-            const bs = String(Math.floor((bDiff%60000)/1000)).padStart(2,'0');
-            document.getElementById('t-daily').innerText = bh+":"+bm+":"+bs;
-            document.getElementById('btn-daily').style.display = 'none';
-        } else {
-            document.getElementById('t-daily').innerText = "ГОТОВ";
-            document.getElementById('btn-daily').style.display = 'block';
-        }
-    }, 1000);
-    api('load');
-</script>
-</body>
-</html>
+function withdraw(){
+    const wallet=document.getElementById('w-wallet').value;
+    const sum=parseInt(document.getElementById('w-sum').value);
+    if(!wallet||!sum) return toast("Заполни поля!");
+    if(sum<30000) return toast("Вывод возможен только от 30 000 TC!");
+    api('withdraw',{wallet,sum});
+}
+
+setInterval(()=>{
+    const now=new Date();
+    let target=new Date(); target.setHours(19,0,0,0);
+    if(now>target) target.setDate(target.getDate()+1);
+    let diff=target-now;
+    const h=String(Math.floor(diff/3600000)).padStart(2,'0');
+    const m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    const s=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    document.getElementById('t-gold').innerText=(now.getHours()===19)?"АКТИВЕН! 🔥":h+":"+m+":"+s;
+
+    let bDiff=(user.lastBonus+86400000)-Date.now();
+    if(bDiff>0){
+        const bh=String(Math.floor(bDiff/3600000)).padStart(2,'0');
+        const bm=String(Math.floor((bDiff%3600000)/60000)).padStart(2,'0');
+        const bs=String(Math.floor((bDiff%60000)/1000)).padStart(2,'0');
+        document.getElementById('t-daily').innerText=bh+":"+bm+":"+bs;
+        document.getElementById('btn-daily').style.display='none';
+    }else{
+        document.getElementById('t-daily').innerText
