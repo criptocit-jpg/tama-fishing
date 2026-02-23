@@ -231,3 +231,23 @@ setInterval(()=>{
         document.getElementById('btn-daily').style.display='none';
     }else{
         document.getElementById('t-daily').innerText
+        document.getElementById('t-daily').innerText
+    }else{
+        document.getElementById('t-daily').innerText="ГОТОВ!";
+        document.getElementById('btn-daily').style.display='block';
+    }
+},1000);
+
+
+// -------- ПЕРВИЧНАЯ ЗАГРУЗКА ИГРОКА --------
+api('load');
+
+
+// -------- ОБНОВЛЕНИЕ СОБЫТИЙ (БЕГУЩАЯ СТРОКА) --------
+setInterval(()=>{
+    api('get_events');
+},10000);
+
+</script>
+</body>
+</html>
