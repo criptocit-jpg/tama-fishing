@@ -2,35 +2,37 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Tamacoin Fishing Gold 6.5</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Tamacoin Fishing Gold 7.0</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root { --gold:#FFD700; --dark:#0a0e1a; --wood:#5d4037; --glass:rgba(255,255,255,0.07);}
-body {margin:0;background:var(--dark);color:white;font-family:'Segoe UI',sans-serif;overflow:hidden;height:100vh;}
-.page {display:none;flex-direction:column;height:100vh;padding:15px;box-sizing:border-box;padding-bottom:110px;}
-.page.active{display:flex;}
-#wood-plate {position:fixed;top:40%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--wood);border:3px solid #3e2723;border-radius:12px;padding:15px;text-align:center;width:75%;z-index:2000;box-shadow:0 10px 30px rgba(0,0,0,0.8);transition:0.4s cubic-bezier(0.175,0.885,0.32,1.275);}
-#wood-plate.show{transform:translate(-50%,-50%) scale(1);}
-.acc-item{background:var(--glass);border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;}
-.acc-head{padding:15px;cursor:pointer;display:flex;justify-content:space-between;font-weight:bold;background:rgba(255,255,255,0.02);}
-.acc-body{display:none;padding:10px;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid rgba(255,255,255,0.1);}
-.acc-item.open .acc-body{display:grid;}
-.top-row{display:flex;justify-content:space-between;font-size:11px;color:var(--gold);margin-bottom:10px;font-family:monospace;}
-.lake-zone{flex-grow:1;position:relative;background:radial-gradient(circle,#1a2a44 0%,#0a0e1a 100%);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;border:1px solid rgba(0,136,204,0.3);overflow:hidden;}
-.lake-zone.active{box-shadow:inset 0 0 50px rgba(0,136,204,0.5);border-color:var(--gold);}
-#fish-anim{width:100%;height:100%;object-fit:contain;display:none;animation:fish-big-pulse 0.8s infinite alternate ease-in-out;}
-@keyframes fish-big-pulse{from{transform:scale(0.95);}to{transform:scale(1.05);}}
-.btn-cast{width:100%;padding:22px;background:var(--gold);border:none;border-radius:20px;font-weight:900;font-size:20px;color:#000;}
-.btn-daily{background:#2e7d32;color:white;border:none;padding:12px;border-radius:12px;width:100%;margin-bottom:10px;font-weight:bold;display:none;}
-nav{position:fixed;bottom:0;width:100%;height:75px;background:#0d121f;display:flex;border-top:1px solid rgba(255,255,255,0.1);z-index:1000;}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:#5a6275;text-decoration:none;}
-.nav-item.active{color:var(--gold);}
-.stat-mini{background:var(--glass);padding:8px;border-radius:8px;text-align:center;font-size:11px;}
-.shop-btn{background:#2e7d32;color:white;border:none;padding:6px;border-radius:6px;width:100%;margin-top:5px;font-weight:bold;}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;padding:10px 20px;border-radius:20px;display:none;z-index:3000;font-weight:bold;}
-input{width:100%;padding:12px;margin-bottom:8px;background:rgba(0,0,0,0.4);border:1px solid #333;color:#fff;border-radius:8px;box-sizing:border-box;}
-#ticker{position:fixed;top:0;width:100%;overflow:hidden;white-space:nowrap;background:#222;color:var(--gold);padding:5px 0;font-weight:bold;z-index:3001;}
+:root { --gold: #FFD700; --dark: #0a0e1a; --wood: #5d4037; --glass: rgba(255,255,255,0.07); }
+body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
+.page { display: none; height: 100vh; padding: 15px; box-sizing: border-box; flex-direction: column; padding-bottom: 110px; }
+.page.active { display: flex; }
+#wood-plate { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); background: var(--wood); border: 3px solid #3e2723; border-radius: 12px; padding: 15px; text-align: center; width: 75%; z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+#wood-plate.show { transform: translate(-50%, -50%) scale(1); }
+.acc-item { background: var(--glass); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+.acc-head { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; background: rgba(255,255,255,0.02); }
+.acc-body { display: none; padding: 10px; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
+.acc-item.open .acc-body { display: grid; }
+.top-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--gold); margin-bottom: 10px; font-family: monospace; }
+.lake-zone { flex-grow: 1; position: relative; background: radial-gradient(circle, #1a2a44 0%, #0a0e1a 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; border: 1px solid rgba(0,136,204,0.3); overflow: hidden; }
+.lake-zone.active { box-shadow: inset 0 0 50px rgba(0,136,204,0.5); border-color: var(--gold); }
+#fish-anim { width: 100%; height: 100%; object-fit: contain; display: none; animation: fish-big-pulse 0.8s infinite alternate ease-in-out; }
+@keyframes fish-big-pulse { from { transform: scale(0.95); } to { transform: scale(1.05); } }
+.btn-cast { width: 100%; padding: 22px; background: var(--gold); border: none; border-radius: 20px; font-weight: 900; font-size: 20px; color: #000; }
+.btn-daily { background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; font-weight: bold; display: none; }
+nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #0d121f; display: flex; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #5a6275; text-decoration: none; }
+.nav-item.active { color: var(--gold); }
+.stat-mini { background: var(--glass); padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; }
+.shop-btn { background: #2e7d32; color: white; border: none; padding: 6px; border-radius: 6px; width: 100%; margin-top: 5px; font-weight: bold; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 20px; display:none; z-index:3000; font-weight:bold; }
+input { width: 100%; padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.4); border: 1px solid #333; color: #fff; border-radius: 8px; box-sizing: border-box; }
+
+/* бегущая строка */
+#ticker { position: fixed; top: 0; width: 100%; overflow: hidden; white-space: nowrap; background:#222; color:var(--gold); padding:5px 0; font-weight:bold; z-index:3001; }
 </style>
 </head>
 <body>
@@ -54,14 +56,17 @@ input{width:100%;padding:12px;margin-bottom:8px;background:rgba(0,0,0,0.4);borde
         <div style="font-size:10px; opacity:0.5;">TAMACON</div>
     </div>
     <div style="display:flex; gap:5px; margin-bottom:15px;">
-        <div class="stat-mini" style="flex:1;">⚡ <span id="u-en">0</span></div>
-        <div class="stat-mini" style="flex:1;">🛠️ <span id="u-dur">0%</span></div>
-        <div class="stat-mini" style="flex:1;">📦 <span id="u-box">0</span></div>
+        <div class="stat-mini">⚡ <span id="u-en">0</span></div>
+        <div class="stat-mini">🛠️ <span id="u-dur">0%</span></div>
+        <div class="stat-mini">📦 <span id="u-box">0</span></div>
     </div>
     <div id="ocean" class="lake-zone"><img src="fish_anim.webp" id="fish-anim"></div>
     <div style="margin-top: auto;">
         <button id="btn-daily" class="btn-daily" onclick="api('get_daily')">🎁 ЗАБРАТЬ БОНУС</button>
         <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
+    </div>
+    <div style="margin-top:10px; text-align:center;">
+        <div id="jackpot-info" class="stat-mini">ДЖЕКПОТ: <span id="jp-pool">0</span> TC</div>
     </div>
 </div>
 
@@ -80,6 +85,11 @@ input{width:100%;padding:12px;margin-bottom:8px;background:rgba(0,0,0,0.4);borde
             <div class="stat-mini">Снасти (200)<button class="shop-btn" onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
             <div class="stat-mini">Энергия (50)<button class="shop-btn" onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
             <div class="stat-mini">Ремонт (50)<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
+        </div>
+    </div>
+    <div class="acc-item">
+        <div class="acc-head" onclick="toggleAcc(this)" style="color:var(--gold)">💎 VIP STARS <span>▼</span></div>
+        <div class="acc-body">
             <div class="stat-mini">Титан (150)<button class="shop-btn" onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
             <div class="stat-mini">Прикорм (200)<button class="shop-btn" onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
             <div class="stat-mini">Снасти+ (200)<button class="shop-btn" onclick="api('buy',{id:'strong'})">КУПИТЬ</button></div>
@@ -101,13 +111,14 @@ input{width:100%;padding:12px;margin-bottom:8px;background:rgba(0,0,0,0.4);borde
 <div id="p-info" class="page">
     <h2 style="color:var(--gold);">ИНФО</h2>
     <div id="ref-link" style="background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; word-break:break-all; font-size:11px; color:var(--gold);"></div>
+    <button onclick="copyRef()" style="background:var(--gold); color:#000; font-weight:bold; padding:8px; border:none; border-radius:8px; margin-top:5px; width:100%;">СКОПИРОВАТЬ ССЫЛКУ</button>
 </div>
 
 <nav>
-    <a href="javascript:void(0)" class="nav-item active" onclick="showP('p-game',this)">🎮ИГРА</a>
-    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-sadok',this)">🎒САДОК</a>
-    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-top',this)">🏆ТОП</a>
-    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-info',this)">ℹ️ИНФО</a>
+    <a href="javascript:void(0)" class="nav-item active" onclick="showP('p-game',this)"><i>🎮</i>ИГРА</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-sadok',this)"><i>🎒</i>САДОК</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-top',this)"><i>🏆</i>ТОП</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="showP('p-info',this)"><i>ℹ️</i>ИНФО</a>
 </nav>
 
 <script>
@@ -116,53 +127,25 @@ tg.ready(); tg.expand();
 const URL='https://tama-bot-server.onrender.com/api/action';
 let user={lastBonus:0};
 
-function showP(id,el){
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-    el.classList.add('active');
-}
+function showP(id,el){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
 function toggleAcc(el){ el.parentElement.classList.toggle('open'); }
-function toast(txt){
-    const t=document.getElementById('toast'); t.innerText=txt; t.style.display='block';
-    setTimeout(()=>t.style.display='none',2500);
-}
+function toast(txt){ const t=document.getElementById('toast'); t.innerText=txt; t.style.display='block'; setTimeout(()=>t.style.display='none',2500); }
 
-function updateTicker(events){
-    const ticker=document.getElementById('ticker');
-    if(!events||!events.length) return;
-    ticker.innerHTML=events.join(' | ');
-    ticker.style.animation='none';
-    void ticker.offsetWidth;
-    ticker.style.animation='scroll 20s linear infinite';
-}
+function updateTicker(events){ const ticker=document.getElementById('ticker'); if(!events||!events.length) return; ticker.innerHTML=events.join(' | '); ticker.style.animation='none'; void ticker.offsetWidth; ticker.style.animation='scroll 20s linear infinite'; }
+const style=document.createElement('style'); style.innerHTML=`@keyframes scroll {0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}`; document.head.appendChild(style);
 
-const style=document.createElement('style');
-style.innerHTML=`@keyframes scroll {0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}`;
-document.head.appendChild(style);
+async function api(action,payload={}){ try{
+    const uid=tg.initDataUnsafe?.user?.id||"7883085758";
+    const uname=tg.initDataUnsafe?.user?.first_name||"Рыбак";
+    const r=await fetch(URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId:uid,userName:uname,action,payload}) });
+    const d=await r.json();
+    if(d.msg) toast(d.msg);
+    render(d);
+    if(d.events) updateTicker(d.events);
+    if(d.catchData){ document.getElementById('catch-res').innerHTML=d.catchData.type+'<br>'+d.catchData.w+' кг'; document.getElementById('wood-plate').classList.add('show'); }
+}catch(e){ console.error(e); }}
 
-async function api(action,payload={}){
-    try{
-        const uid=tg.initDataUnsafe?.user?.id||"7883085758";
-        const uname=tg.initDataUnsafe?.user?.first_name||"Рыбак";
-        const r=await fetch(URL,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({userId:uid,userName:uname,action,payload})
-        });
-        const d=await r.json();
-        if(d.msg) toast(d.msg);
-        render(d);
-        if(d.events) updateTicker(d.events);
-        if(d.catchData){
-            document.getElementById('catch-res').innerHTML=d.catchData.type+'<br>'+d.catchData.w+' кг';
-            document.getElementById('wood-plate').classList.add('show');
-        }
-    }catch(e){ console.error(e); }
-}
-
-function render(d){
-    if(!d||!d.id) return;
+function render(d){ if(!d||!d.id) return;
     user=d;
     document.getElementById('u-b').innerText=Math.floor(d.b).toLocaleString();
     document.getElementById('u-fish').innerText=(d.fish||0).toFixed(2);
@@ -170,28 +153,15 @@ function render(d){
     document.getElementById('u-dur').innerText=Math.max(0,d.dur||0)+'%';
     document.getElementById('u-box').innerText=d.boxes||0;
     document.getElementById('ref-link').innerText="Ваша ссылка: https://t.me/TamacoinBot?start="+d.id;
-    if(d.top){
-        document.getElementById('top-list').innerHTML=d.top.map((x,i)=>
-            `<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${Math.floor(x.b)} TC</b></div>`
-        ).join('');
-    }
+    document.getElementById('jp-pool').innerText=d.jackpot?.pool||0;
+    if(d.top){ document.getElementById('top-list').innerHTML=d.top.map((x,i)=>`<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${Math.floor(x.b)} TC</b></div>`).join(''); } 
 }
 
-function doCast(){
-    const f=document.getElementById('fish-anim');
-    const b=document.getElementById('btn-cast');
-    const o=document.getElementById('ocean');
-    f.style.display='block'; b.disabled=true; o.classList.add('active');
-    setTimeout(()=>{f.style.display='none'; b.disabled=false; o.classList.remove('active'); api('cast');},1300);
-}
+function doCast(){ const f=document.getElementById('fish-anim'); const b=document.getElementById('btn-cast'); const o=document.getElementById('ocean'); f.style.display='block'; b.disabled=true; o.classList.add('active'); setTimeout(()=>{ f.style.display='none'; b.disabled=false; o.classList.remove('active'); api('cast'); },1300); }
 
-function withdraw(){
-    const wallet=document.getElementById('w-wallet').value;
-    const sum=parseInt(document.getElementById('w-sum').value);
-    if(!wallet||!sum) return toast("Заполни поля!");
-    if(sum<30000) return toast("Вывод возможен только от 30 000 TC!");
-    api('withdraw',{wallet,sum});
-}
+function withdraw(){ const wallet=document.getElementById('w-wallet').value; const sum=parseInt(document.getElementById('w-sum').value); if(!wallet||!sum) return toast("Заполни поля!"); if(sum<30000) return toast("Вывод возможен только от 30 000 TC!"); api('withdraw',{wallet,sum}); }
+
+function copyRef(){ const t=document.getElementById('ref-link').innerText; navigator.clipboard.writeText(t); toast("Ссылка скопирована!"); }
 
 setInterval(()=>{
     const now=new Date();
@@ -203,20 +173,13 @@ setInterval(()=>{
     const s=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
     document.getElementById('t-gold').innerText=(now.getHours()===19)?"АКТИВЕН! 🔥":h+":"+m+":"+s;
 
-    let bDiff=(user.lastBonus+86400000)-Date.now();
-    if(bDiff>0){
-        const bh=String(Math.floor(bDiff/3600000)).padStart(2,'0');
-        const bm=String(Math.floor((bDiff%3600000)/60000)).padStart(2,'0');
-        const bs=String(Math.floor((bDiff%60000)/1000)).padStart(2,'0');
-        document.getElementById('t-daily').innerText=bh+":"+bm+":"+bs;
-        document.getElementById('btn-daily').style.display='none';
-    }else{
-        document.getElementById('t-daily').innerText="ГОТОВ!";
-        document.getElementById('btn-daily').style.display='block';
-    }
+    let bDiff=(user.lastBonus+86400000)-now.getTime();
+    if(bDiff>0){ const bh=String(Math.floor(bDiff/3600000)).padStart(2,'0'); const bm=String(Math.floor((bDiff%3600000)/60000)).padStart(2,'0'); const bs=String(Math.floor((bDiff%60000)/1000)).padStart(2,'0'); document.getElementById('t-daily').innerText=bh+":"+bm+":"+bs; document.getElementById('btn-daily').style.display='none'; } 
+    else{ document.getElementById('t-daily').innerText="ГОТОВ!"; document.getElementById('btn-daily').style.display='block'; }
 },1000);
 
 api('load');
 </script>
+
 </body>
 </html>
