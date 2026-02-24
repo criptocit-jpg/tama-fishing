@@ -126,128 +126,56 @@
     <a href="javascript:void(0)" class="nav-item" onclick="showP('p-info',this)"><i>ℹ️</i>ИНФО</a>
 </nav>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-const tg=window.Telegram.WebApp;
-tg.ready(); tg.expand();
+
+const tg = window.Telegram.WebApp;
+
+if (!tg.initData || tg.initData.length === 0) {
+    document.body.innerHTML = "Открой через Telegram";
+    throw new Error("NOT_TG");
+}
+
+tg.ready();
+tg.expand();
+
 const URL='https://tama-bot-server.onrender.com/api/action';
-let user={lastBonus:0};
-
-function showP(id,el){
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-    el.classList.add('active');
-}
-function toggleAcc(el){ el.parentElement.classList.toggle('open'); }
-function toast(txt){
-    const t=document.getElementById('toast'); t.innerText=txt; t.style.display='block';
-    setTimeout(()=>t.style.display='none',2500);
-}
-
-function updateTicker(events){
-    const ticker=document.getElementById('ticker');
-    if(!events||!events.length) return;
-    ticker.innerHTML=events.join(' | ');
-    ticker.style.animation='none';
-    void ticker.offsetWidth;
-    ticker.style.animation='scroll 20s linear infinite';
-}
-
-const style=document.createElement('style');
-style.innerHTML=`@keyframes scroll {0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}`;
-document.head.appendChild(style);
+let user={};
 
 async function api(action,payload={}){
-    try{
-        const uid=tg.initDataUnsafe?.user?.id||"7883085758";
-        const uname=tg.initDataUnsafe?.user?.first_name||"Рыбак";
-        const r=await fetch(URL,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({userId:uid,userName:uname,action,payload})
-        });
-        const d=await r.json();
-        if(d.msg) toast(d.msg);
-        render(d);
-        if(d.events) updateTicker(d.events);
-        if(d.catchData){
-            document.getElementById('catch-res').innerHTML=d.catchData.type+'<br>'+d.catchData.w+' кг';
-            document.getElementById('wood-plate').classList.add('show');
-        }
-    }catch(e){ console.error(e); }
+    const uid=tg.initDataUnsafe.user.id;
+    const uname=tg.initDataUnsafe.user.first_name;
+
+    const r=await fetch(URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({userId:uid,userName:uname,action,payload})
+    });
+    const d=await r.json();
+    if(d.msg) alert(d.msg);
+    render(d);
 }
 
 function render(d){
-    if(!d||!d.id) return;
+    if(!d.id)return;
     user=d;
-    document.getElementById('u-b').innerText=Math.floor(d.b).toLocaleString();
+    document.getElementById('u-b').innerText=Math.floor(d.b);
     document.getElementById('u-fish').innerText=(d.fish||0).toFixed(2);
     document.getElementById('u-en').innerText=d.energy||0;
-    document.getElementById('u-dur').innerText=Math.max(0,d.dur||0)+'%';
-    document.getElementById('u-box').innerText=d.boxes||0;
-    document.getElementById('ref-link').innerText="Ваша ссылка: https://t.me/TamacoinBot?start="+d.id;
-    if(d.top){
-        document.getElementById('top-list').innerHTML=d.top.map((x,i)=>
-            `<div class="stat-mini" style="margin-bottom:5px; display:flex; justify-content:space-between;"><span>${i+1}. ${x.n}</span><b>${Math.floor(x.b)} TC</b></div>`
-        ).join('');
-    }
+    document.getElementById('u-dur').innerText=d.dur||0;
 }
 
-function doCast(){
-    const f=document.getElementById('fish-anim');
-    const b=document.getElementById('btn-cast');
-    const o=document.getElementById('ocean');
-    f.style.display='block'; b.disabled=true; o.classList.add('active');
-    setTimeout(()=>{
-        f.style.display='none'; b.disabled=false; o.classList.remove('active');
-        api('cast');
-    },1300);
-}
-
+function doCast(){ api('cast'); }
+function sell(){ api('sell'); }
 function withdraw(){
-    const wallet=document.getElementById('w-wallet').value;
-    const sum=parseInt(document.getElementById('w-sum').value);
-    if(!wallet||!sum) return toast("Заполни поля!");
-    if(sum<30000) return toast("Вывод возможен только от 30 000 TC!");
-    api('withdraw',{wallet,sum});
+    const sum=document.getElementById('w-sum').value;
+    api('withdraw',{sum});
 }
 
-setInterval(()=>{
-    const now=new Date();
-    let target=new Date(); target.setHours(19,0,0,0);
-    if(now>target) target.setDate(target.getDate()+1);
-    let diff=target-now;
-    const h=String(Math.floor(diff/3600000)).padStart(2,'0');
-    const m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-    const s=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-    document.getElementById('t-gold').innerText=(now.getHours()===19)?"АКТИВЕН! 🔥":h+":"+m+":"+s;
-
-    let bDiff=(user.lastBonus+86400000)-Date.now();
-    if(bDiff>0){
-        const bh=String(Math.floor(bDiff/3600000)).padStart(2,'0');
-        const bm=String(Math.floor((bDiff%3600000)/60000)).padStart(2,'0');
-        const bs=String(Math.floor((bDiff%60000)/1000)).padStart(2,'0');
-        document.getElementById('t-daily').innerText=bh+":"+bm+":"+bs;
-        document.getElementById('btn-daily').style.display='none';
-    }else{
-        document.getElementById('t-daily').innerText
-        document.getElementById('t-daily').innerText
-    }else{
-        document.getElementById('t-daily').innerText="ГОТОВ!";
-        document.getElementById('btn-daily').style.display='block';
-    }
-},1000);
-
-
-// -------- ПЕРВИЧНАЯ ЗАГРУЗКА ИГРОКА --------
+// FIRST LOAD
 api('load');
-
-
-// -------- ОБНОВЛЕНИЕ СОБЫТИЙ (БЕГУЩАЯ СТРОКА) --------
-setInterval(()=>{
-    api('get_events');
-},10000);
 
 </script>
 </body>
 </html>
+
