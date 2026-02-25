@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Tamacoin Fishing</title>
+<style>
+body {margin:0;font-family:'Segoe UI',sans-serif;background:#0a0e1a;color:white;}
+h1 {text-align:center;color:#FFD700;}
+.container {padding:15px;}
+.table {width:100%;border-collapse:collapse;margin-top:15px;}
+.table th, .table td {border:1px solid rgba(255,255,255,0.2);padding:8px;text-align:center;}
+.btn {padding:5px 10px;background:#FFD700;color:#000;border:none;border-radius:5px;cursor:pointer;}
+.btn:hover {opacity:0.8;}
+input {padding:6px;border-radius:5px;border:none;width:100%;}
+</style>
+</head>
+<body>
+<h1>Админ Панель Tamacoin Fishing</h1>
+<div class="container">
+<h2>Игроки</h2>
+<table class="table" id="players-table">
+<thead>
+<tr>
+<th>ID</th><th>Имя</th><th>TC</th><th>Рыба</th><th>Энергия</th><th>Действия</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h2>Выводы</h2>
+<table class="table" id="withdraw-table">
+<thead>
+<tr>
+<th>ID</th><th>Игрок</th><th>Сумма</th><th>Кошелек</th><th>Статус</th><th>Действие</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h2>Бонусы / Золотой Час</h2>
+<div style="display:flex;gap:10px;margin-top:10px;">
+<input id="bonus-amount" placeholder="TC бонус">
+<button class="btn" onclick="giveBonus()">Выдать бонус</button>
+<button class="btn" onclick="toggleGoldenHour()">Золотой час ON/OFF</button>
+</div>
+</div>
+
+<script>
+const API_URL='https://tama-bot-server.onrender.com/api/admin';
+
+async function loadPlayers(){
+    const res=await fetch(API_URL+'/players');
+    const data=await res.json();
+    const tbody=document.querySelector('#players-table tbody');
+    tbody.innerHTML='';
+    data.forEach(p=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${p.id}</td><td>${p.name}</td><td>${p.tc}</td><td>${p.fish}</td><td>${p.energy}</td>
+        <td><button class="btn" onclick="giveTC('${p.id}')">+TC</button></td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function loadWithdrawals(){
+    const res=await fetch(API_URL+'/withdrawals');
+    const data=await res.json();
+    const tbody=document.querySelector('#withdraw-table tbody');
+    tbody.innerHTML='';
+    data.forEach(w=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${w.id}</td><td>${w.name}</td><td>${w.sum}</td><td>${w.wallet}</td><td>${w.status}</td>
+        <td>${w.status==='pending'?'<button class="btn" onclick="approveWithdraw('+w.id+')">Оплачено</button>':'✔'}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function giveTC(id){
+    const amount=prompt("Сколько TC выдать?");
+    if(!amount) return;
+    await fetch(API_URL+'/give',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,amount})});
+    loadPlayers();
+}
+
+async function giveBonus(){
+    const amount=document.getElementById('bonus-amount').value;
+    if(!amount) return alert("Введите сумму бонуса!");
+    await fetch(API_URL+'/bonus',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount})});
+    alert("Бонус выдан");
+}
+
+async function toggleGoldenHour(){
+    await fetch(API_URL+'/golden',{method:'POST'});
+    alert("Состояние золотого часа изменено");
+}
+
+async function approveWithdraw(id){
+    await fetch(API_URL+'/withdraw/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+    loadWithdrawals();
+}
+
+loadPlayers();
+loadWithdrawals();
+</script>
+</body>
+</html>
