@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tamacoin Fishing Gold 6.5</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -20,12 +20,19 @@ body {
     overflow:hidden;
     height:100vh;
 }
-.page { display:none; height:100vh; padding:15px; box-sizing:border-box; flex-direction:column; padding-bottom:110px; }
-.page.active { display:flex; }
-#wood-plate {
-    position:fixed;
-    top:40%;
-    left:50%;
+.page {
+    display:none;
+    height:100vh;
+    padding:15px;
+    box-sizing:border-box;
+    flex-direction:column;
+    padding-bottom:110px;
+}
+.page.active {
+    display:flex;
+}
+#wood-plate{
+    position:fixed;top:40%;left:50%;
     transform:translate(-50%,-50%) scale(0);
     background:var(--wood);
     border:3px solid #3e2723;
@@ -42,7 +49,13 @@ body {
 .acc-head{padding:15px;cursor:pointer;display:flex;justify-content:space-between;font-weight:bold;background:rgba(255,255,255,0.02);}
 .acc-body{display:none;padding:10px;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid rgba(255,255,255,0.1);}
 .acc-item.open .acc-body{display:grid;}
-.top-row{display:flex;justify-content:space-between;font-size:11px;color:var(--gold);margin-bottom:10px;font-family:monospace;}
+.top-timers{display:flex;justify-content:center;gap:15px;margin-top:35px;}
+.timer-box{background:rgba(255,255,255,0.07);padding:8px 12px;border-radius:12px;font-weight:bold;color:white;min-width:130px;text-align:center;}
+.center-score{text-align:center;margin:15px 0;}
+#u-b{font-size:42px;font-weight:900;color:var(--gold);transition:all 0.5s ease;}
+.score-label{font-size:12px;color:white;margin-top:2px;opacity:0.7;}
+.stats-row{display:flex;justify-content:center;gap:10px;margin-bottom:15px;}
+.stat-mini{background:var(--glass);padding:8px 12px;border-radius:8px;text-align:center;font-size:12px;flex:1;min-width:60px;}
 .lake-zone{flex-grow:1;position:relative;background:radial-gradient(circle,#1a2a44 0%,#0a0e1a 100%);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;border:1px solid rgba(0,136,204,0.3);overflow:hidden;}
 .lake-zone.active{box-shadow:inset 0 0 50px rgba(0,136,204,0.5);border-color:var(--gold);}
 #fish-anim{width:100%;height:100%;object-fit:contain;display:none;animation:fish-big-pulse 0.8s infinite alternate ease-in-out;}
@@ -52,18 +65,11 @@ body {
 nav{position:fixed;bottom:0;width:100%;height:75px;background:#0d121f;display:flex;border-top:1px solid rgba(255,255,255,0.1);z-index:1000;}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:#5a6275;text-decoration:none;}
 .nav-item.active{color:var(--gold);}
-.stat-mini{background:var(--glass);padding:8px;border-radius:8px;text-align:center;font-size:11px;flex:1;}
 .shop-btn{background:#2e7d32;color:white;border:none;padding:6px;border-radius:6px;width:100%;margin-top:5px;font-weight:bold;}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;padding:10px 20px;border-radius:20px;display:none;z-index:3000;font-weight:bold;}
 input{width:100%;padding:12px;margin-bottom:8px;background:rgba(0,0,0,0.4);border:1px solid #333;color:#fff;border-radius:8px;box-sizing:border-box;}
 #ticker{position:fixed;top:0;width:100%;overflow:hidden;white-space:nowrap;background:#222;color:var(--gold);padding:5px 0;font-weight:bold;z-index:3001;text-align:center;}
-.top-timers{display:flex;justify-content:center;gap:15px;margin-top:35px;}
-.timer-box{background:rgba(255,255,255,0.07);padding:8px 12px;border-radius:12px;font-weight:bold;color:white;min-width:130px;text-align:center;}
-.center-score{text-align:center;margin:15px 0;}
-#u-b{font-size:42px;font-weight:900;color:var(--gold);transition:all 0.5s ease;}
-.score-label{font-size:12px;color:white;margin-top:2px;opacity:0.7;}
-.stats-row{display:flex;justify-content:center;gap:10px;margin-bottom:15px;}
-.stat-mini{background:var(--glass);padding:8px 12px;border-radius:8px;text-align:center;font-size:12px;flex:1;min-width:60px;}
+@keyframes scroll {0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}
 </style>
 </head>
 <body>
@@ -77,7 +83,7 @@ input{width:100%;padding:12px;margin-bottom:8px;background:rgba(0,0,0,0.4);borde
 
 <div class="center-score">
     <div id="u-b">0</div>
-    <div class="score-label">TAMACON</div>
+    <div class="score-label">TAMACOIN</div>
 </div>
 
 <div class="stats-row">
@@ -86,51 +92,79 @@ input{width:100%;padding:12px;margin-bottom:8px;background:rgba(0,0,0,0.4);borde
     <div class="stat-mini">📦 <span id="u-box">0</span></div>
 </div>
 
-<div id="ocean" class="lake-zone"><img src="fish_anim.webp" id="fish-anim"></div>
+<div id="ocean" class="lake-zone">
+    <img src="fish_anim.webp" id="fish-anim">
+</div>
+
 <div style="margin-top:auto;">
-<button id="btn-daily" class="btn-daily" onclick="api('get_daily')">🎁 ЗАБРАТЬ БОНУС</button>
-<button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
+    <button id="btn-daily" class="btn-daily" onclick="api('get_daily')">🎁 ЗАБРАТЬ БОНУС</button>
+    <button id="btn-cast" class="btn-cast" onclick="doCast()">ЗАБРОСИТЬ 🎣</button>
 </div>
 
 <div id="p-sadok" class="page">
-  <div class="acc-item open">
-    <div class="acc-head">🐟 САДОК</div>
-    <div class="acc-body" style="display:flex; justify-content:space-between; align-items:center;">
-      <span>Вес: <b id="u-fish">0</b> кг</span>
-      <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
+    <div class="acc-item open">
+        <div class="acc-head">🐟 САДОК</div>
+        <div class="acc-body" style="display:flex; justify-content:space-between; grid-template-columns:none; align-items:center;">
+            <span>Вес: <b id="u-fish">0</b> кг</span>
+            <button onclick="api('sell')" style="background:var(--gold); border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">ПРОДАТЬ</button>
+        </div>
     </div>
-  </div>
-  <div class="acc-item">
-    <div class="acc-head" onclick="toggleAcc(this)">🛒 МАГАЗИН TC <span>▼</span></div>
-    <div class="acc-body">
-      <div class="stat-mini">Мякиш (100)<button class="shop-btn" onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
-      <div class="stat-mini">Снасти (200)<button class="shop-btn" onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
-      <div class="stat-mini">Энергия (50)<button class="shop-btn" onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
-      <div class="stat-mini">Ремонт (50)<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
+
+    <div class="acc-item">
+        <div class="acc-head" onclick="toggleAcc(this)">🛒 МАГАЗИН TC <span>▼</span></div>
+        <div class="acc-body">
+            <div class="stat-mini">Мякиш (100)<button class="shop-btn" onclick="api('buy',{id:'myakish'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Снасти (200)<button class="shop-btn" onclick="api('buy',{id:'gear'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Энергия (50)<button class="shop-btn" onclick="api('buy',{id:'energy'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Ремонт (50)<button class="shop-btn" onclick="api('buy',{id:'repair'})">КУПИТЬ</button></div>
+        </div>
     </div>
-  </div>
+
+    <div class="acc-item">
+        <div class="acc-head" onclick="toggleAcc(this)" style="color:var(--gold)">💎 VIP STARS <span>▼</span></div>
+        <div class="acc-body">
+            <div class="stat-mini">Титан (150)<button class="shop-btn" onclick="api('buy',{id:'titan'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Прикорм (200)<button class="shop-btn" onclick="api('buy',{id:'bait'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Снасти+ (200)<button class="shop-btn" onclick="api('buy',{id:'strong'})">КУПИТЬ</button></div>
+            <div class="stat-mini">Озеро Надежды (500)<button class="shop-btn" onclick="api('buy',{id:'license'})">КУПИТЬ</button></div>
+        </div>
+    </div>
+
+    <div class="acc-item">
+        <div class="acc-head" onclick="toggleAcc(this)">💳 ВЫВОД <span>▼</span></div>
+        <div class="acc-body" style="grid-template-columns:1fr;">
+            <input id="w-wallet" placeholder="TON Кошелек">
+            <input id="w-sum" type="number" placeholder="Сумма TC">
+            <button onclick="withdraw()" style="background:#0088cc;color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;">ВЫВЕСТИ</button>
+        </div>
+    </div>
+</div>
+
+<div id="p-top" class="page">
+    <h2 style="text-align:center;color:var(--gold);">🏆 ТОП</h2>
+    <div id="top-list"></div>
 </div>
 
 <div id="p-info" class="page">
-<h2 style="color:var(--gold);">ИНФО</h2>
-<div id="ref-link" style="background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; word-break:break-all; font-size:11px; color:var(--gold); display:flex; justify-content:space-between; align-items:center;">
-<span id="ref-text">Ваша ссылка: </span>
-<button onclick="copyRef()" style="background:var(--gold); color:#000; border:none; padding:4px 8px; border-radius:6px; font-weight:bold;">СКОПИРОВАТЬ</button>
-</div>
-<div style="margin-top:10px; font-size:12px; line-height:1.4; opacity:0.8;">
-Добро пожаловать в Tamacoin Fishing! Здесь вы ловите рыбу, продаёте её за TC, участвуете в редких событиях и получаете бонусы.  
-Все ваши действия записываются и видны в топе игроков.  
-Бонусы обновляются раз в день, а золотой час активен каждый день в 19:00.
-</div>
+    <h2 style="color:var(--gold);">ИНФО</h2>
+    <div id="ref-link" style="background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; word-break:break-all; font-size:11px; color:var(--gold); display:flex; justify-content:space-between; align-items:center;">
+        <span id="ref-text">Ваша ссылка: </span>
+        <button onclick="copyRef()" style="background:var(--gold); color:#000; border:none; padding:4px 8px; border-radius:6px; font-weight:bold;">СКОПИРОВАТЬ</button>
+    </div>
+    <div style="margin-top:10px; font-size:12px; line-height:1.4; opacity:0.8;">
+        Добро пожаловать в Tamacoin Fishing! Здесь вы ловите рыбу, продаёте её за TC, участвуете в редких событиях и получаете бонусы.  
+        Все ваши действия записываются и видны в топе игроков.  
+        Бонусы обновляются раз в день, а золотой час активен каждый день в 19:00.
+    </div>
 </div>
 
 <nav>
 <a href="javascript:void(0)" class="nav-item active" onclick="showP('p-game',this)"><i>🎮</i>ИГРА</a>
 <a href="javascript:void(0)" class="nav-item" onclick="showP('p-sadok',this)"><i>🎒</i>САДОК</a>
+<a href="javascript:void(0)" class="nav-item" onclick="showP('p-top',this)"><i>🏆</i>ТОП</a>
 <a href="javascript:void(0)" class="nav-item" onclick="showP('p-info',this)"><i>ℹ️</i>ИНФО</a>
 </nav>
 
 <script src="index.js"></script>
-
 </body>
 </html>
