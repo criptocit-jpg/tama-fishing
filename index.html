@@ -18,36 +18,45 @@
         .timers-row { display: flex; justify-content: space-between; padding: 8px 15px; font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.3); }
         .timer-val { color: var(--gold); font-weight: bold; }
 
-        /* --- БЛОК БАЛАНСА (НОВЫЙ) --- */
+        /* --- БАЛАНС (Компактный) --- */
+        .balance-container { display: flex; justify-content: center; margin: 5px 0; }
         .balance-main { 
-            background: linear-gradient(90deg, rgba(251,191,36,0.1) 0%, rgba(217,119,6,0.2) 100%);
-            margin: 5px 10px; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,215,0,0.3);
-            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 5px 20px; border-radius: 20px; border: 1px solid var(--gold);
+            min-width: 130px; text-align: center;
         }
-        .balance-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; }
-        .balance-value { font-size: 22px; font-weight: 900; color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        .balance-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-bottom: -2px; }
+        .balance-value { font-size: 18px; font-weight: 900; color: var(--gold); }
 
-        /* --- ТРИ БЛОКА СТАТЫ --- */
+        /* --- СТАТИСТИКА --- */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 0 10px 10px 10px; }
         .stat-card { background: var(--panel); border: 1px solid #334155; border-radius: 10px; padding: 6px; text-align: center; }
         .stat-card span { display: block; font-size: 9px; text-transform: uppercase; color: #94a3b8; }
         .stat-card b { font-size: 14px; }
 
         /* --- ИГРОВАЯ ЗОНА --- */
-        #game-area { height: 32vh; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .float { width: 60px; height: 60px; z-index: 10; }
+        #game-area { height: 32vh; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        .float { width: 100px; height: 100px; z-index: 10; position: relative; }
         .float-anim { animation: bobbing 1.2s ease-in-out infinite; }
-        @keyframes bobbing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes bobbing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
-        /* --- ПЛАШКА УЛОВА (БЛОКИРУЮЩАЯ) --- */
+        /* --- ПЛАШКА УЛОВА (Деревянная, компактная) --- */
         #catch-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(15, 23, 42, 0.98); display: none; flex-direction: column; 
+            background: rgba(0,0,0,0.4); display: none; 
             align-items: center; justify-content: center; z-index: 1000;
         }
-        .catch-modal { background: #1e293b; padding: 25px; border: 2px solid var(--gold); border-radius: 20px; text-align: center; width: 85%; }
+        .catch-modal { 
+            background: #5d4037; padding: 15px; border: 3px solid #3e2723; border-radius: 15px; 
+            text-align: center; width: 70%; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            animation: emerge 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes emerge {
+            from { transform: scale(0.5) translateY(200px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
 
-        /* --- КНОПКИ УПРАВЛЕНИЯ --- */
+        /* --- КНОПКИ --- */
         .controls { position: fixed; bottom: 65px; width: 100%; text-align: center; z-index: 90; }
         .btn-bonus { background: #10b981; color: white; border: none; padding: 8px; border-radius: 10px; width: 85%; font-weight: bold; margin-bottom: 6px; font-size: 13px; }
         .btn-cast { 
@@ -60,9 +69,10 @@
         .btn-cast:disabled { background: #4b5563; box-shadow: none; opacity: 0.5; }
 
         /* --- ВКЛАДКИ --- */
-        .tab-content { display: none; padding: 15px; height: 60vh; overflow-y: auto; }
+        .tab-content { display: none; padding: 15px; height: 60vh; overflow-y: auto; padding-bottom: 100px; }
         .tab-active { display: block; }
         .shop-item { background: #1e293b; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
+        .info-card { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; line-height: 1.4; font-size: 13px; text-align: left; }
 
         /* --- НАВИГАЦИЯ --- */
         .nav-bar { 
@@ -78,16 +88,18 @@
 <body>
 
     <div class="header">
-        <div class="marquee"><div class="marquee-content" id="events-line">Подключение...</div></div>
+        <div class="marquee"><div class="marquee-content" id="events-line">Подключение к Tamacoin...</div></div>
         <div class="timers-row">
             <div>🌅 Золотой час: <span id="gold-timer" class="timer-val">00:00:00</span></div>
-            <div>🎁 Бонус: <span id="bonus-timer" class="timer-val">00:00:00</span></div>
+            <div>🎁 Бонус через: <span id="bonus-timer" class="timer-val">...</span></div>
         </div>
     </div>
 
-    <div class="balance-main">
-        <div class="balance-label">Ваш баланс:</div>
-        <div class="balance-value"><span id="main-balance">0</span> <small style="font-size:12px;">TC</small></div>
+    <div class="balance-container">
+        <div class="balance-main">
+            <div class="balance-label">Ваш баланс</div>
+            <div class="balance-value"><span id="main-balance">0</span> TC</div>
+        </div>
     </div>
 
     <div id="tab-main" class="tab-content tab-active">
@@ -98,14 +110,14 @@
         </div>
         
         <div id="game-area">
-            <img id="float-img" src="https://cdn-icons-png.flaticon.com/512/3062/3062224.png" class="float">
-            <div id="status-msg" style="color:#3b82f6; font-weight:bold; margin-top:10px; text-align:center;"></div>
+            <img id="float-img" src="fish_anim.webp" class="float">
+            <div id="status-msg" style="color:#3b82f6; font-weight:bold; margin-top:10px; text-align:center; min-height: 24px;"></div>
             
             <div id="catch-overlay">
                 <div class="catch-modal">
-                    <h2 style="color:var(--gold); margin:0;">УЛОВ! 🐟</h2>
-                    <div id="catch-info" style="font-size: 22px; margin:15px 0; font-weight:bold;"></div>
-                    <button class="btn-cast" style="height:40px; box-shadow:none;" onclick="closeCatch()">ЗАБРАТЬ</button>
+                    <h3 style="color:var(--gold); margin:0;">УЛОВ! 🐟</h3>
+                    <div id="catch-info" style="font-size: 18px; margin:10px 0; font-weight:bold; color:white;"></div>
+                    <button class="btn-cast" style="height:35px; font-size: 14px; box-shadow:none;" onclick="closeCatch()">ЗАБРАТЬ</button>
                 </div>
             </div>
         </div>
@@ -117,26 +129,56 @@
         <div id="shop-items" style="margin-top:10px;"></div>
     </div>
 
-    <div id="tab-friends" class="tab-content">
-        <h3 style="text-align:center;">Друзья (50%)</h3>
-        <div id="ref-link" style="background:#1e293b; padding:15px; border-radius:12px; word-break:break-all; border:1px dashed var(--gold); text-align:center;"></div>
-        <button class="btn-bonus" style="width:100%; margin-top:10px;" onclick="copyRef()">КОПИРОВАТЬ</button>
-    </div>
-
     <div id="tab-info" class="tab-content">
-        <h3 style="text-align:center;">Статистика</h3>
-        <div id="info-block" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px;"></div>
+        <h2 style="color:var(--gold); text-align:center;">О проекте Tamacoin</h2>
+
+        <div class="info-card">
+            <b>🌊 Tamacoin</b> — игровая цифровая экономика, в которой участники добывают монету <b>TC</b> через активность.<br><br>
+            TC — не просто игровые очки. Это выпускаемая цифровая монета проекта с планируемым использованием вне игры.
+        </div>
+
+        <div class="info-card">
+            <b>🎣 Как зарабатывать</b><br>
+            • Рыбалка | • Золотой час<br>
+            • Ежедневные бонусы | • Редкие события<br>
+            • Джекпот | • Реферальная система
+        </div>
+
+        <div class="info-card">
+            <b>💰 Вывод</b><br>
+            1 игрок = 1 кошелек | Проверка активности | Анти-мультиаккаунт защита
+        </div>
+
+        <div class="info-card">
+            <b>🎯 Честность</b><br>
+            Все события генерируются сервером. Администратор не подкручивает выпадение.
+        </div>
+
+        <div class="info-card">
+            <b>📜 Правила</b><br>
+            Запрещены боты, фермы и передача аккаунтов.
+        </div>
+
+        <h3 style="color:var(--gold); margin-top:15px; text-align:center;">Ваша реферальная ссылка</h3>
+        <div id="ref-link" style="background:rgba(255,255,255,0.1); padding:12px; border-radius:10px; word-break:break-all; font-size:11px; color:var(--gold); text-align:center; border:1px dashed var(--gold);">
+            Загрузка...
+        </div>
+
+        <button onclick="copyRef()" class="btn-cast" style="height:45px; font-size:14px; margin-top:10px; width:100%;">
+            Скопировать ссылку
+        </button>
+        
+        <div id="server-stats" style="margin-top:15px; text-align:center; font-size:12px; color:#94a3b8;"></div>
     </div>
 
     <div class="controls" id="main-controls">
-        <button id="bonus-btn" class="btn-bonus" onclick="doAction('get_daily')">БОНУС</button>
+        <button id="bonus-btn" class="btn-bonus" onclick="doAction('get_daily')">ПОЛУЧИТЬ БОНУС</button>
         <button id="cast-btn" class="btn-cast" onclick="startFishing()">ЗАБРОСИТЬ</button>
     </div>
 
     <div class="nav-bar">
         <div class="nav-item active" onclick="showTab('main')"><i>🎣</i>Ловля</div>
         <div class="nav-item" onclick="showTab('shop')"><i>🛒</i>Рынок</div>
-        <div class="nav-item" onclick="showTab('friends')"><i>👥</i>Друзья</div>
         <div class="nav-item" onclick="showTab('info')"><i>ℹ️</i>Инфо</div>
     </div>
 
@@ -144,10 +186,11 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         const userId = tg.initDataUnsafe?.user?.id || '7883085758';
-        const userName = tg.initDataUnsafe?.user?.first_name || 'Admin';
+        const userName = tg.initDataUnsafe?.user?.first_name || 'Рыбак';
         
-        // СЮДА ВСТАВЬ СВОЮ ССЫЛКУ ИЗ RENDER
         const API = 'https://tama-bot-server.onrender.com/api/action'; 
+        let lastBalance = 0;
+        let lastBonusTime = 0;
 
         async function doAction(action, payload = {}) {
             try {
@@ -158,33 +201,64 @@
                 });
                 const d = await r.json();
                 updateUI(d);
-            } catch(e) { document.getElementById('status-msg').innerText = "Ошибка сервера"; }
+            } catch(e) { 
+                document.getElementById('status-msg').innerText = "Ошибка связи..."; 
+                document.getElementById('cast-btn').disabled = false;
+            }
+        }
+
+        function animateBalance(start, end) {
+            const obj = document.getElementById('main-balance');
+            let duration = 500;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerText = Math.floor(progress * (end - start) + start).toLocaleString();
+                if (progress < 1) window.requestAnimationFrame(step);
+            };
+            window.requestAnimationFrame(step);
         }
 
         function updateUI(d) {
             document.getElementById('energy').innerText = d.energy + '%';
             document.getElementById('dur').innerText = Math.floor(d.dur) + '%';
             document.getElementById('jackpot').innerText = Math.floor(d.jackpot.pool).toLocaleString();
-            document.getElementById('main-balance').innerText = d.b.toLocaleString();
             
+            if (lastBalance !== d.b) {
+                animateBalance(lastBalance, d.b);
+                lastBalance = d.b;
+            }
+
             if(d.msg) document.getElementById('status-msg').innerText = d.msg;
             if(d.events) document.getElementById('events-line').innerText = d.events.join('  |  ');
             
-            // Ссылка и инфо
-            document.getElementById('ref-link').innerText = `https://t.me/твой_бот?start=${userId}`;
-            document.getElementById('info-block').innerHTML = `<p>ID: ${userId}</p><p>Забросов: ${d.total || 0}</p>`;
+            lastBonusTime = d.lastBonus;
+            const refLink = `https://t.me/твой_бот?start=${userId}`;
+            document.getElementById('ref-link').innerText = refLink;
+            document.getElementById('server-stats').innerText = `ID: ${userId} | Забросов: ${d.total || 0}`;
 
+            // Скрываем бонусную кнопку, если она уже нажата
+            if (Date.now() - d.lastBonus < 86400000) {
+                document.getElementById('bonus-btn').style.display = 'none';
+            } else {
+                document.getElementById('bonus-btn').style.display = 'block';
+            }
+
+            // ЛОГИКА АКТИВАЦИИ КНОПКИ:
             if(d.catchData) {
                 document.getElementById('catch-info').innerText = `${d.catchData.type} ${d.catchData.w} кг`;
                 document.getElementById('catch-overlay').style.display = 'flex';
-                document.getElementById('cast-btn').disabled = true;
+            } else {
+                // Если улова нет (срыв/обрыв), кнопка включается сразу после ответа сервера
+                document.getElementById('cast-btn').disabled = false;
             }
         }
 
         function startFishing() {
             document.getElementById('cast-btn').disabled = true;
             document.getElementById('float-img').classList.add('float-anim');
-            document.getElementById('status-msg').innerText = "Закидываем...";
+            document.getElementById('status-msg').innerText = "Закидываем удочку...";
             setTimeout(() => { 
                 doAction('cast'); 
                 document.getElementById('float-img').classList.remove('float-anim');
@@ -194,6 +268,7 @@
         function closeCatch() {
             document.getElementById('catch-overlay').style.display = 'none';
             document.getElementById('cast-btn').disabled = false;
+            document.getElementById('status-msg').innerText = "";
         }
 
         function showTab(name) {
@@ -207,15 +282,32 @@
         function copyRef() {
             const link = document.getElementById('ref-link').innerText;
             navigator.clipboard.writeText(link);
-            tg.showAlert("Скопировано!");
+            tg.showAlert("Ссылка скопирована!");
         }
 
+        // Таймеры обновления
         setInterval(() => {
-            const now = new Date();
+            const now = Date.now();
+            
+            // Золотой час (19:00)
+            const date = new Date();
             let gold = new Date(); gold.setHours(19,0,0,0);
-            let diff = gold - now;
-            if(diff < 0) diff += 86400000;
-            document.getElementById('gold-timer').innerText = new Date(diff).toISOString().substr(11, 8);
+            let diffGold = gold - date;
+            if(diffGold < 0) diffGold += 86400000;
+            document.getElementById('gold-timer').innerText = new Date(diffGold).toISOString().substr(11, 8);
+
+            // Таймер бонуса
+            const bonusTimerElem = document.getElementById('bonus-timer');
+            const nextBonus = lastBonusTime + 86400000;
+            const diffBonus = nextBonus - now;
+            
+            if (diffBonus > 0) {
+                bonusTimerElem.innerText = new Date(diffBonus).toISOString().substr(11, 8);
+                document.getElementById('bonus-btn').style.display = 'none';
+            } else {
+                bonusTimerElem.innerText = "ГОТОВ!";
+                if (lastBonusTime > 0) document.getElementById('bonus-btn').style.display = 'block';
+            }
         }, 1000);
 
         doAction('load');
