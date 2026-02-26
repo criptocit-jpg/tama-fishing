@@ -3,65 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tamacoin Fishing Gold 4.1.6</title>
+    <title>Tamacoin Fishing Gold 4.1.9</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #ffd700; --bg: #0f172a; --panel: rgba(30, 41, 59, 0.9); --accent: #3b82f6; }
+        :root { --gold: #ffd700; --bg: #0f172a; --panel: rgba(30, 41, 59, 0.9); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; overflow: hidden; height: 100vh; }
 
-        /* --- БЛОК 1: ВЕРХНЯЯ ПАНЕЛЬ (БЕГУЩАЯ И ТАЙМЕРЫ) --- */
-        .header { background: #1e293b; border-bottom: 1px solid var(--gold); }
-        .marquee { height: 24px; overflow: hidden; display: flex; align-items: center; background: #020617; }
-        .marquee-content { white-space: nowrap; animation: scroll 20s linear infinite; font-size: 13px; color: var(--gold); }
+        /* --- БЕГУЩАЯ СТРОКА --- */
+        .marquee { background: #020617; height: 26px; overflow: hidden; display: flex; align-items: center; border-bottom: 1px solid var(--gold); }
+        .marquee-content { white-space: nowrap; animation: scroll 25s linear infinite; font-size: 13px; color: var(--gold); }
         @keyframes scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
 
-        .timers-row { display: flex; justify-content: space-between; padding: 8px 15px; font-family: 'Courier New', monospace; font-size: 12px; background: rgba(0,0,0,0.4); }
+        /* --- ТАЙМЕРЫ --- */
+        .timers-row { display: flex; justify-content: space-between; padding: 8px 15px; font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.3); }
         .timer-val { color: var(--gold); font-weight: bold; }
 
-        /* --- БЛОК 2: СТАТИСТИКА (ТРИ БЛОКА) --- */
+        /* --- СТАТЫ --- */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 10px; }
-        .stat-card { background: var(--panel); border: 1px solid #334155; border-radius: 12px; padding: 8px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .stat-card span { display: block; font-size: 10px; text-transform: uppercase; color: #94a3b8; margin-bottom: 2px; }
-        .stat-card b { font-size: 15px; color: #f8fafc; }
+        .stat-card { background: var(--panel); border: 1px solid #334155; border-radius: 12px; padding: 8px; text-align: center; }
+        .stat-card span { display: block; font-size: 10px; text-transform: uppercase; color: #94a3b8; }
+        .stat-card b { font-size: 14px; }
 
-        /* --- БЛОК 3: ИГРОВАЯ ЗОНА И АНИМАЦИЯ --- */
-        #game-area { height: 40vh; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .water-bg { position: absolute; width: 100%; height: 100%; background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); z-index: -1; opacity: 0.5; }
-        
-        .float { width: 60px; height: 60px; filter: drop-shadow(0 0 10px var(--accent)); transition: 0.3s; }
-        .float-anim { animation: bobbing 1.5s ease-in-out infinite; }
-        @keyframes bobbing { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-20px) rotate(5deg); } }
+        /* --- ИГРОВАЯ ЗОНА --- */
+        #game-area { height: 35vh; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .float { width: 65px; height: 65px; transition: 0.3s; }
+        .float-anim { animation: bobbing 1.2s ease-in-out infinite; }
+        @keyframes bobbing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
 
-        /* --- ПЛАШКА УЛОВА (БЛОКИРУЮЩАЯ) --- */
+        /* --- ПЛАШКА УЛОВА --- */
         #catch-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(15, 23, 42, 0.9); display: none; flex-direction: column; 
+            background: rgba(15, 23, 42, 0.98); display: none; flex-direction: column; 
             align-items: center; justify-content: center; z-index: 1000;
         }
-        .catch-modal { background: #1e293b; padding: 25px; border: 2px solid var(--gold); border-radius: 20px; text-align: center; width: 80%; }
-        
-        /* --- БЛОК 4: КНОПКИ УПРАВЛЕНИЯ --- */
-        .controls { padding: 10px 20px; text-align: center; }
-        .btn-bonus { background: #10b981; color: white; border: none; padding: 10px; border-radius: 12px; width: 100%; font-weight: bold; margin-bottom: 10px; font-size: 14px; }
-        
-        /* Тонкая и широкая кнопка заброса */
+        .catch-modal { background: #1e293b; padding: 25px; border: 2px solid var(--gold); border-radius: 20px; text-align: center; width: 85%; }
+
+        /* --- КНОПКИ (УПРАВЛЕНИЕ) --- */
+        .controls { position: absolute; bottom: 60px; width: 100%; text-align: center; }
+        .btn-bonus { background: #10b981; color: white; border: none; padding: 8px; border-radius: 10px; width: 85%; font-weight: bold; margin-bottom: 5px; font-size: 13px; }
         .btn-cast { 
             background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); 
-            color: white; border: none; width: 100%; height: 50px; 
-            border-radius: 14px; font-size: 18px; font-weight: 800;
+            color: white; border: none; width: 95%; height: 46px; 
+            border-radius: 10px; font-size: 19px; font-weight: 800;
             box-shadow: 0 4px 0 #92400e; transition: 0.1s;
         }
         .btn-cast:active { transform: translateY(3px); box-shadow: 0 1px 0 #92400e; }
-        .btn-cast:disabled { background: #4b5563; box-shadow: none; opacity: 0.5; filter: grayscale(1); }
+        .btn-cast:disabled { background: #4b5563; box-shadow: none; opacity: 0.5; }
 
-        /* --- БЛОК 5: ВКЛАДКИ (МАГАЗИН, ТОП И Т.Д.) --- */
-        .tab-content { display: none; padding: 15px; height: 60vh; overflow-y: auto; background: var(--bg); }
+        /* --- ВКЛАДКИ --- */
+        .tab-content { display: none; padding: 15px; height: 50vh; overflow-y: auto; }
         .tab-active { display: block; }
-        
         .shop-item { background: #1e293b; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
-        .top-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #334155; }
+        .ref-box { background: #1e293b; padding: 15px; border-radius: 12px; margin-top: 10px; border: 1px dashed var(--gold); text-align: center; }
 
-        /* --- БЛОК 6: НАВИГАЦИЯ (КОМПАКТНАЯ) --- */
+        /* --- НАВИГАЦИЯ --- */
         .nav-bar { 
             position: fixed; bottom: 0; width: 100%; height: 55px; 
             background: #020617; border-top: 1px solid #334155;
@@ -70,14 +65,12 @@
         .nav-item { font-size: 10px; text-align: center; color: #64748b; text-decoration: none; flex: 1; }
         .nav-item i { display: block; font-size: 20px; margin-bottom: 2px; }
         .nav-item.active { color: var(--gold); }
-
-        #status-msg { height: 20px; font-size: 13px; color: #3b82f6; text-align: center; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="marquee"><div class="marquee-content" id="events-line">Подключение к серверу...</div></div>
+        <div class="marquee"><div class="marquee-content" id="events-line">Подключение к системе...</div></div>
         <div class="timers-row">
             <div>🌅 Золотой час: <span id="gold-timer" class="timer-val">00:00:00</span></div>
             <div>🎁 Бонус: <span id="bonus-timer" class="timer-val">00:00:00</span></div>
@@ -90,70 +83,70 @@
             <div class="stat-card"><span>Удочка</span><b id="dur">...</b></div>
             <div class="stat-card"><span>Джекпот</span><b id="jackpot" style="color:var(--gold)">...</b></div>
         </div>
-
         <div id="game-area">
-            <div class="water-bg"></div>
             <img id="float-img" src="https://cdn-icons-png.flaticon.com/512/3062/3062224.png" class="float">
-            <div id="status-msg"></div>
-
+            <div id="status-msg" style="color:#3b82f6; font-weight:bold; margin-top:10px; font-size:14px;"></div>
             <div id="catch-overlay">
                 <div class="catch-modal">
-                    <h1 style="color:var(--gold); margin:0 0 10px 0;">УЛОВ! 🐟</h1>
-                    <div id="catch-info" style="font-size: 22px; font-weight: bold; margin-bottom: 20px;"></div>
-                    <button class="btn-cast" style="height:40px; box-shadow:none;" onclick="closeCatch()">ЗАБРАТЬ В САДОК</button>
+                    <h2 style="color:var(--gold); margin:0;">ЕСТЬ УЛОВ!</h2>
+                    <div id="catch-info" style="font-size: 22px; margin:15px 0;"></div>
+                    <button class="btn-cast" style="height:42px; box-shadow:none;" onclick="closeCatch()">ЗАБРАТЬ В САДОК</button>
                 </div>
             </div>
-        </div>
-
-        <div class="controls">
-            <button id="bonus-btn" class="btn-bonus" onclick="doAction('get_daily')">ПОЛУЧИТЬ БОНУС</button>
-            <button id="cast-btn" class="btn-cast" onclick="startFishing()">ЗАБРОСИТЬ</button>
-            <div style="margin-top:10px; font-size:12px; color:#94a3b8;">Баланс: <span id="balance" style="color:white; font-weight:bold;">0</span> TC</div>
         </div>
     </div>
 
     <div id="tab-shop" class="tab-content">
-        <h3 style="text-align:center; color:var(--gold);">Магазин снаряжения</h3>
-        <div id="shop-list">
-            <div class="shop-item"><div>🍞 Мякиш (10 забросов)</div><button onclick="doAction('buy',{id:'myakish'})">100 TC</button></div>
-            <div class="shop-item"><div>🛠️ Ремкомплект (100%)</div><button onclick="doAction('buy',{id:'repair'})">50 TC</button></div>
-            <div class="shop-item"><div>⚡ Энергетик (100%)</div><button onclick="doAction('buy',{id:'energy'})">50 TC</button></div>
-            <div class="shop-item"><div>🛡️ Титановая леска (12ч)</div><button onclick="doAction('buy',{id:'titan'})">150 TC</button></div>
-            <div class="shop-item"><div>📜 Лицензия (РЕДКОЕ)</div><button onclick="doAction('buy',{id:'license'})">500 TC</button></div>
-            <div class="shop-item"><div>💰 Продать рыбу</div><button style="background:var(--gold); color:black;" onclick="doAction('sell')">ПРОДАТЬ ВСЁ</button></div>
+        <h3 style="text-align:center; color:var(--gold);">Магазин и Сбыт</h3>
+        <button class="btn-bonus" style="background:var(--gold); color:black; width:100%;" onclick="doAction('sell')">ПРОДАТЬ ВСЮ РЫБУ</button>
+        <div id="shop-items" style="margin-top:15px;">
+            <div class="shop-item"><div>🍞 Мякиш (x10)</div><button onclick="doAction('buy',{id:'myakish'})">100 TC</button></div>
+            <div class="shop-item"><div>🛠️ Ремкомплект</div><button onclick="doAction('buy',{id:'repair'})">50 TC</button></div>
+            <div class="shop-item"><div>⚡ Энергетик</div><button onclick="doAction('buy',{id:'energy'})">50 TC</button></div>
+            <div class="shop-item"><div>📜 Лицензия</div><button onclick="doAction('buy',{id:'license'})">500 TC</button></div>
         </div>
     </div>
 
-    <div id="tab-top" class="tab-content">
-        <h3 style="text-align:center;">Топ Рыбаков</h3>
-        <div id="top-list"></div>
+    <div id="tab-friends" class="tab-content">
+        <h3 style="text-align:center;">Партнерская программа</h3>
+        <p style="font-size:13px; text-align:center; color:#94a3b8;">Приглашай друзей и забирай 50% от их дохода на контракте!</p>
+        <div class="ref-box">
+            <div id="ref-link" style="word-break:break-all; font-size:13px; color:var(--gold); margin-bottom:10px;">Загрузка...</div>
+            <button class="btn-bonus" style="width:100%;" onclick="copyRef()">КОПИРОВАТЬ ССЫЛКУ</button>
+        </div>
     </div>
 
-    <div id="tab-wallet" class="tab-content">
-        <h3 style="text-align:center;">Вывод TC</h3>
-        <div style="background:#1e293b; padding:20px; border-radius:15px; text-align:center;">
-            <p style="font-size:12px;">Минимальная сумма: 30,000 TC</p>
-            <input id="w-sum" type="number" placeholder="Сумма TC" style="width:90%; padding:10px; margin-bottom:10px; border-radius:8px; border:none;">
-            <input id="w-address" type="text" placeholder="Адрес TON кошелька" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:none;">
-            <button class="btn-cast" onclick="requestWithdraw()">ВЫВЕСТИ</button>
+    <div id="tab-info" class="tab-content">
+        <h3 style="text-align:center;">Инфо-панель</h3>
+        <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; font-size:14px;">
+            <p>🆔 Твой ID: <span id="stat-id">...</span></p>
+            <p>🎣 Всего забросов: <span id="stat-total">0</span></p>
+            <p>💰 Баланс: <span id="stat-balance">0</span> TC</p>
+            <hr style="border:0; border-top:1px solid #334155; margin:10px 0;">
+            <p style="font-size:12px; color:#94a3b8;">* Джекпот выдается самому активному рыбаку в конце недели автоматически.</p>
         </div>
+    </div>
+
+    <div class="controls">
+        <button id="bonus-btn" class="btn-bonus" onclick="doAction('get_daily')">ПОЛУЧИТЬ БОНУС</button>
+        <button id="cast-btn" class="btn-cast" onclick="startFishing()">ЗАБРОСИТЬ</button>
     </div>
 
     <div class="nav-bar">
         <div class="nav-item active" onclick="showTab('main')"><i>🎣</i>Ловля</div>
-        <div class="nav-item" onclick="showTab('shop')"><i>🛒</i>Магазин</div>
-        <div class="nav-item" onclick="showTab('top')"><i>🏆</i>Топ</div>
-        <div class="nav-item" onclick="showTab('wallet')"><i>💰</i>Кошелек</div>
+        <div class="nav-item" onclick="showTab('shop')"><i>🛒</i>Рынок</div>
+        <div class="nav-item" onclick="showTab('friends')"><i>👥</i>Друзья</div>
+        <div class="nav-item" onclick="showTab('info')"><i>ℹ️</i>Инфо</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
         const userId = tg.initDataUnsafe?.user?.id || '7883085758';
-        const userName = tg.initDataUnsafe?.user?.first_name || 'Admin';
+        const userName = tg.initDataUnsafe?.user?.first_name || 'Рыбак';
         
-        // !!! ЗАМЕНИ ЭТУ ССЫЛКУ НА СВОЮ ИЗ RENDER !!!
-        const API = 'https://твой-адрес-на-рендере.onrender.com/api/action';
+        // ЖЕСТКО ПРОПИСАННЫЙ API (ЗАМЕНИ НА СВОЙ ПРИ ДЕПЛОЕ)
+        const API = 'https://tamacoin-server.onrender.com/api/action'; 
 
         async function doAction(action, payload = {}) {
             try {
@@ -164,27 +157,25 @@
                 });
                 const d = await r.json();
                 updateUI(d);
-            } catch(e) { 
-                document.getElementById('status-msg').innerText = "Ошибка сервера";
-            }
+            } catch(e) { document.getElementById('status-msg').innerText = "Нет связи с сервером"; }
         }
 
         function updateUI(d) {
+            // Статы
             document.getElementById('energy').innerText = d.energy + '%';
             document.getElementById('dur').innerText = Math.floor(d.dur) + '%';
-            document.getElementById('balance').innerText = d.b.toLocaleString();
-            document.getElementById('jackpot').innerText = Math.floor(d.jackpot.pool).toLocaleString() + ' TC';
+            document.getElementById('jackpot').innerText = Math.floor(d.jackpot.pool).toLocaleString();
+            
+            // Инфо
+            document.getElementById('stat-id').innerText = d.id;
+            document.getElementById('stat-total').innerText = d.total || 0;
+            document.getElementById('stat-balance').innerText = d.b.toLocaleString();
+            document.getElementById('ref-link').innerText = `https://t.me/твой_бот_username?start=${d.id}`;
             
             if(d.msg) document.getElementById('status-msg').innerText = d.msg;
-            if(d.events) document.getElementById('events-line').innerText = d.events.join(' | ');
+            if(d.events) document.getElementById('events-line').innerText = d.events.join('  |  ');
 
-            // Обновление топа
-            if(d.top) {
-                const list = d.top.map((u, i) => `<div class="top-item"><span>${i+1}. ${u.n}</span><b>${u.b} TC</b></div>`).join('');
-                document.getElementById('top-list').innerHTML = list;
-            }
-
-            // Обработка улова
+            // Плашка улова
             if(d.catchData) {
                 document.getElementById('catch-info').innerText = `${d.catchData.type} ${d.catchData.w} кг`;
                 document.getElementById('catch-overlay').style.display = 'flex';
@@ -193,23 +184,19 @@
         }
 
         function startFishing() {
-            const btn = document.getElementById('cast-btn');
-            const img = document.getElementById('float-img');
-            
-            btn.disabled = true;
-            img.classList.add('float-anim');
-            document.getElementById('status-msg').innerText = "Рыба присматривается...";
-
-            setTimeout(() => {
-                doAction('cast');
-                img.classList.remove('float-anim');
+            document.getElementById('cast-btn').disabled = true;
+            document.getElementById('float-img').classList.add('float-anim');
+            document.getElementById('status-msg').innerText = "Рыба клюёт...";
+            setTimeout(() => { 
+                doAction('cast'); 
+                document.getElementById('float-img').classList.remove('float-anim');
             }, 1200);
         }
 
         function closeCatch() {
             document.getElementById('catch-overlay').style.display = 'none';
             document.getElementById('cast-btn').disabled = false;
-            document.getElementById('status-msg').innerText = "Удочка заброшена!";
+            document.getElementById('status-msg').innerText = "Готов к забросу";
         }
 
         function showTab(name) {
@@ -217,25 +204,25 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('tab-' + name).classList.add('tab-active');
             event.currentTarget.classList.add('active');
+            
+            // Скрываем кнопки на вкладках, кроме главной
+            document.querySelector('.controls').style.display = (name === 'main') ? 'block' : 'none';
         }
 
-        function requestWithdraw() {
-            const sum = document.getElementById('w-sum').value;
-            const wallet = document.getElementById('w-address').value;
-            doAction('withdraw', { sum, wallet });
+        function copyRef() {
+            const link = document.getElementById('ref-link').innerText;
+            navigator.clipboard.writeText(link);
+            tg.showAlert("Ссылка скопирована!");
         }
 
-        // Таймеры (Локальное обновление)
         setInterval(() => {
             const now = new Date();
-            // Золотой час (19:00)
             let gold = new Date(); gold.setHours(19,0,0,0);
             let diff = gold - now;
             if(diff < 0) diff += 86400000;
             document.getElementById('gold-timer').innerText = new Date(diff).toISOString().substr(11, 8);
         }, 1000);
 
-        // Старт
         doAction('load');
     </script>
 </body>
