@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 4.3.8 - THE TRUE MONOLITH</title>
+    <title>Tamacoin Fishing Gold 4.3.9 - THE TRUE MONOLITH</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ==========================================================================
@@ -97,7 +97,7 @@
         .timer-val { color: var(--gold); font-weight: 800; min-width: 65px; }
 
         /* ==========================================================================
-           [3] ПАНЕЛЬ СТАТИСТИКИ (ДИЗАЙН 2026)
+           [3] ПАНЕЛЬ СТАТИСТИКИ
            ========================================================================== */
         .top-stats { 
             padding: 12px 16px; 
@@ -164,7 +164,7 @@
         .status-card.jp-highlight b { color: var(--gold); text-shadow: 0 0 5px rgba(255,215,0,0.5); }
 
         /* ==========================================================================
-           [4] БЛОК ИГРОВОЙ АНИМАЦИИ (ОПТИМИЗАЦИЯ ПОД БЛОК)
+           [4] БЛОК ИГРОВОЙ АНИМАЦИИ
            ========================================================================== */
         .game-view-container { 
             padding: 0 16px; 
@@ -182,7 +182,7 @@
             border-radius: 20px; 
             background: #000;
             border: 2px solid rgba(255,255,255,0.1); 
-            overflow: hidden; /* Обрезаем всё, что выходит за 180px */
+            overflow: hidden;
             box-shadow: inset 0 0 40px rgba(0,0,0,0.95);
         }
 
@@ -198,8 +198,6 @@
         }
 
         .float-img { 
-            /* Подгонка анимации: если анимация больше блока, она сожмется, 
-               сохраняя пропорции и не выходя за края */
             max-width: 100%;
             max-height: 100%;
             width: auto;
@@ -454,65 +452,66 @@
 </head>
 <body>
 
-    <div class="header-fixed">
-        <div class="marquee">
-            <div class="marquee-content" id="events-line">
-                Удачного клева в Tamacoin Fishing! 🎣 Редкая рыба клюет в Золотой Час! 🌅 Следи за Джекпотом! 💰 Приглашай друзей и получай 10% от их улова! 🚀
+    <div id="top-area-wrapper">
+        <div class="header-fixed">
+            <div class="marquee">
+                <div class="marquee-content" id="events-line">
+                    Удачного клева в Tamacoin Fishing! 🎣 Редкая рыба клюет в Золотой Час! 🌅 Следи за Джекпотом! 💰 Приглашай друзей и получай 10% от их улова! 🚀
+                </div>
+            </div>
+            <div class="timers-row">
+                <div class="timer-block">
+                    <span class="timer-label">ЗОЛОТОЙ ЧАС:</span>
+                    <span id="gold-timer" class="timer-val">00:00:00</span>
+                </div>
+                <div class="timer-block">
+                    <span class="timer-label">ДО БОНУСА:</span>
+                    <span id="bonus-timer" class="timer-val">...</span>
+                </div>
             </div>
         </div>
-        <div class="timers-row">
-            <div class="timer-block">
-                <span class="timer-label">ЗОЛОТОЙ ЧАС:</span>
-                <span id="gold-timer" class="timer-val">00:00:00</span>
-            </div>
-            <div class="timer-block">
-                <span class="timer-label">ДО БОНУСА:</span>
-                <span id="bonus-timer" class="timer-val">...</span>
-            </div>
-        </div>
-    </div>
 
-    <div class="top-stats">
-        <div class="balance-pill">
-            <div class="balance-label">БАЛАНС TC</div>
-            <div class="balance-value"><span id="main-balance">0</span></div>
-        </div>
-        
-        <div class="status-info-grid">
-            <div class="status-card">
-                <span>ЭНЕРГИЯ</span>
-                <b id="energy">100%</b>
+        <div class="top-stats">
+            <div class="balance-pill">
+                <div class="balance-label">БАЛАНС TC</div>
+                <div class="balance-value"><span id="main-balance">0</span></div>
             </div>
-            <div class="status-card jp-highlight">
-                <span>JACKPOT</span>
-                <b id="jackpot-display">1 000 TC</b>
-            </div>
-            <div class="status-card">
-                <span>ПРОЧНОСТЬ</span>
-                <b id="dur">100%</b>
-            </div>
-        </div>
-    </div>
-
-    <div class="game-view-container" id="game-view-block">
-        <div class="game-view">
-            <div class="float-container">
-                <img id="float-img" src="fish_anim.webp" class="float-img">
-            </div>
-            <div id="status-msg">ГОТОВ К ЛОВЛЕ</div>
             
-            <div id="catch-overlay">
-                <div class="catch-modal">
-                    <h2>УЛОВ! 🐟</h2>
-                    <p id="catch-info"></p>
-                    <button class="btn-cast" style="height:48px;" onclick="closeCatch()">В САДОК</button>
+            <div class="status-info-grid">
+                <div class="status-card">
+                    <span>ЭНЕРГИЯ</span>
+                    <b id="energy">100%</b>
+                </div>
+                <div class="status-card jp-highlight">
+                    <span>JACKPOT</span>
+                    <b id="jackpot-display">1 000 TC</b>
+                </div>
+                <div class="status-card">
+                    <span>ПРОЧНОСТЬ</span>
+                    <b id="dur">100%</b>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-view-container" id="game-view-block">
+            <div class="game-view">
+                <div class="float-container">
+                    <img id="float-img" src="fish_anim.webp" class="float-img">
+                </div>
+                <div id="status-msg">ГОТОВ К ЛОВЛЕ</div>
+                
+                <div id="catch-overlay">
+                    <div class="catch-modal">
+                        <h2>УЛОВ! 🐟</h2>
+                        <p id="catch-info"></p>
+                        <button class="btn-cast" style="height:48px;" onclick="closeCatch()">В САДОК</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="tabs-container">
-        
         <div id="tab-main" class="tab-content tab-active">
             <div id="lake-status" style="text-align:center; font-weight:900; color:var(--accent); margin-bottom:15px; font-size:12px; text-transform:uppercase;">
                 📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО
@@ -525,6 +524,7 @@
         </div>
 
         <div id="tab-shop" class="tab-content">
+            <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase;">Рыболовный рынок</h3>
             <button class="btn-cast" style="background:var(--success); margin-bottom:20px; height:50px; font-size:15px;" onclick="doAction('sell')">
                 💰 ПРОДАТЬ ВЕСЬ УЛОВ (2 TC/кг)
             </button>
@@ -593,6 +593,7 @@
         </div>
 
         <div id="tab-info" class="tab-content">
+            <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase;">Информация</h3>
             <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; text-align:center; border:1px solid rgba(255,255,255,0.08);">
                 <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px; letter-spacing:1px; font-weight:700;">ВАША РЕФЕРАЛЬНАЯ ССЫЛКА</p>
                 <div id="ref-link" style="background:#000; padding:15px; font-size:11px; color:var(--gold); border:1px solid #334155; margin-bottom:20px; border-radius:12px; word-break:break-all; font-family:var(--font-mono);">...</div>
@@ -627,14 +628,12 @@
         let lastBonusTime = 0;
         let userHasHope = false;
 
-        // --- Управление категориями магазина ---
         function toggleCat(id) {
             const el = document.getElementById(id);
-            const isOpen = el.classList.toggle('open');
+            el.classList.toggle('open');
             tg.HapticFeedback.selectionChanged();
         }
 
-        // --- Основное общение с сервером ---
         async function doAction(action, payload = {}) {
             try {
                 const response = await fetch(API, { 
@@ -653,27 +652,21 @@
             }
         }
 
-        // --- Обновление UI ---
         function updateUI(d) {
             if(!d) return;
-
-            // Балансы и статы
             document.getElementById('main-balance').innerText = Math.floor(d.b || 0).toLocaleString();
             document.getElementById('jackpot-display').innerText = Math.floor(d.jackpot?.pool || 1000).toLocaleString() + ' TC';
             document.getElementById('energy').innerText = (d.energy || 0) + '%';
             document.getElementById('dur').innerText = Math.floor(d.dur || 0) + '%';
             
-            // Проверка озера
             userHasHope = (d.buffs?.hope > Date.now());
             const lakeEl = document.getElementById('lake-status');
             lakeEl.innerText = userHasHope ? "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОЗЕРО НАДЕЖДЫ ✅" : "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО";
             lakeEl.style.color = userHasHope ? "var(--success)" : "var(--accent)";
 
-            // Таймеры и рефералка
             lastBonusTime = d.lastBonus || 0;
             document.getElementById('ref-link').innerText = `https://t.me/tamacoin_bot?start=${userId}`;
 
-            // Обработка улова
             if(d.catchData) {
                 document.getElementById('catch-info').innerText = `${d.catchData.type} — ${d.catchData.w}`;
                 document.getElementById('catch-overlay').style.display = 'flex';
@@ -682,7 +675,6 @@
                 document.getElementById('cast-btn').disabled = false;
             }
 
-            // Обновление топа
             if(d.topPlayers) renderTop(d.topPlayers);
         }
 
@@ -697,7 +689,6 @@
             `).join('');
         }
 
-        // --- Механика заброса ---
         function startFishing() {
             const btn = document.getElementById('cast-btn');
             const float = document.getElementById('float-img');
@@ -707,7 +698,6 @@
             float.className = 'float-img anim-cast';
             float.style.opacity = '1';
             msg.innerText = "ЗАКИДЫВАЕМ...";
-            
             tg.HapticFeedback.impactOccurred('medium');
             
             setTimeout(() => { 
@@ -724,23 +714,33 @@
             document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
         }
 
-        // --- Навигация ---
+        // --- ИСПРАВЛЕННАЯ НАВИГАЦИЯ ---
         function showTab(name, el) {
+            // 1. Скрываем все вкладки
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
+            // 2. Активируем нужную
             document.getElementById('tab-' + name).classList.add('tab-active');
             el.classList.add('active');
             
+            // 3. УПРАВЛЕНИЕ ВИДИМОСТЬЮ ВЕРХНИХ БЛОКОВ
             const isMain = (name === 'main');
-            document.getElementById('game-view-block').style.display = isMain ? 'block' : 'none';
-            document.getElementById('main-controls').style.display = isMain ? 'block' : 'none';
+            const topArea = document.getElementById('top-area-wrapper');
+            const controls = document.getElementById('main-controls');
+
+            if (isMain) {
+                topArea.style.display = 'block';
+                controls.style.display = 'block';
+            } else {
+                topArea.style.display = 'none';
+                controls.style.display = 'none';
+            }
             
             if(name === 'top') doAction('get_top');
             tg.HapticFeedback.selectionChanged();
         }
 
-        // --- Платежи и Копирование ---
         function requestPay(item, price) {
             document.getElementById('pay-price').innerText = price;
             document.getElementById('pay-memo').innerText = `FISH_${userId}_${item}`;
@@ -756,11 +756,8 @@
             });
         }
 
-        // --- Глобальный цикл таймеров ---
         setInterval(() => {
             const now = Date.now();
-            
-            // Дневной бонус
             const bonusDiff = (lastBonusTime + 86400000) - now;
             const bBtn = document.getElementById('bonus-btn');
             const bTimer = document.getElementById('bonus-timer');
@@ -773,12 +770,10 @@
                 bBtn.style.display = 'block';
             }
             
-            // Золотой час
             const nextHour = (3600000 - (now % 3600000));
             document.getElementById('gold-timer').innerText = new Date(nextHour).toISOString().substr(11, 8);
         }, 1000);
 
-        // Старт приложения
         doAction('load');
     </script>
 </body>
