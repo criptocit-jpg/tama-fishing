@@ -535,42 +535,16 @@
         .nav-item.active { color: var(--gold); }
         .nav-item i { font-size: 22px; font-style: normal; }
 
-        /* ==========================================================================
-           [10] МОДАЛЬНОЕ ОКНО УЛОВА
-           ========================================================================== */
-        #catch-overlay { 
-            position: absolute; 
-            inset: 0; 
-            background: rgba(0,0,0,0.95); 
-            display: none; 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 2000; 
-            backdrop-filter: blur(5px);
-        }
-
-        .catch-modal { 
-            background: radial-gradient(circle at top, #1e293b, #0f172a);
-            padding: 35px; 
-            border: 2px solid var(--gold); 
-            border-radius: 30px; 
-            text-align: center; 
-            width: 88%;
-            box-shadow: 0 0 60px rgba(255,215,0,0.25);
-            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        .catch-modal h2 { color: var(--gold); font-size: 22px; margin-bottom: 15px; text-transform: uppercase; }
-        .catch-modal p { color: #fff; font-size: 18px; font-weight: 900; margin-bottom: 25px; }
+        /* [УДАЛЕНО] Старый catch-overlay, заменен на wood-alert */
     </style>
 </head>
 <body>
 
     <div id="wood-alert">
-        <div style="font-size: 10px; color: #bcaaa4; letter-spacing: 1px;">ПРИНЯТО НА РЫНКЕ</div>
+        <div id="wood-header-type" style="font-size: 10px; color: #bcaaa4; letter-spacing: 1px;">СООБЩЕНИЕ</div>
+        <div id="wood-title" style="font-size: 18px; color: #fff; margin: 5px 0;">УЛОВ!</div>
         <div id="wood-profit" style="font-size: 24px; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">+0 TC</div>
-        <button onclick="closeWood()" style="margin-top:10px; background:none; border:1px solid #8d6e63; color:#fff; font-size:9px; padding:4px 15px; border-radius:5px; cursor:pointer;">ПРИНЯТЬ</button>
+        <button onclick="closeWood()" style="margin-top:10px; background:none; border:1px solid #8d6e63; color:#fff; font-size:9px; padding:4px 15px; border-radius:5px; cursor:pointer; font-weight: 900;">ОК</button>
     </div>
 
     <div id="lucky-box-overlay" class="box-overlay">
@@ -623,33 +597,12 @@
             </div>
         </div>
 
-        <div class="inventory-dropdown" id="inv-block">
-            <div class="inv-header" onclick="toggleInv()">
-                <span style="font-weight:900; font-size:12px; letter-spacing:1px;">🧺 МОЙ САДОК</span>
-                <span id="inv-arrow" style="color:var(--gold); font-size:10px;">▼</span>
-            </div>
-            <div class="inv-content">
-                <div class="inv-row"><span class="inv-label">ВАШ ID:</span><span class="inv-val" id="player-id">---</span></div>
-                <div class="inv-row"><span class="inv-label">СТАТУС:</span><span class="inv-val" id="player-status">ОБЫЧНЫЙ</span></div>
-                <div class="inv-row"><span class="inv-label">ВЕС РЫБЫ:</span><span class="inv-val" id="fish-weight">0.00 кг</span></div>
-                <button class="btn-cast" style="background:var(--success); height:38px; font-size:12px; margin-top:12px; box-shadow: 0 4px 0 #065f46;" onclick="doAction('sell')">💰 ПРОДАТЬ УЛОВ</button>
-            </div>
-        </div>
-
         <div class="game-view-container" id="game-view-block">
             <div class="game-view">
                 <div class="float-container">
                     <img id="float-img" src="fish_anim.webp" class="float-img">
                 </div>
                 <div id="status-msg">ГОТОВ К ЛОВЛЕ</div>
-                
-                <div id="catch-overlay">
-                    <div class="catch-modal">
-                        <h2 style="color:var(--gold); font-size:22px; margin-bottom:15px;">УЛОВ! 🐟</h2>
-                        <p id="catch-info" style="color:#fff; font-size:18px; font-weight:900; margin-bottom:25px;"></p>
-                        <button class="btn-cast" style="height:48px;" onclick="closeCatch()">В САДОК</button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -669,14 +622,23 @@
         <div id="tab-shop" class="tab-content">
             <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase;">Рыболовный рынок</h3>
             
+            <div class="inventory-dropdown inv-open" id="inv-block">
+                <div class="inv-header" onclick="toggleInv()">
+                    <span style="font-weight:900; font-size:12px; letter-spacing:1px;">🧺 МОЙ САДОК</span>
+                    <span id="inv-arrow" style="color:var(--gold); font-size:10px;">▲</span>
+                </div>
+                <div class="inv-content">
+                    <div class="inv-row"><span class="inv-label">ВАШ ID:</span><span class="inv-val" id="player-id">---</span></div>
+                    <div class="inv-row"><span class="inv-label">СТАТУС:</span><span class="inv-val" id="player-status">ОБЫЧНЫЙ</span></div>
+                    <div class="inv-row"><span class="inv-label">ВЕС РЫБЫ:</span><span class="inv-val" id="fish-weight">0.00 кг</span></div>
+                    <button class="btn-cast" style="background:var(--success); height:38px; font-size:12px; margin-top:12px; box-shadow: 0 4px 0 #065f46;" onclick="doAction('sell')">💰 ПРОДАТЬ УЛОВ</button>
+                </div>
+            </div>
+
             <button id="open-box-btn" class="btn-cast" style="display:none; background:var(--gold); color:#000; margin-bottom:15px; border-radius:15px; height:50px;" onclick="showBoxModal()">
                 🎁 У ВАС ЕСТЬ КОРОБКА УДАЧИ!
             </button>
 
-            <button class="btn-cast" style="background:var(--success); margin-bottom:20px; height:50px; font-size:15px;" onclick="doAction('sell')">
-                💰 ПРОДАТЬ ВЕСЬ УЛОВ (2 TC/кг)
-            </button>
-            
             <div class="shop-category">
                 <div class="shop-cat-header" onclick="toggleCat('cat-tc')">
                     СНАРЯЖЕНИЕ ЗА TC <span>▼</span>
@@ -799,7 +761,6 @@
         let lastBonusTime = 0;
         let userHasHope = false;
 
-        // [НОВОЕ] УПРАВЛЕНИЕ ВЫПАДАЮЩИМ САДКОМ
         function toggleInv() {
             const block = document.getElementById('inv-block');
             block.classList.toggle('inv-open');
@@ -830,9 +791,10 @@
                 });
                 const data = await response.json(); 
                 
-                // [НОВОЕ] ОБРАБОТКА ДЕРЕВЯННОЙ ТАБЛИЧКИ ПРИ ПРОДАЖЕ
+                // ОБРАБОТКА ТАБЛИЧКИ ПРИ ПРОДАЖЕ
                 if (action === 'sell' && data.msg.includes('Продано')) {
-                    showWoodAlert(data.msg);
+                    const profitMatch = data.msg.match(/\+(\d+)/);
+                    showWoodAlert("РЫНОК", "ПРОДАНО!", profitMatch ? `+${profitMatch[1]} TC` : "УСПЕХ");
                 }
                 
                 updateUI(data);
@@ -841,15 +803,13 @@
             }
         }
 
-        // [НОВОЕ] ЛОГИКА ТАБЛИЧКИ
-        function showWoodAlert(msg) {
-            // Выцепляем сумму из сообщения сервера типа "Продано 5.00 кг! +10 TC"
-            const profitMatch = msg.match(/\+(\d+)/);
-            if (profitMatch) {
-                document.getElementById('wood-profit').innerText = `+${profitMatch[1]} TC`;
-                document.getElementById('wood-alert').classList.add('wood-show');
-                tg.HapticFeedback.notificationOccurred('success');
-            }
+        // УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ ТАБЛИЧКИ (ДЛЯ УЛОВА И ПРОДАЖИ)
+        function showWoodAlert(header, title, value) {
+            document.getElementById('wood-header-type').innerText = header;
+            document.getElementById('wood-title').innerText = title;
+            document.getElementById('wood-profit').innerText = value;
+            document.getElementById('wood-alert').classList.add('wood-show');
+            tg.HapticFeedback.notificationOccurred('success');
         }
 
         function closeWood() {
@@ -863,7 +823,6 @@
             document.getElementById('energy').innerText = (d.energy || 0) + '%';
             document.getElementById('dur').innerText = Math.floor(d.dur || 0) + '%';
             
-            // [НОВОЕ] ОБНОВЛЕНИЕ ДАННЫХ В САДКЕ
             document.getElementById('fish-weight').innerText = (d.fish || 0).toFixed(2) + ' кг';
             document.getElementById('player-id').innerText = d.id;
             const isVip = (d.buffs?.vip > Date.now());
@@ -885,10 +844,10 @@
                 document.getElementById('open-box-btn').style.display = 'none';
             }
 
+            // [НОВОЕ] ВЫВОД УЛОВА ЧЕРЕЗ ТАБЛИЧКУ
             if(d.catchData) {
-                document.getElementById('catch-info').innerText = `${d.catchData.type} — ${d.catchData.w}`;
-                document.getElementById('catch-overlay').style.display = 'flex';
-                tg.HapticFeedback.notificationOccurred('success');
+                showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w);
+                document.getElementById('cast-btn').disabled = false;
             } else {
                 document.getElementById('cast-btn').disabled = false;
             }
@@ -925,15 +884,6 @@
             setTimeout(() => { 
                 doAction('cast'); 
             }, 1600);
-        }
-
-        function closeCatch() {
-            document.getElementById('catch-overlay').style.display = 'none';
-            document.getElementById('cast-btn').disabled = false;
-            const float = document.getElementById('float-img');
-            float.style.opacity = '0'; 
-            float.className = 'float-img';
-            document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
         }
 
         function showBoxModal() {
