@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 4.7.2 - THE TRUE MONOLITH</title>
+    <title>Tamacoin Fishing Gold 4.7.3 - THE TRUE MONOLITH</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ==========================================================================
@@ -722,7 +722,7 @@
         <div id="wood-header-type" style="font-size: 10px; color: #bcaaa4; letter-spacing: 1px;">СООБЩЕНИЕ</div>
         <div id="wood-title" style="font-size: 18px; color: #fff; margin: 5px 0;">УЛОВ!</div>
         <div id="wood-profit" style="font-size: 24px; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">+0 TC</div>
-        <button onclick="closeWood()" style="margin-top:10px; background:none; border:2px solid #8d6e63; color:#fff; font-size:11px; padding:6px 20px; border-radius:8px; cursor:pointer; font-weight: 900;">ЗАБРАТЬ</button>
+        <button onclick="closeWood()" style="margin-top:10px; background:none; border:2px solid #8d6e63; color:#fff; font-size:11px; padding:6px 20px; border-radius:8px; cursor:pointer; font-weight: 900;">ОК</button>
     </div>
 
     <div id="lucky-box-overlay" class="box-overlay">
@@ -786,7 +786,6 @@
     </div>
 
     <div class="tabs-container">
-        
         <div id="tab-main" class="tab-content tab-active">
             <div id="lake-status" style="text-align:center; font-weight:900; color:var(--accent); margin-bottom:15px; font-size:12px; text-transform:uppercase;">
                 📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО
@@ -819,7 +818,7 @@
                         <span class="inv-label">ВЕС РЫБЫ:</span>
                         <span class="inv-val" id="fish-weight">0.00 кг</span>
                     </div>
-                    <button class="btn-cast" style="background:var(--success); height:38px; font-size:12px; margin-top:12px; box-shadow: 0 4px 0 #065f46;" onclick="doAction('sell')">💰 ПРОДАТЬ УЛОВ</button>
+                    <button class="btn-cast" id="sell-btn-inv" style="background:var(--success); height:38px; font-size:12px; margin-top:12px; box-shadow: 0 4px 0 #065f46;" onclick="doAction('sell')">💰 ПРОДАТЬ УЛОВ</button>
                 </div>
             </div>
 
@@ -933,6 +932,7 @@
         
         let lastBonusTime = 0;
         let userHasHope = false;
+        let currentTab = 'main'; // Флаг текущей вкладки
 
         /* ==========================================================================
            ЛОГИКА ИНТЕРФЕЙСА
@@ -977,6 +977,9 @@
                 if (action === 'sell' && data.msg && data.msg.includes('Продано')) {
                     const profitMatch = data.msg.match(/\+(\d+)/);
                     showWoodAlert("РЫНОК", "ПРОДАНО!", profitMatch ? `+${profitMatch[1]} TC` : "УСПЕХ");
+                    
+                    // Обнуляем вес в UI сразу
+                    document.getElementById('fish-weight').innerText = "0.00 кг";
                 }
                 
                 updateUI(data);
@@ -995,8 +998,10 @@
             document.getElementById('wood-profit').innerText = value;
             document.getElementById('wood-alert').classList.add('wood-show');
             
-            // БЛОКИРОВКА ФЕРМЕРОВ: пока плашка висит, кнопка заблокирована
-            document.getElementById('cast-btn').disabled = true;
+            // Блокируем кнопку заброса ТОЛЬКО если мы во вкладке ловли
+            if (currentTab === 'main') {
+                document.getElementById('cast-btn').disabled = true;
+            }
             
             tg.HapticFeedback.notificationOccurred('success');
         }
@@ -1004,16 +1009,19 @@
         function closeWood() {
             document.getElementById('wood-alert').classList.remove('wood-show');
             
-            // РАЗБЛОКИРОВКА КНОПКИ
+            // Разблокируем кнопку в любом случае
             document.getElementById('cast-btn').disabled = false;
             
-            // ПОЛНЫЙ СБРОС АНИМАЦИИ (для повторного использования)
+            // ГАРАНТИРОВАННЫЙ СБРОС АНИМАЦИИ
             const float = document.getElementById('float-img');
             float.classList.remove('anim-cast');
-            void float.offsetWidth; // Force Reflow: магия для перезапуска CSS-анимаций
+            void float.offsetWidth; // Force Reflow
             float.style.opacity = '0';
             
             document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
+            
+            // Убираем флаг улова из текущей сессии
+            window.lastCatchData = null; 
         }
 
         /* ==========================================================================
@@ -1059,8 +1067,9 @@
                 document.getElementById('open-box-btn').style.display = 'none';
             }
 
-            // [ВАЖНО] УЛОВ ЧЕРЕЗ НОВУЮ ТАБЛИЧКУ
-            if(d.catchData) {
+            // [УЛУЧШЕНО] ПОКАЗ УЛОВА
+            // Показываем только если мы на главной вкладке и данные свежие
+            if(d.catchData && currentTab === 'main') {
                 showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w);
             }
 
@@ -1093,6 +1102,9 @@
             const float = document.getElementById('float-img');
             const msg = document.getElementById('status-msg');
             
+            // Проверка: если плашка открыта, не даем забросить
+            if (document.getElementById('wood-alert').style.display === 'flex') return;
+
             btn.disabled = true;
             
             // ЗАПУСК АНИМАЦИИ
@@ -1139,6 +1151,8 @@
            ========================================================================== */
 
         function showTab(name, el) {
+            currentTab = name; // Обновляем флаг текущей вкладки
+
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
