@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 4.7.3 - THE TRUE MONOLITH</title>
+    <title>Tamacoin Fishing Gold 4.7.4 - THE TRUE MONOLITH</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ==========================================================================
@@ -932,7 +932,8 @@
         
         let lastBonusTime = 0;
         let userHasHope = false;
-        let currentTab = 'main'; // Флаг текущей вкладки
+        let currentTab = 'main'; 
+        let isFishingProcess = false; // Флаг: идет ли анимация заброса
 
         /* ==========================================================================
            ЛОГИКА ИНТЕРФЕЙСА
@@ -975,10 +976,7 @@
                 
                 // ОБРАБОТКА ТАБЛИЧКИ ПРИ ПРОДАЖЕ
                 if (action === 'sell' && data.msg && data.msg.includes('Продано')) {
-                    const profitMatch = data.msg.match(/\+(\d+)/);
-                    showWoodAlert("РЫНОК", "ПРОДАНО!", profitMatch ? `+${profitMatch[1]} TC` : "УСПЕХ");
-                    
-                    // Обнуляем вес в UI сразу
+                    showWoodAlert("РЫНОК", "ПРОДАНО!", data.msg.match(/\+(\d+)/) ? `+${data.msg.match(/\+(\d+)/)[1]} TC` : "УСПЕХ");
                     document.getElementById('fish-weight').innerText = "0.00 кг";
                 }
                 
@@ -998,10 +996,8 @@
             document.getElementById('wood-profit').innerText = value;
             document.getElementById('wood-alert').classList.add('wood-show');
             
-            // Блокируем кнопку заброса ТОЛЬКО если мы во вкладке ловли
-            if (currentTab === 'main') {
-                document.getElementById('cast-btn').disabled = true;
-            }
+            // Жестко блокируем кнопку пока висит плашка
+            document.getElementById('cast-btn').disabled = true;
             
             tg.HapticFeedback.notificationOccurred('success');
         }
@@ -1009,19 +1005,17 @@
         function closeWood() {
             document.getElementById('wood-alert').classList.remove('wood-show');
             
-            // Разблокируем кнопку в любом случае
+            // Возвращаем кнопку в строй
             document.getElementById('cast-btn').disabled = false;
             
-            // ГАРАНТИРОВАННЫЙ СБРОС АНИМАЦИИ
+            // СБРОС АНИМАЦИИ (с «протряской» DOM)
             const float = document.getElementById('float-img');
             float.classList.remove('anim-cast');
-            void float.offsetWidth; // Force Reflow
+            void float.offsetWidth; 
             float.style.opacity = '0';
             
             document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
-            
-            // Убираем флаг улова из текущей сессии
-            window.lastCatchData = null; 
+            isFishingProcess = false; 
         }
 
         /* ==========================================================================
@@ -1031,54 +1025,38 @@
         function updateUI(d) {
             if(!d) return;
             
-            // Баланс и Джекпот
             document.getElementById('main-balance').innerText = Math.floor(d.b || 0).toLocaleString();
             document.getElementById('jackpot-display').innerText = Math.floor(d.jackpot?.pool || 1000).toLocaleString() + ' TC';
-            
-            // Статус-бары
             document.getElementById('energy').innerText = (d.energy || 0) + '%';
             document.getElementById('dur').innerText = Math.floor(d.dur || 0) + '%';
-            
-            // Садок (вес и ID)
             document.getElementById('fish-weight').innerText = (d.fish || 0).toFixed(2) + ' кг';
             document.getElementById('player-id').innerText = d.id || '---';
             
-            // VIP Статус
             const isVip = (d.buffs?.vip > Date.now());
             document.getElementById('player-status').innerText = isVip ? '👑 VIP' : 'ОБЫЧНЫЙ';
             document.getElementById('player-status').style.color = isVip ? 'var(--gold)' : 'var(--text-muted)';
             
-            // Локация
             userHasHope = (d.buffs?.hope > Date.now());
             const lakeEl = document.getElementById('lake-status');
             lakeEl.innerText = userHasHope ? "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОЗЕРО НАДЕЖДЫ ✅" : "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО";
             lakeEl.style.color = userHasHope ? "var(--success)" : "var(--accent)";
 
-            // Бонусы и ссылки
             lastBonusTime = d.lastBonus || 0;
             document.getElementById('ref-link').innerText = `https://t.me/tamacoin_bot?start=${userId}`;
 
-            // Кейсы
             if (d.stats?.boxes > 0) {
-                const boxBtn = document.getElementById('open-box-btn');
-                boxBtn.style.display = 'block';
-                boxBtn.innerText = `🎁 КЕЙС (${d.stats.boxes})`;
+                document.getElementById('open-box-btn').style.display = 'block';
+                document.getElementById('open-box-btn').innerText = `🎁 КЕЙС (${d.stats.boxes})`;
             } else {
                 document.getElementById('open-box-btn').style.display = 'none';
             }
 
-            // [УЛУЧШЕНО] ПОКАЗ УЛОВА
-            // Показываем только если мы на главной вкладке и данные свежие
-            if(d.catchData && currentTab === 'main') {
+            // [ИЗМЕНЕНО] Данные об улове обрабатываются ТОЛЬКО если не идет анимация заброса
+            if(d.catchData && currentTab === 'main' && !isFishingProcess) {
                 showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w);
             }
 
-            // Награды из коробок
-            if(d.boxReward) {
-                document.getElementById('prize-text').innerText = d.boxReward.n;
-            }
-
-            // Лидерборд
+            if(d.boxReward) document.getElementById('prize-text').innerText = d.boxReward.n;
             if(d.topPlayers) renderTop(d.topPlayers);
         }
 
@@ -1098,25 +1076,42 @@
         }
 
         function startFishing() {
+            if (isFishingProcess) return; 
+
             const btn = document.getElementById('cast-btn');
             const float = document.getElementById('float-img');
             const msg = document.getElementById('status-msg');
             
-            // Проверка: если плашка открыта, не даем забросить
-            if (document.getElementById('wood-alert').style.display === 'flex') return;
-
+            isFishingProcess = true; 
             btn.disabled = true;
             
-            // ЗАПУСК АНИМАЦИИ
+            // АНИМАЦИЯ
             float.classList.add('anim-cast');
             float.style.opacity = '1';
             msg.innerText = "ЗАКИДЫВАЕМ...";
             
             tg.HapticFeedback.impactOccurred('medium');
             
-            setTimeout(() => { 
-                doAction('cast'); 
-            }, 1600);
+            // Ждем завершения анимации (1.6 сек) и только потом делаем запрос к серверу
+            setTimeout(async () => { 
+                try {
+                    const response = await fetch(API, { 
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'}, 
+                        body: JSON.stringify({ 
+                            userId, userName: tg.initDataUnsafe?.user?.first_name, action: 'cast', 
+                            payload: { lake: userHasHope ? 'hope' : 'normal' } 
+                        }) 
+                    });
+                    const data = await response.json();
+                    
+                    isFishingProcess = false; // Анимация кончилась, можно показывать результат
+                    updateUI(data); 
+                } catch(e) {
+                    isFishingProcess = false;
+                    btn.disabled = false;
+                }
+            }, 1300);
         }
 
         /* ==========================================================================
@@ -1129,33 +1124,23 @@
         }
 
         function animateBoxOpening() {
-            const box = document.getElementById('box-body');
-            box.onclick = null;
             document.getElementById('lucky-box-overlay').classList.add('box-open-state');
             document.getElementById('box-hint').innerText = "ОТКРЫВАЕМ...";
-            tg.HapticFeedback.notificationOccurred('success');
-            
             doAction('open_box').then(() => {
-                setTimeout(() => {
-                    document.getElementById('close-box-btn').style.display = 'block';
-                }, 1000);
+                setTimeout(() => { document.getElementById('close-box-btn').style.display = 'block'; }, 1000);
             });
         }
 
-        function closeBoxModal() {
-            location.reload();
-        }
+        function closeBoxModal() { location.reload(); }
 
         /* ==========================================================================
-           НАВИГАЦИЯ ПО ТАБАМ
+           НАВИГАЦИЯ
            ========================================================================== */
 
         function showTab(name, el) {
-            currentTab = name; // Обновляем флаг текущей вкладки
-
+            currentTab = name; 
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             document.getElementById('tab-' + name).classList.add('tab-active');
             el.classList.add('active');
             
@@ -1164,55 +1149,35 @@
             document.getElementById('main-controls').style.display = isMain ? 'block' : 'none';
             
             if(name === 'top') doAction('get_top');
-            
             tg.HapticFeedback.selectionChanged();
         }
-
-        /* ==========================================================================
-           ПЛАТЕЖИ И ДОПОЛНИТЕЛЬНО
-           ========================================================================== */
 
         function requestPay(item, price) {
             document.getElementById('pay-price').innerText = price;
             document.getElementById('pay-memo').innerText = `FISH_${userId}_${item}`;
             document.getElementById('payment-area').style.display = 'block';
-            document.getElementById('payment-area').scrollIntoView({behavior: "smooth"});
             tg.HapticFeedback.notificationOccurred('warning');
         }
 
         function copyRef() {
-            const link = document.getElementById('ref-link').innerText;
-            navigator.clipboard.writeText(link).then(() => {
+            navigator.clipboard.writeText(document.getElementById('ref-link').innerText).then(() => {
                 tg.showAlert("Ссылка скопирована!");
             });
         }
 
-        /* ==========================================================================
-           ТАЙМЕРЫ И ЦИКЛЫ
-           ========================================================================== */
-
         setInterval(() => {
             const now = Date.now();
-            
-            // Таймер бонуса
             const bonusDiff = (lastBonusTime + 86400000) - now;
-            const bBtn = document.getElementById('bonus-btn');
-            const bTimer = document.getElementById('bonus-timer');
-            
             if(bonusDiff > 0) {
-                bTimer.innerText = new Date(bonusDiff).toISOString().substr(11, 8);
-                bBtn.style.display = 'none';
+                document.getElementById('bonus-timer').innerText = new Date(bonusDiff).toISOString().substr(11, 8);
+                document.getElementById('bonus-btn').style.display = 'none';
             } else {
-                bTimer.innerText = "ГОТОВ!";
-                bBtn.style.display = 'block';
+                document.getElementById('bonus-timer').innerText = "ГОТОВ!";
+                document.getElementById('bonus-btn').style.display = 'block';
             }
-            
-            // Таймер золотого часа
-            const nextHour = (3600000 - (now % 3600000));
-            document.getElementById('gold-timer').innerText = new Date(nextHour).toISOString().substr(11, 8);
+            document.getElementById('gold-timer').innerText = new Date(3600000 - (now % 3600000)).toISOString().substr(11, 8);
         }, 1000);
 
-        /* ИНИЦИАЛИЗАЦИЯ */
         doAction('load');
 
     </script>
