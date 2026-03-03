@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 4.5.0 - THE TRUE MONOLITH</title>
+    <title>Tamacoin Fishing Gold 4.7.0 - THE TRUE MONOLITH</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ==========================================================================
@@ -43,6 +43,63 @@
             flex-direction: column;
             line-height: 1.4;
         }
+
+        /* [НОВОЕ] АНИМАЦИЯ ДЕРЕВЯННОЙ ТАБЛИЧКИ ПРОДАЖИ */
+        #wood-alert {
+            display: none; 
+            position: fixed; 
+            top: 40%; 
+            left: 50%; 
+            transform: translate(-50%, -50%) scale(0.5);
+            width: 300px; 
+            height: 140px; 
+            z-index: 9999;
+            background: #5d4037; 
+            border: 5px solid #3e2723; 
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.9), inset 0 0 30px rgba(0,0,0,0.6);
+            color: #eceff1; 
+            text-align: center; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column;
+            font-family: 'Courier New', Courier, monospace; 
+            font-weight: 900;
+            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+            padding: 10px;
+        }
+        .wood-show { display: flex !important; animation: woodPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes woodPop { to { transform: translate(-50%, -50%) scale(1); } }
+
+        /* [НОВОЕ] СТИЛИ ВЫПАДАЮЩЕГО САДКА */
+        .inventory-dropdown {
+            margin: 0 16px 12px; 
+            background: var(--panel); 
+            border-radius: 18px; 
+            border: 2px solid rgba(255, 215, 0, 0.2); 
+            overflow: hidden; 
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .inv-header {
+            padding: 14px 18px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            background: rgba(255, 215, 0, 0.08); 
+            cursor: pointer;
+        }
+        .inv-content { 
+            max-height: 0; 
+            padding: 0 18px; 
+            transition: all 0.4s ease; 
+            opacity: 0;
+            background: rgba(0,0,0,0.15);
+        }
+        .inv-open .inv-content { max-height: 300px; padding: 18px; opacity: 1; }
+        .inv-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; }
+        .inv-label { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 10px; }
+        .inv-val { color: var(--gold); font-family: var(--font-mono); font-weight: 800; }
 
         /* [НОВОЕ] СТИЛИ ДЛЯ КОРОБКИ УДАЧИ */
         .box-overlay {
@@ -98,6 +155,7 @@
             text-transform: uppercase;
             text-shadow: 0 0 10px rgba(255,215,0,0.8);
             transition: 1s ease-out;
+            z-index: 10;
         }
         .box-open-state .prize-out { opacity: 1; transform: translateY(-100px) scale(1.4); }
 
@@ -509,6 +567,12 @@
 </head>
 <body>
 
+    <div id="wood-alert">
+        <div style="font-size: 10px; color: #bcaaa4; letter-spacing: 1px;">ПРИНЯТО НА РЫНКЕ</div>
+        <div id="wood-profit" style="font-size: 24px; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">+0 TC</div>
+        <button onclick="closeWood()" style="margin-top:10px; background:none; border:1px solid #8d6e63; color:#fff; font-size:9px; padding:4px 15px; border-radius:5px; cursor:pointer;">ПРИНЯТЬ</button>
+    </div>
+
     <div id="lucky-box-overlay" class="box-overlay">
         <div id="prize-text" class="prize-out">ВАШ ПРИЗ!</div>
         <div class="lucky-box-anim box-shake-effect" id="box-body" onclick="animateBoxOpening()">
@@ -559,6 +623,19 @@
             </div>
         </div>
 
+        <div class="inventory-dropdown" id="inv-block">
+            <div class="inv-header" onclick="toggleInv()">
+                <span style="font-weight:900; font-size:12px; letter-spacing:1px;">🧺 МОЙ САДОК</span>
+                <span id="inv-arrow" style="color:var(--gold); font-size:10px;">▼</span>
+            </div>
+            <div class="inv-content">
+                <div class="inv-row"><span class="inv-label">ВАШ ID:</span><span class="inv-val" id="player-id">---</span></div>
+                <div class="inv-row"><span class="inv-label">СТАТУС:</span><span class="inv-val" id="player-status">ОБЫЧНЫЙ</span></div>
+                <div class="inv-row"><span class="inv-label">ВЕС РЫБЫ:</span><span class="inv-val" id="fish-weight">0.00 кг</span></div>
+                <button class="btn-cast" style="background:var(--success); height:38px; font-size:12px; margin-top:12px; box-shadow: 0 4px 0 #065f46;" onclick="doAction('sell')">💰 ПРОДАТЬ УЛОВ</button>
+            </div>
+        </div>
+
         <div class="game-view-container" id="game-view-block">
             <div class="game-view">
                 <div class="float-container">
@@ -568,8 +645,8 @@
                 
                 <div id="catch-overlay">
                     <div class="catch-modal">
-                        <h2>УЛОВ! 🐟</h2>
-                        <p id="catch-info"></p>
+                        <h2 style="color:var(--gold); font-size:22px; margin-bottom:15px;">УЛОВ! 🐟</h2>
+                        <p id="catch-info" style="color:#fff; font-size:18px; font-weight:900; margin-bottom:25px;"></p>
                         <button class="btn-cast" style="height:48px;" onclick="closeCatch()">В САДОК</button>
                     </div>
                 </div>
@@ -722,6 +799,14 @@
         let lastBonusTime = 0;
         let userHasHope = false;
 
+        // [НОВОЕ] УПРАВЛЕНИЕ ВЫПАДАЮЩИМ САДКОМ
+        function toggleInv() {
+            const block = document.getElementById('inv-block');
+            block.classList.toggle('inv-open');
+            document.getElementById('inv-arrow').innerText = block.classList.contains('inv-open') ? '▲' : '▼';
+            tg.HapticFeedback.selectionChanged();
+        }
+
         function toggleCat(id) {
             const el = document.getElementById(id);
             el.classList.toggle('open');
@@ -730,7 +815,6 @@
 
         async function doAction(action, payload = {}) {
             try {
-                // Пытаемся достать реферера из старта
                 const urlParams = new URLSearchParams(window.location.search);
                 const refBy = urlParams.get('start');
 
@@ -745,10 +829,31 @@
                     }) 
                 });
                 const data = await response.json(); 
+                
+                // [НОВОЕ] ОБРАБОТКА ДЕРЕВЯННОЙ ТАБЛИЧКИ ПРИ ПРОДАЖЕ
+                if (action === 'sell' && data.msg.includes('Продано')) {
+                    showWoodAlert(data.msg);
+                }
+                
                 updateUI(data);
             } catch(e) { 
                 console.error("Ошибка сети:", e); 
             }
+        }
+
+        // [НОВОЕ] ЛОГИКА ТАБЛИЧКИ
+        function showWoodAlert(msg) {
+            // Выцепляем сумму из сообщения сервера типа "Продано 5.00 кг! +10 TC"
+            const profitMatch = msg.match(/\+(\d+)/);
+            if (profitMatch) {
+                document.getElementById('wood-profit').innerText = `+${profitMatch[1]} TC`;
+                document.getElementById('wood-alert').classList.add('wood-show');
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
+
+        function closeWood() {
+            document.getElementById('wood-alert').classList.remove('wood-show');
         }
 
         function updateUI(d) {
@@ -758,6 +863,13 @@
             document.getElementById('energy').innerText = (d.energy || 0) + '%';
             document.getElementById('dur').innerText = Math.floor(d.dur || 0) + '%';
             
+            // [НОВОЕ] ОБНОВЛЕНИЕ ДАННЫХ В САДКЕ
+            document.getElementById('fish-weight').innerText = (d.fish || 0).toFixed(2) + ' кг';
+            document.getElementById('player-id').innerText = d.id;
+            const isVip = (d.buffs?.vip > Date.now());
+            document.getElementById('player-status').innerText = isVip ? '👑 VIP' : 'ОБЫЧНЫЙ';
+            document.getElementById('player-status').style.color = isVip ? 'var(--gold)' : 'var(--text-muted)';
+            
             userHasHope = (d.buffs?.hope > Date.now());
             const lakeEl = document.getElementById('lake-status');
             lakeEl.innerText = userHasHope ? "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОЗЕРО НАДЕЖДЫ ✅" : "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО";
@@ -766,7 +878,6 @@
             lastBonusTime = d.lastBonus || 0;
             document.getElementById('ref-link').innerText = `https://t.me/tamacoin_bot?start=${userId}`;
 
-            // Проверка коробок
             if (d.stats?.boxes > 0) {
                 document.getElementById('open-box-btn').style.display = 'block';
                 document.getElementById('open-box-btn').innerText = `🎁 ОТКРЫТЬ КОРОБКУ (${d.stats.boxes})`;
@@ -784,7 +895,6 @@
 
             if(d.boxReward) {
                 document.getElementById('prize-text').innerText = d.boxReward.n;
-                // Анимация уже запущена в animateBoxOpening
             }
 
             if(d.topPlayers) renderTop(d.topPlayers);
@@ -826,7 +936,6 @@
             document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
         }
 
-        // [НОВОЕ] ФУНКЦИИ КОРОБКИ
         function showBoxModal() {
             document.getElementById('lucky-box-overlay').style.display = 'flex';
             tg.HapticFeedback.impactOccurred('heavy');
@@ -834,14 +943,11 @@
 
         function animateBoxOpening() {
             const box = document.getElementById('box-body');
-            box.onclick = null; // Защита от повторного клика
-            box.classList.remove('box-shake-effect');
-            box.parentElement.classList.add('box-open-state');
+            box.onclick = null;
+            document.getElementById('lucky-box-overlay').classList.add('box-open-state');
             document.getElementById('box-hint').innerText = "ОТКРЫВАЕМ...";
-            
             tg.HapticFeedback.notificationOccurred('success');
             
-            // Запрос на открытие на сервер
             doAction('open_box').then(() => {
                 setTimeout(() => {
                     document.getElementById('close-box-btn').style.display = 'block';
@@ -851,7 +957,7 @@
 
         function closeBoxModal() {
             document.getElementById('lucky-box-overlay').style.display = 'none';
-            location.reload(); // Обновляем чтобы сбросить стейт анимации
+            location.reload();
         }
 
         function showTab(name, el) {
