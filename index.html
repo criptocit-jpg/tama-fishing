@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 4.7.9 - THE TRUE MONOLITH</title>
+    <title>Tamacoin Fishing Gold 4.8.0 - THE TRUE MONOLITH</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ==========================================================================
@@ -141,7 +141,7 @@
         }
 
         /* ==========================================================================
-           [4] СТИЛИ КОРОБКИ УДАЧИ
+           [4] СТИЛИ ДЛЯ КОРОБКИ УДАЧИ
            ========================================================================== */
         .box-overlay {
             display: none;
@@ -299,6 +299,29 @@
             overflow: hidden;
         }
 
+        .balance-pill::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 4s infinite;
+        }
+
+        @keyframes shine { 
+            0% { transform: translateX(-100%) rotate(45deg); } 
+            100% { transform: translateX(100%) rotate(45deg); } 
+        }
+
+        .balance-label { 
+            font-size: 9px; 
+            color: var(--text-muted); 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            margin-bottom: 2px; 
+            font-weight: 700; 
+        }
+
         .balance-value { 
             font-size: 22px; 
             font-weight: 900; 
@@ -346,8 +369,13 @@
             box-shadow: inset 0 0 10px rgba(255,215,0,0.1);
         }
 
+        .status-card.jp-highlight b { 
+            color: var(--gold); 
+            text-shadow: 0 0 5px rgba(255,215,0,0.5); 
+        }
+
         /* ==========================================================================
-           [7] БЛОК ИГРОВОЙ АНИМАЦИИ
+           [7] БЛОК ИГРОВОЙ АНИНИМАЦИИ
            ========================================================================== */
         .game-view-container { 
             padding: 0 16px; 
@@ -925,51 +953,21 @@
         let cachedData = null; // ГЛОБАЛЬНЫЙ КЭШ
 
         /* --------------------------------------------------------------------------
-           1. ЛОГИКА ТАБОВ И ВОССТАНОВЛЕНИЯ ДАННЫХ (ФИКС "СКЛЕРОЗА")
+           ФУНКЦИЯ ВОССТАНОВЛЕНИЯ ДАННЫХ (ЗАЩИТА ОТ СБРОСА)
            -------------------------------------------------------------------------- */
-
-        function showTab(name, el) {
-            currentTab = name; 
-            
-            // Смена активных классов
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            document.getElementById('tab-' + name).classList.add('tab-active');
-            el.classList.add('active');
-            
-            const isMain = (name === 'main');
-            
-            // Скрытие/показ верхних статов и кнопок заброса
-            document.getElementById('top-area-wrapper').style.display = isMain ? 'block' : 'none';
-            document.getElementById('main-controls').style.display = isMain ? 'block' : 'none';
-            
-            // ПРИНУДИТЕЛЬНОЕ ВОССТАНОВЛЕНИЕ (Фикс сброса в 0)
-            if(cachedData) {
-                renderFromCache();
-            } else {
-                // Если кэша нет, запрашиваем данные
-                doAction('load');
-            }
-            
-            if(name === 'top') {
-                doAction('get_top');
-            }
-            
-            tg.HapticFeedback.selectionChanged();
-        }
-
         function renderFromCache() {
             if(!cachedData) return;
             const d = cachedData;
             
-            // Заполнение всех полей из памяти браузера
-            document.getElementById('main-balance').innerText = Math.floor(d.b || 0).toLocaleString();
-            document.getElementById('jackpot-display').innerText = Math.floor(d.jackpot?.pool || 1000).toLocaleString() + ' TC';
-            document.getElementById('energy').innerText = (d.energy || 0) + '%';
-            document.getElementById('dur').innerText = Math.floor(d.dur || 0) + '%';
-            document.getElementById('fish-weight').innerText = (d.fish || 0).toFixed(2) + ' кг';
-            document.getElementById('player-id').innerText = d.id || '---';
+            // Баланс и Джекпот
+            if(d.b !== undefined) document.getElementById('main-balance').innerText = Math.floor(d.b).toLocaleString();
+            if(d.jackpot?.pool) document.getElementById('jackpot-display').innerText = Math.floor(d.jackpot.pool).toLocaleString() + ' TC';
+            
+            // Основные параметры
+            if(d.energy !== undefined) document.getElementById('energy').innerText = d.energy + '%';
+            if(d.dur !== undefined) document.getElementById('dur').innerText = Math.floor(d.dur) + '%';
+            if(d.fish !== undefined) document.getElementById('fish-weight').innerText = d.fish.toFixed(2) + ' кг';
+            if(d.id) document.getElementById('player-id').innerText = d.id;
             
             // VIP статус
             const isVip = (d.buffs?.vip > Date.now());
@@ -980,15 +978,45 @@
             userHasHope = (d.buffs?.hope > Date.now());
             document.getElementById('lake-status').innerText = userHasHope ? "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОЗЕРО НАДЕЖДЫ ✅" : "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО";
             
-            // Бонус и таймеры
+            // Реф-ссылка
+            document.getElementById('ref-link').innerText = `https://t.me/tamacoin_bot?start=${userId}`;
+            
             lastBonusTime = d.lastBonus || 0;
             updateBonusButton();
         }
 
         /* --------------------------------------------------------------------------
-           2. API И ВЗАИМОДЕЙСТВИЕ С СЕРВЕРОМ
+           УПРАВЛЕНИЕ ТАБАМИ
            -------------------------------------------------------------------------- */
+        function showTab(name, el) {
+            currentTab = name; 
+            
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById('tab-' + name).classList.add('tab-active');
+            el.classList.add('active');
+            
+            const isMain = (name === 'main');
+            
+            document.getElementById('top-area-wrapper').style.display = isMain ? 'block' : 'none';
+            document.getElementById('main-controls').style.display = isMain ? 'block' : 'none';
+            
+            // ПРИНУДИТЕЛЬНОЕ ВОССТАНОВЛЕНИЕ (Фикс сброса)
+            if(cachedData) {
+                renderFromCache();
+            }
+            
+            if(name === 'top') {
+                doAction('get_top');
+            }
+            
+            tg.HapticFeedback.selectionChanged();
+        }
 
+        /* --------------------------------------------------------------------------
+           СЕТЕВАЯ ЛОГИКА
+           -------------------------------------------------------------------------- */
         async function doAction(action, payload = {}) {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1007,13 +1035,13 @@
                 
                 const data = await response.json(); 
                 
-                // Проверка на ошибки/срывы
+                // Проверка на обрывы/срывы
                 if (data.lost || (data.msg && data.msg.includes('сорвалась'))) {
                    setTimeout(() => {
                        showWoodAlert("УПС!", "СОРВАЛАСЬ!", "РЫБА УШЛА...");
                    }, 1300);
                 }
-
+                
                 if (action === 'sell' && data.msg && data.msg.includes('Продано')) {
                     const profitMatch = data.msg.match(/\+(\d+)/);
                     showWoodAlert("РЫНОК", "ПРОДАНО!", profitMatch ? `+${profitMatch[1]} TC` : "УСПЕХ");
@@ -1022,26 +1050,26 @@
                 updateUI(data);
             } catch(e) { 
                 console.error("Сбой сети:", e); 
-                // В случае ошибки сети - даем шанс кнопке через 2 сек
-                setTimeout(closeWood, 2000);
             }
         }
 
         function updateUI(d) {
             if(!d) return;
             
-            cachedData = d; 
+            // УМНОЕ СЛИЯНИЕ КЭША: не затираем профиль данными из ТОПа
+            if(d.b !== undefined || d.energy !== undefined) {
+                cachedData = {...cachedData, ...d}; 
+            } else if(d.topPlayers) {
+                cachedData = {...cachedData, topPlayers: d.topPlayers};
+            }
+            
             renderFromCache();
 
-            // Отображение кейсов
             if (d.stats?.boxes > 0) {
                 document.getElementById('open-box-btn').style.display = 'block';
                 document.getElementById('open-box-btn').innerText = `🎁 КЕЙС (${d.stats.boxes})`;
-            } else {
-                document.getElementById('open-box-btn').style.display = 'none';
             }
 
-            // Обработка улова (плашка)
             if(d.catchData && currentTab === 'main') {
                 if (!isFishingProcess) {
                     showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w);
@@ -1062,9 +1090,8 @@
         }
 
         /* --------------------------------------------------------------------------
-           3. УПРАВЛЕНИЕ АНИМАЦИЯМИ И ЗАБРОСОМ
+           ЗАБРОС И АНИМАЦИЯ
            -------------------------------------------------------------------------- */
-
         function startFishing() {
             if (isFishingProcess) return; 
             
@@ -1074,21 +1101,18 @@
             
             btn.disabled = true;
             
-            // Анимация полета
             float.classList.add('anim-cast');
             float.style.opacity = '1';
             document.getElementById('status-msg').innerText = "ЗАКИДЫВАЕМ...";
             
             tg.HapticFeedback.impactOccurred('medium');
 
-            // Предохранитель зависания
             safetyTimeout = setTimeout(() => {
                 if (isFishingProcess && document.getElementById('wood-alert').style.display !== 'flex') {
                     closeWood();
                 }
-            }, 5000);
+            }, 3000);
 
-            // Запрос на сервер
             setTimeout(() => { 
                 doAction('cast'); 
             }, 100); 
@@ -1120,9 +1144,8 @@
         }
 
         /* --------------------------------------------------------------------------
-           4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+           ВСПОМОГАТЕЛЬНЫЕ СКРИПТЫ
            -------------------------------------------------------------------------- */
-
         function renderTop(players) {
             const container = document.getElementById('leaderboard-list');
             container.innerHTML = players.map((p, i) => `
@@ -1193,13 +1216,8 @@
             }
         }
 
-        /* --------------------------------------------------------------------------
-           5. ГЛОБАЛЬНЫЕ ЦИКЛЫ
-           -------------------------------------------------------------------------- */
-
         setInterval(() => {
             updateBonusButton();
-            // Золотой час
             const nextHour = (3600000 - (Date.now() % 3600000));
             document.getElementById('gold-timer').innerText = new Date(nextHour).toISOString().substr(11, 8);
         }, 1000);
