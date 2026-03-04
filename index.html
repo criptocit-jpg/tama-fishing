@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 4.8.0 - THE TRUE MONOLITH</title>
+    <title>Tamacoin Fishing Gold 4.8.1 - THE TRUE MONOLITH</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ==========================================================================
@@ -299,29 +299,6 @@
             overflow: hidden;
         }
 
-        .balance-pill::after {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.1), transparent);
-            transform: rotate(45deg);
-            animation: shine 4s infinite;
-        }
-
-        @keyframes shine { 
-            0% { transform: translateX(-100%) rotate(45deg); } 
-            100% { transform: translateX(100%) rotate(45deg); } 
-        }
-
-        .balance-label { 
-            font-size: 9px; 
-            color: var(--text-muted); 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            margin-bottom: 2px; 
-            font-weight: 700; 
-        }
-
         .balance-value { 
             font-size: 22px; 
             font-weight: 900; 
@@ -367,11 +344,6 @@
             border: 1px solid rgba(255, 215, 0, 0.4); 
             background: rgba(255, 215, 0, 0.08); 
             box-shadow: inset 0 0 10px rgba(255,215,0,0.1);
-        }
-
-        .status-card.jp-highlight b { 
-            color: var(--gold); 
-            text-shadow: 0 0 5px rgba(255,215,0,0.5); 
         }
 
         /* ==========================================================================
@@ -961,7 +933,12 @@
             
             // Баланс и Джекпот
             if(d.b !== undefined) document.getElementById('main-balance').innerText = Math.floor(d.b).toLocaleString();
-            if(d.jackpot?.pool) document.getElementById('jackpot-display').innerText = Math.floor(d.jackpot.pool).toLocaleString() + ' TC';
+            
+            // [ИСПРАВЛЕНО]: Логика отображения джекпота с базой в 1000
+            if(d.jackpot) {
+                const poolVal = Math.floor(d.jackpot.pool || 1000);
+                document.getElementById('jackpot-display').innerText = poolVal.toLocaleString() + ' TC';
+            }
             
             // Основные параметры
             if(d.energy !== undefined) document.getElementById('energy').innerText = d.energy + '%';
@@ -1111,7 +1088,7 @@
                 if (isFishingProcess && document.getElementById('wood-alert').style.display !== 'flex') {
                     closeWood();
                 }
-            }, 3000);
+            }, 5000);
 
             setTimeout(() => { 
                 doAction('cast'); 
