@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 4.7.7 - THE TRUE MONOLITH</title>
+    <title>Tamacoin Fishing Gold 4.7.9 - THE TRUE MONOLITH</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ==========================================================================
@@ -54,7 +54,7 @@
             left: 50%; 
             transform: translate(-50%, -50%) scale(0.5);
             width: 300px; 
-            height: 140px; 
+            height: 160px; 
             z-index: 9999;
             background: #5d4037; 
             border: 5px solid #3e2723; 
@@ -83,7 +83,7 @@
         }
 
         /* ==========================================================================
-           [3] САДОК В МАГАЗИНЕ
+           [3] СТИЛИ ВЫПАДАЮЩЕГО САДКА (ДЛЯ ТАБА МАГАЗИНА)
            ========================================================================== */
         .inventory-dropdown {
             margin: 0 0 15px 0; 
@@ -457,7 +457,7 @@
            ========================================================================== */
         .shop-category { 
             margin-bottom: 18px; 
-            border: 1px solid rgba(30, 41, 59, 0.5); 
+            border: 1px solid rgba(255,255,255,0.08); 
             border-radius: 16px; 
             overflow: hidden; 
             background: rgba(30, 41, 59, 0.4); 
@@ -922,11 +922,11 @@
         let currentTab = 'main'; 
         let isFishingProcess = false; 
         let safetyTimeout = null; 
-        let cachedData = null; // ГЛОБАЛЬНОЕ ХРАНИЛИЩЕ ДАННЫХ В СЕССИИ
+        let cachedData = null; // ГЛОБАЛЬНЫЙ КЭШ
 
-        /* ==========================================================================
-           1. ЛОГИКА ТАБОВ И ВОССТАНОВЛЕНИЯ ДАННЫХ
-           ========================================================================== */
+        /* --------------------------------------------------------------------------
+           1. ЛОГИКА ТАБОВ И ВОССТАНОВЛЕНИЯ ДАННЫХ (ФИКС "СКЛЕРОЗА")
+           -------------------------------------------------------------------------- */
 
         function showTab(name, el) {
             currentTab = name; 
@@ -944,13 +944,16 @@
             document.getElementById('top-area-wrapper').style.display = isMain ? 'block' : 'none';
             document.getElementById('main-controls').style.display = isMain ? 'block' : 'none';
             
-            if(name === 'top') {
-                doAction('get_top');
-            }
-            
-            // ПРИНУДИТЕЛЬНОЕ ВОССТАНОВЛЕНИЕ ДАННЫХ ПРИ ПЕРЕХОДЕ (Защита от сброса)
+            // ПРИНУДИТЕЛЬНОЕ ВОССТАНОВЛЕНИЕ (Фикс сброса в 0)
             if(cachedData) {
                 renderFromCache();
+            } else {
+                // Если кэша нет, запрашиваем данные
+                doAction('load');
+            }
+            
+            if(name === 'top') {
+                doAction('get_top');
             }
             
             tg.HapticFeedback.selectionChanged();
@@ -960,7 +963,7 @@
             if(!cachedData) return;
             const d = cachedData;
             
-            // Заполнение всех полей из памяти
+            // Заполнение всех полей из памяти браузера
             document.getElementById('main-balance').innerText = Math.floor(d.b || 0).toLocaleString();
             document.getElementById('jackpot-display').innerText = Math.floor(d.jackpot?.pool || 1000).toLocaleString() + ' TC';
             document.getElementById('energy').innerText = (d.energy || 0) + '%';
@@ -977,13 +980,14 @@
             userHasHope = (d.buffs?.hope > Date.now());
             document.getElementById('lake-status').innerText = userHasHope ? "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОЗЕРО НАДЕЖДЫ ✅" : "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО";
             
+            // Бонус и таймеры
             lastBonusTime = d.lastBonus || 0;
             updateBonusButton();
         }
 
-        /* ==========================================================================
+        /* --------------------------------------------------------------------------
            2. API И ВЗАИМОДЕЙСТВИЕ С СЕРВЕРОМ
-           ========================================================================== */
+           -------------------------------------------------------------------------- */
 
         async function doAction(action, payload = {}) {
             try {
@@ -1003,7 +1007,13 @@
                 
                 const data = await response.json(); 
                 
-                // Спец-обработка продажи
+                // Проверка на ошибки/срывы
+                if (data.lost || (data.msg && data.msg.includes('сорвалась'))) {
+                   setTimeout(() => {
+                       showWoodAlert("УПС!", "СОРВАЛАСЬ!", "РЫБА УШЛА...");
+                   }, 1300);
+                }
+
                 if (action === 'sell' && data.msg && data.msg.includes('Продано')) {
                     const profitMatch = data.msg.match(/\+(\d+)/);
                     showWoodAlert("РЫНОК", "ПРОДАНО!", profitMatch ? `+${profitMatch[1]} TC` : "УСПЕХ");
@@ -1011,17 +1021,16 @@
                 
                 updateUI(data);
             } catch(e) { 
-                console.error("Ошибка связи с сервером:", e); 
+                console.error("Сбой сети:", e); 
+                // В случае ошибки сети - даем шанс кнопке через 2 сек
+                setTimeout(closeWood, 2000);
             }
         }
 
         function updateUI(d) {
             if(!d) return;
             
-            // Сохраняем в кэш
             cachedData = d; 
-            
-            // Отрисовываем
             renderFromCache();
 
             // Отображение кейсов
@@ -1032,12 +1041,11 @@
                 document.getElementById('open-box-btn').style.display = 'none';
             }
 
-            // Обработка улова
+            // Обработка улова (плашка)
             if(d.catchData && currentTab === 'main') {
                 if (!isFishingProcess) {
                     showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w);
                 } else {
-                    // Ждем завершения анимации заброса
                     setTimeout(() => { 
                         showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w); 
                     }, 1300);
@@ -1053,9 +1061,9 @@
             }
         }
 
-        /* ==========================================================================
+        /* --------------------------------------------------------------------------
            3. УПРАВЛЕНИЕ АНИМАЦИЯМИ И ЗАБРОСОМ
-           ========================================================================== */
+           -------------------------------------------------------------------------- */
 
         function startFishing() {
             if (isFishingProcess) return; 
@@ -1078,7 +1086,7 @@
                 if (isFishingProcess && document.getElementById('wood-alert').style.display !== 'flex') {
                     closeWood();
                 }
-            }, 3000);
+            }, 5000);
 
             // Запрос на сервер
             setTimeout(() => { 
@@ -1104,16 +1112,16 @@
             
             const float = document.getElementById('float-img');
             float.classList.remove('anim-cast');
-            void float.offsetWidth; // Force reflow для сброса анимации
+            void float.offsetWidth; 
             float.style.opacity = '0';
             
             document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
             isFishingProcess = false; 
         }
 
-        /* ==========================================================================
+        /* --------------------------------------------------------------------------
            4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-           ========================================================================== */
+           -------------------------------------------------------------------------- */
 
         function renderTop(players) {
             const container = document.getElementById('leaderboard-list');
@@ -1185,18 +1193,18 @@
             }
         }
 
-        /* ==========================================================================
-           5. ГЛОБАЛЬНЫЕ ЦИКЛЫ И ИНИЦИАЛИЗАЦИЯ
-           ========================================================================== */
+        /* --------------------------------------------------------------------------
+           5. ГЛОБАЛЬНЫЕ ЦИКЛЫ
+           -------------------------------------------------------------------------- */
 
         setInterval(() => {
             updateBonusButton();
-            // Таймер золотого часа
+            // Золотой час
             const nextHour = (3600000 - (Date.now() % 3600000));
             document.getElementById('gold-timer').innerText = new Date(nextHour).toISOString().substr(11, 8);
         }, 1000);
 
-        // Первая загрузка
+        // Инициализация
         doAction('load');
     </script>
 </body>
