@@ -83,7 +83,7 @@
         }
 
         /* ==========================================================================
-           [3] СТИЛИ ВЫПАДАЮЩЕГО САДКА (ДЛЯ ТАБА МАГАЗИНА)
+           [3] СТИЛИ ВЫПАДАЮЩЕГО САДКА
            ========================================================================== */
         .inventory-dropdown {
             margin: 0 0 15px 0; 
@@ -113,7 +113,7 @@
         }
 
         .inv-open .inv-content { 
-            max-height: 300px; 
+            max-height: 400px; 
             padding: 18px; 
             opacity: 1; 
         }
@@ -275,73 +275,108 @@
             min-width: 65px; 
         }
 
-        /* [XP BAR STYLE] */
-        #xp-bar-container { padding: 0 16px; margin-top: 5px; background: var(--bg); }
-        .xp-text-info { display: flex; justify-content: space-between; font-size: 9px; font-weight: 900; color: var(--success); margin-bottom: 2px; text-transform: uppercase; }
-        .xp-track { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(16,185,129,0.3); overflow: hidden; }
-        .xp-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); transition: width 0.5s ease; }
+        /* [XP BAR STYLE - ПОЛНАЯ ВЕРСИЯ] */
+        #xp-bar-container {
+            padding: 0 16px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        .xp-text-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 900;
+            color: var(--success);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .xp-track {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(16,185,129,0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        .xp-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+            background-size: 200% 100%;
+            animation: xp-glow 3s linear infinite;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes xp-glow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
 
         /* ==========================================================================
-           [6] ПАНЕЛЬ СТАТИСТИКИ
+           [6] ПАНЕЛЬ СТАТИСТИКИ (BALANCE & GRID)
            ========================================================================== */
         .top-stats { 
             padding: 12px 16px; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            gap: 10px; 
+            gap: 12px; 
             flex-shrink: 0; 
         }
 
         .balance-pill { 
             background: linear-gradient(145deg, #1e293b, #0f172a);
-            padding: 8px 24px; 
-            border-radius: 30px; 
-            border: 1px solid var(--gold);
+            padding: 10px 28px; 
+            border-radius: 35px; 
+            border: 2px solid var(--gold);
             text-align: center; 
-            min-width: 160px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4), var(--shadow-gold);
+            min-width: 180px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5), var(--shadow-gold);
             position: relative;
             overflow: hidden;
         }
 
         .balance-value { 
-            font-size: 22px; 
+            font-size: 24px; 
             font-weight: 900; 
             color: var(--gold); 
-            letter-spacing: 0.5px; 
+            letter-spacing: 1px; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .status-info-grid { 
             display: grid; 
             grid-template-columns: 1fr 1.4fr 1fr; 
-            gap: 10px; 
+            gap: 12px; 
             width: 100%; 
             margin-top: 5px;
         }
 
         .status-card { 
             background: var(--panel); 
-            padding: 10px 5px; 
-            border-radius: 14px; 
-            border: 1px solid rgba(255,255,255,0.05);
-            border-bottom: 3px solid rgba(0,0,0,0.2);
+            padding: 12px 6px; 
+            border-radius: 16px; 
+            border: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 4px solid rgba(0,0,0,0.3);
             text-align: center; 
             display: flex;
             flex-direction: column;
             justify-content: center;
+            transition: transform 0.2s ease;
         }
 
         .status-card span { 
-            font-size: 8px; 
+            font-size: 9px; 
             color: var(--text-muted); 
             font-weight: 800; 
             text-transform: uppercase; 
-            margin-bottom: 4px; 
+            margin-bottom: 5px; 
+            letter-spacing: 0.5px;
         }
 
         .status-card b { 
-            font-size: 14px; 
+            font-size: 15px; 
             color: var(--text-main); 
             font-family: var(--font-mono); 
         }
@@ -349,7 +384,7 @@
         .status-card.jp-highlight { 
             border: 1px solid rgba(255, 215, 0, 0.4); 
             background: rgba(255, 215, 0, 0.08); 
-            box-shadow: inset 0 0 10px rgba(255,215,0,0.1);
+            box-shadow: inset 0 0 15px rgba(255,215,0,0.1);
         }
 
         /* ==========================================================================
@@ -358,21 +393,21 @@
         .game-view-container { 
             padding: 0 16px; 
             flex-shrink: 0; 
-            margin-bottom: 12px; 
+            margin-bottom: 14px; 
         }
 
         .game-view {
-            height: 180px; 
+            height: 200px; 
             width: 100%; 
             display: flex; 
             align-items: center; 
             justify-content: center;
             position: relative; 
-            border-radius: 20px; 
+            border-radius: 24px; 
             background: #000;
-            border: 2px solid rgba(255,255,255,0.1); 
+            border: 2px solid rgba(255,255,255,0.12); 
             overflow: hidden;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.95);
+            box-shadow: inset 0 0 50px rgba(0,0,0,1);
         }
 
         .float-container { 
@@ -387,8 +422,8 @@
         }
 
         .float-img { 
-            max-width: 100%;
-            max-height: 100%;
+            max-width: 90%;
+            max-height: 90%;
             width: auto;
             height: auto;
             object-fit: contain; 
@@ -399,35 +434,36 @@
         }
         
         .anim-cast { 
-            animation: cast-process 1.2s ease-in-out forwards; 
+            animation: cast-process 1.3s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards; 
         }
         
         @keyframes cast-process {
-            0% { transform: scale(0.6); opacity: 0; }
-            20% { opacity: 1; transform: scale(1); }
-            80% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(1.1); }
+            0% { transform: scale(0.5) translateY(20px); opacity: 0; }
+            25% { opacity: 1; transform: scale(1.1) translateY(0); }
+            50% { transform: scale(1) rotate(5deg); }
+            75% { transform: scale(1.05) rotate(-5deg); }
+            100% { opacity: 0; transform: scale(1.2); }
         }
 
         #status-msg {
             color: var(--gold); 
-            font-size: 10px; 
+            font-size: 11px; 
             position: absolute; 
-            bottom: 12px; 
+            bottom: 14px; 
             font-weight: 900; 
             z-index: 50; 
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            background: rgba(15, 23, 42, 0.85); 
-            padding: 5px 16px; 
-            border-radius: 25px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            backdrop-filter: blur(6px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+            background: rgba(15, 23, 42, 0.9); 
+            padding: 6px 20px; 
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
         }
 
         /* ==========================================================================
-           [8] КОНТЕНТНАЯ ОБЛАСТЬ (ТАБЫ)
+           [8] ТАБЫ И КНОПКИ
            ========================================================================== */
         .tabs-container { 
             flex-grow: 1; 
@@ -437,162 +473,14 @@
             position: relative;
             scrollbar-width: none;
         }
+        .tab-content { display: none; width: 100%; padding-bottom: 30px; }
+        .tab-active { display: block; animation: tabAppear 0.5s ease; }
 
-        .tabs-container::-webkit-scrollbar { 
-            display: none; 
-        }
-        
-        .tab-content { 
-            display: none; 
-            width: 100%; 
-            padding-bottom: 20px; 
-        }
-
-        .tab-active { 
-            display: block; 
-            animation: tabAppear 0.4s ease-out; 
-        }
-
-        @keyframes tabAppear { 
-            from { opacity: 0; transform: translateY(10px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-
-        /* ==========================================================================
-           [9] МАГАЗИН И РЫНОК
-           ========================================================================== */
-        .shop-category { 
-            margin-bottom: 18px; 
-            border: 1px solid rgba(255,255,255,0.08); 
-            border-radius: 16px; 
-            overflow: hidden; 
-            background: rgba(30, 41, 59, 0.4); 
-        }
-
-        .shop-cat-header { 
-            background: #1e293b; 
-            padding: 16px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            color: var(--gold); 
-            font-weight: 800; 
-            font-size: 14px; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-        }
-
-        .shop-cat-content { 
-            display: none; 
-            padding: 10px 14px; 
-        }
-
-        .shop-cat-content.open { 
-            display: block; 
-        }
-
-        .item-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 18px 0; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); 
-        }
-
-        .item-row:last-child { 
-            border-bottom: none; 
-        }
-
-        .item-info { 
-            flex: 1; 
-            padding-right: 15px; 
-        }
-
-        .item-info h4 { 
-            font-size: 15px; 
-            color: var(--text-main); 
-            margin-bottom: 4px; 
-        }
-
-        .item-info p { 
-            font-size: 11px; 
-            color: var(--text-muted); 
-            line-height: 1.3; 
-        }
-
-        .btn-buy-tc { 
-            background: #334155; 
-            color: white; 
-            border: none; 
-            padding: 12px 16px; 
-            border-radius: 12px; 
-            font-weight: 700; 
-            font-size: 12px; 
-            min-width: 85px;
-            box-shadow: 0 3px 0 #1e293b;
-        }
-
-        .btn-buy-tc:active { 
-            transform: translateY(2px); 
-            box-shadow: none; 
-        }
-
-        .btn-buy-ton { 
-            background: var(--gold); 
-            color: #000; 
-            border: none; 
-            padding: 12px 16px; 
-            border-radius: 12px; 
-            font-weight: 900; 
-            font-size: 12px; 
-            min-width: 85px;
-            box-shadow: 0 3px 0 var(--gold-dark);
-        }
-
-        .btn-buy-ton:active { 
-            transform: translateY(2px); 
-            box-shadow: none; 
-        }
-
-        #payment-area { 
-            background: #020617; 
-            border: 2px dashed var(--gold); 
-            padding: 20px; 
-            border-radius: 18px; 
-            margin: 15px 0; 
-            text-align: center; 
-            display: none; 
-            animation: pulse-border 2s infinite;
-        }
-
-        @keyframes pulse-border { 
-            0% { border-color: var(--gold); } 
-            50% { border-color: transparent; } 
-            100% { border-color: var(--gold); } 
-        }
-
-        .memo-box { 
-            display: block; 
-            background: #111; 
-            padding: 14px; 
-            margin: 12px 0; 
-            color: var(--gold); 
-            font-size: 14px; 
-            border-radius: 12px; 
-            font-family: var(--font-mono); 
-            border: 1px solid rgba(255,215,0,0.4); 
-            word-break: break-all;
-        }
-
-        /* ==========================================================================
-           [10] ПАНЕЛЬ ДЕЙСТВИЙ
-           ========================================================================== */
         .action-container { 
-            padding: 12px 16px 20px; 
+            padding: 14px 16px 24px; 
             background: var(--bg); 
             flex-shrink: 0; 
-            border-top: 1px solid rgba(255,255,255,0.1); 
+            border-top: 1px solid rgba(255,255,255,0.12); 
             z-index: 100;
         }
 
@@ -601,70 +489,25 @@
             color: white; 
             border: none; 
             width: 100%; 
-            height: 44px; 
-            border-radius: 16px; 
-            font-size: 18px; 
+            height: 50px; 
+            border-radius: 18px; 
+            font-size: 20px; 
             font-weight: 900; 
-            box-shadow: 0 4px 0 #92400e; 
+            box-shadow: 0 5px 0 #92400e; 
             transition: all 0.1s ease; 
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        .btn-cast:active { 
-            transform: translateY(2px); 
-            box-shadow: 0 2px 0 #92400e; 
-        }
-
-        .btn-cast:disabled { 
-            background: #475569; 
-            box-shadow: 0 4px 0 #1e293b; 
-            opacity: 0.6; 
-        }
+        .btn-cast:active { transform: translateY(3px); box-shadow: 0 2px 0 #92400e; }
+        .btn-cast:disabled { background: #475569; box-shadow: 0 5px 0 #1e293b; opacity: 0.7; }
 
         /* ==========================================================================
-           [11] ЛИДЕРБОРД
-           ========================================================================== */
-        .leader-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            padding: 16px; 
-            background: rgba(255,255,255,0.03); 
-            border-radius: 16px; 
-            margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .leader-item.me { 
-            border-color: var(--gold); 
-            background: rgba(255,215,0,0.1); 
-        }
-
-        .rank { 
-            font-size: 14px; 
-            font-weight: 900; 
-            color: var(--text-muted); 
-            width: 30px; 
-        }
-
-        .leader-name { 
-            flex: 1; 
-            font-weight: 600; 
-            font-size: 14px; 
-        }
-
-        .leader-score { 
-            font-family: var(--font-mono); 
-            color: var(--gold); 
-            font-weight: 800; 
-        }
-
-        /* ==========================================================================
-           [12] НИЖНЯЯ НАВИГАЦИЯ
+           [9] НАВИГАЦИЯ
            ========================================================================== */
         .nav-bar { 
-            height: 70px; 
+            height: 75px; 
             background: #020617; 
             border-top: 1px solid #334155; 
             display: flex; 
@@ -672,168 +515,58 @@
             align-items: center;
             padding-bottom: env(safe-area-inset-bottom);
         }
-
-        .nav-item { 
-            font-size: 11px; 
-            text-align: center; 
-            color: #64748b; 
-            flex: 1; 
-            font-weight: 800;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            cursor: pointer;
-        }
-
-        .nav-item.active { 
-            color: var(--gold); 
-        }
-
-        .nav-item i { 
-            font-size: 22px; 
-            font-style: normal; 
-        }
-
-        /* АДМИН ПАНЕЛЬ СПЕЦ. СТИЛИ */
-        #tab-admin .admin-btn { 
-            width: 100%; 
-            padding: 12px; 
-            margin-bottom: 10px; 
-            border-radius: 10px; 
-            border: none; 
-            font-weight: 900; 
-            cursor: pointer; 
-            background: var(--danger);
-            color: #fff;
-        }
-        #admin-user-list { 
-            font-family: var(--font-mono); 
-            font-size: 10px; 
-            background: #000; 
-            padding: 10px; 
-            border-radius: 10px; 
-            color: var(--text-muted); 
-            max-height: 400px; 
-            overflow-y: auto; 
-        }
-    </style>
-</head>
-<body>
-
-    <div id="wood-alert">
-        <div id="wood-header-type" style="font-size: 10px; color: #bcaaa4; letter-spacing: 1px; text-transform: uppercase;">СООБЩЕНИЕ</div>
-        <div id="wood-title" style="font-size: 18px; color: #fff; margin: 5px 0;">УЛОВ!</div>
-        <div id="wood-profit" style="font-size: 24px; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">+0 TC</div>
-        <button onclick="closeWood()" style="margin-top:10px; background:none; border:2px solid #8d6e63; color:#fff; font-size:11px; padding:6px 20px; border-radius:8px; cursor:pointer; font-weight: 900; text-transform: uppercase;">ОК</button>
-    </div>
-
-    <div id="lucky-box-overlay" class="box-overlay">
+        .nav-item { font-size: 12px; text-align: center; color: #64748b; flex: 1; font-weight: 800; transition: 0.3s; display: flex; flex-direction: column; gap: 5px; cursor: pointer; }
+        .nav-item.active { color: var(--gold); transform: translateY(-2px); }
+        .nav-item i { font-size: 24px; font-style: normal; }
+        <div id="lucky-box-overlay" class="box-overlay">
         <div id="prize-text" class="prize-out">ВАШ ПРИЗ!</div>
         <div class="lucky-box-anim box-shake-effect" id="box-body" onclick="animateBoxOpening()">
             <div class="box-lid-anim"></div>
         </div>
         <p style="margin-top:25px; font-weight:900; color:var(--gold); letter-spacing:2px;" id="box-hint">ЖМИ НА КОРОБКУ!</p>
-        <button id="close-box-btn" class="btn-cast" style="display:none; margin-top:30px; width:200px;" onclick="closeBoxModal()">ЗАБРАТЬ</button>
+        <button id="close-box-btn" class="btn-cast" style="display:none; margin-top:30px; width:220px;" onclick="closeBoxModal()">ЗАБРАТЬ НАГРАДУ</button>
     </div>
 
-    <div id="top-area-wrapper">
-        <div class="header-fixed">
-            <div class="marquee">
-                <div class="marquee-content" id="events-line">Удачного клева в Tamacoin Fishing! 🎣 Редкая рыба клюет в Золотой Час! 🌅 Следи за Джекпотом! 💰 Приглашай друзей! 🚀</div>
-            </div>
-            <div class="timers-row">
-                <div class="timer-block">
-                    <span class="timer-label">ЗОЛОТОЙ ЧАС:</span>
-                    <span id="gold-timer" class="timer-val">00:00:00</span>
-                </div>
-                <div class="timer-block">
-                    <span class="timer-label">ДО БОНУСА:</span>
-                    <span id="bonus-timer" class="timer-val">...</span>
-                </div>
-            </div>
-            
-            <div id="xp-bar-container">
-                <div class="xp-text-info">
-                    <span>Уровень <span id="lvl-val">1</span></span>
-                    <span>XP: <span id="xp-val">0</span>/100</span>
-                </div>
-                <div class="xp-track">
-                    <div id="xp-fill" class="xp-fill"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="top-stats">
-            <div class="balance-pill">
-                <div class="balance-label" style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">БАЛАНС TC</div>
-                <div class="balance-value"><span id="main-balance">0</span></div>
-            </div>
-            
-            <div class="status-info-grid">
-                <div class="status-card">
-                    <span>ЭНЕРГИЯ</span>
-                    <b id="energy">100%</b>
-                </div>
-                <div class="status-card jp-highlight">
-                    <span>JACKPOT</span>
-                    <b id="jackpot-display">1 000 TC</b>
-                </div>
-                <div class="status-card">
-                    <span>ПРОЧНОСТЬ</span>
-                    <b id="dur">100%</b>
-                </div>
-            </div>
-        </div>
-
-        <div class="game-view-container" id="game-view-block">
-            <div class="game-view">
-                <div class="float-container">
-                    <img id="float-img" src="fish_anim.webp" class="float-img">
-                </div>
-                <div id="status-msg">ГОТОВ К ЛОВЛЕ</div>
-            </div>
-        </div>
-    </div>
     <div class="tabs-container">
         <div id="tab-main" class="tab-content tab-active">
-            <div id="lake-status" style="text-align:center; font-weight:900; color:var(--accent); margin-bottom:15px; font-size:12px; text-transform:uppercase;">📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО</div>
-            <div style="background:rgba(255,255,255,0.02); padding:15px; border-radius:18px; border:1px solid rgba(255,255,255,0.05);">
-                <p style="font-size:12px; color:var(--text-muted); text-align:center; line-height:1.6;">Используйте кнопку «СДЕЛАТЬ ЗАБРОС» внизу. <br> Каждая попытка тратит 1% энергии и 1% прочности удочки.</p>
+            <div id="lake-status" style="text-align:center; font-weight:900; color:var(--accent); margin-bottom:20px; font-size:13px; text-transform:uppercase; letter-spacing:1px;">📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО</div>
+            <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:22px; border:1px solid rgba(255,255,255,0.06); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <p style="font-size:13px; color:var(--text-muted); text-align:center; line-height:1.7;">Добро пожаловать в <b>Tamacoin Fishing</b>! <br><br> Нажимайте на кнопку «СДЕЛАТЬ ЗАБРОС», чтобы начать ловлю. Помните, что каждая попытка расходует энергию и прочность вашей удочки. Следите за «Золотым часом» для максимального улова!</p>
             </div>
         </div>
 
         <div id="tab-shop" class="tab-content">
-            <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase;">Рыболовный рынок</h3>
+            <h3 style="text-align:center; color:var(--gold); margin-bottom:25px; text-transform:uppercase; letter-spacing:2px;">Рыболовный рынок</h3>
             
             <div class="inventory-dropdown inv-open" id="inv-block">
                 <div class="inv-header" onclick="toggleInv()">
-                    <span style="font-weight:900; font-size:12px; letter-spacing:1px;">🧺 МОЙ САДОК</span>
-                    <span id="inv-arrow" style="color:var(--gold); font-size:10px;">▲</span>
+                    <span style="font-weight:900; font-size:13px; letter-spacing:1.5px;">🧺 МОЙ САДОК ДЛЯ РЫБЫ</span>
+                    <span id="inv-arrow" style="color:var(--gold); font-size:12px;">▲</span>
                 </div>
                 <div class="inv-content">
-                    <div class="inv-row"><span class="inv-label">ВАШ ID:</span><span class="inv-val" id="player-id">---</span></div>
-                    <div class="inv-row"><span class="inv-label">СТАТУС:</span><span class="inv-val" id="player-status">ОБЫЧНЫЙ</span></div>
-                    <div class="inv-row"><span class="inv-label">ВЕС РЫБЫ:</span><span class="inv-val" id="fish-weight">0.00 кг</span></div>
-                    <button class="btn-cast" id="sell-btn-inv" style="background:var(--success); height:38px; font-size:12px; margin-top:12px; box-shadow: 0 4px 0 #065f46; border:none; width:100%; color:white;" onclick="doAction('sell')">💰 ПРОДАТЬ УЛОВ</button>
+                    <div class="inv-row"><span class="inv-label">ВАШ УНИКАЛЬНЫЙ ID:</span><span class="inv-val" id="player-id">---</span></div>
+                    <div class="inv-row"><span class="inv-label">ТЕКУЩИЙ СТАТУС:</span><span class="inv-val" id="player-status">ОБЫЧНЫЙ РЫБАК</span></div>
+                    <div class="inv-row"><span class="inv-label">ОБЩИЙ ВЕС УЛОВА:</span><span class="inv-val" id="fish-weight">0.00 кг</span></div>
+                    <div class="inv-row"><span class="inv-label">ТЕКУЩИЙ УРОВЕНЬ:</span><span class="inv-val" id="player-lvl-info">1 УРОВЕНЬ</span></div>
+                    <button class="btn-cast" id="sell-btn-inv" style="background:var(--success); height:45px; font-size:14px; margin-top:15px; box-shadow: 0 5px 0 #065f46; border:none; width:100%; color:white; font-weight:900;" onclick="doAction('sell')">💰 ПРОДАТЬ ВЕСЬ УЛОВ</button>
                 </div>
             </div>
 
-            <button id="open-box-btn" class="btn-cast" style="display:none; background:var(--gold); color:#000; margin-bottom:15px; border-radius:15px; height:50px; border:none; font-weight:900;" onclick="showBoxModal()">🎁 ОТКРЫТЬ КЕЙС</button>
+            <button id="open-box-btn" class="btn-cast" style="display:none; background:var(--gold); color:#000; margin-bottom:20px; border-radius:18px; height:55px; border:none; font-weight:900; box-shadow: 0 5px 0 var(--gold-dark);" onclick="showBoxModal()">🎁 ОТКРЫТЬ КОРОБКУ УДАЧИ</button>
 
             <div class="shop-category">
-                <div class="shop-cat-header" onclick="toggleCat('cat-tc')">СНАРЯЖЕНИЕ ЗА TC <span>▼</span></div>
+                <div class="shop-cat-header" onclick="toggleCat('cat-tc')">РАСХОДНИКИ (TC) <span>▼</span></div>
                 <div id="cat-tc" class="shop-cat-content open">
                     <div class="item-row">
-                        <div class="item-info"><h4>Хлебный мякиш (10 шт)</h4><p>Устраняет риск срыва рыбы при забросе.</p></div>
+                        <div class="item-info"><h4>Хлебный мякиш (10 шт)</h4><p>Гарантирует, что рыба не сорвется при забросе.</p></div>
                         <button class="btn-buy-tc" onclick="doAction('buy',{id:'myakish'})">100 TC</button>
                     </div>
                     <div class="item-row">
-                        <div class="item-info"><h4>Бодрящий Энергетик</h4><p>Мгновенно восстанавливает 100% энергии.</p></div>
+                        <div class="item-info"><h4>Бодрящий Энергетик</h4><p>Мгновенно восстанавливает вашу энергию до максимума.</p></div>
                         <button class="btn-buy-tc" onclick="doAction('buy',{id:'energy'})">50 TC</button>
                     </div>
                     <div class="item-row">
-                        <div class="item-info"><h4>Ремкомплект мастера</h4><p>Восстанавливает прочность удочки до 100%.</p></div>
+                        <div class="item-info"><h4>Ремкомплект мастера</h4><p>Полностью восстанавливает прочность вашей удочки.</p></div>
                         <button class="btn-buy-tc" onclick="doAction('buy',{id:'repair'})">50 TC</button>
                     </div>
                 </div>
@@ -843,19 +576,24 @@
                 <div class="shop-cat-header" onclick="toggleCat('cat-ton')">VIP ПРЕДЛОЖЕНИЯ (TON) <span>▶</span></div>
                 <div id="cat-ton" class="shop-cat-content">
                     <div id="payment-area">
-                        <p style="font-size:12px; color:var(--text-muted);">Переведите <b id="pay-price" style="color:var(--gold);"></b> TON.</p>
+                        <p style="font-size:13px; color:var(--text-muted);">Для покупки переведите <b id="pay-price" style="color:var(--gold);"></b> TON.</p>
+                        <p style="font-size:11px; margin-top:8px; text-transform:uppercase; color:var(--accent);">Обязательно укажите MEMO:</p>
                         <code id="pay-memo" class="memo-box">MEMO_CODE</code>
                     </div>
                     <div class="item-row">
-                        <div class="item-info"><h4>VIP Приманка</h4><p>Вес x3, в Золотой час x6 (7 дней).</p></div>
+                        <div class="item-info"><h4>VIP Приманка (7д)</h4><p>Увеличивает вес рыбы в 3 раза, а в Золотой час — в 6 раз.</p></div>
                         <button class="btn-buy-ton" onclick="requestPay('vip_bait', 1.0)">1.0 TON</button>
                     </div>
                     <div class="item-row">
-                        <div class="item-info"><h4>Титановая удочка</h4><p>Вечная прочность (7 дней).</p></div>
+                        <div class="item-info"><h4>Титановая удочка (7д)</h4><p>Вечная прочность и нулевой шанс срыва на целую неделю.</p></div>
                         <button class="btn-buy-ton" onclick="requestPay('titan_rod_7', 1.0)">1.0 TON</button>
                     </div>
-                    <div class="item-row" style="border: 2px solid var(--gold); border-radius:10px; padding:5px;">
-                        <div class="item-info"><h4>👑 VIP СТАТУС</h4><p>Вывод 10к, безлимит (14 дней).</p></div>
+                    <div class="item-row">
+                        <div class="item-info"><h4>Озеро Надежды (7д)</h4><p>Доступ к локации с Золотыми Карпами и денежными мешками.</p></div>
+                        <button class="btn-buy-ton" onclick="requestPay('hope_lake_7', 2.0)">2.0 TON</button>
+                    </div>
+                    <div class="item-row" style="border: 2px solid var(--gold); border-radius:14px; padding:10px; margin-top:10px; background: rgba(255,215,0,0.05);">
+                        <div class="item-info"><h4>👑 ПОЛНЫЙ VIP СТАТУС</h4><p>Лимит вывода 10к, безлимитная энергия и уникальная иконка (14д).</p></div>
                         <button class="btn-buy-ton" onclick="requestPay('vip_status_14', 3.0)">3.0 TON</button>
                     </div>
                 </div>
@@ -863,35 +601,38 @@
         </div>
 
         <div id="tab-top" class="tab-content">
-            <h3 style="text-align:center; color:var(--gold); margin-bottom:15px; text-transform:uppercase;">Лидеры недели</h3>
+            <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase; letter-spacing:2px;">Топ 10 Рыбаков</h3>
             <div id="leaderboard-list"></div>
         </div>
 
         <div id="tab-info" class="tab-content">
-            <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase;">Информация</h3>
-            <div class="shop-category" style="padding:15px; color:var(--text-muted); font-size:12px;">
-                <p style="color:var(--gold); font-weight:900; margin-bottom:10px; text-transform: uppercase;">ПРАВИЛА ИГРЫ:</p>
-                <p>• Золотой час: Первые 10 минут каждого часа.</p>
-                <p>• Озеро Надежды: Лимит 10 карпов на неделю.</p>
-                <p>• Коробка Удачи: Дается за 50 забросов реферала.</p>
+            <h3 style="text-align:center; color:var(--gold); margin-bottom:25px; text-transform:uppercase;">Информация и Рефералы</h3>
+            <div class="shop-category" style="padding:20px; color:var(--text-muted); font-size:12px; line-height:1.6; background:rgba(255,255,255,0.02); border-radius:20px; border:1px solid rgba(255,255,255,0.05);">
+                <p style="color:var(--gold); font-weight:900; margin-bottom:12px; text-transform: uppercase; letter-spacing:1px;">ВАЖНО ЗНАТЬ:</p>
+                <p>• <b>Золотой час:</b> Первые 10 минут каждого часа. Шанс поймать трофей выше в разы!</p>
+                <p>• <b>Озеро Надежды:</b> Глобальный лимит сервера — всего 10 Золотых Карпов в неделю.</p>
+                <p>• <b>Коробка Удачи:</b> Приглашайте друзей! Как только ваш друг сделает 50 забросов, вы получите секретный кейс.</p>
+                <p>• <b>VIP Статус:</b> Позволяет выводить средства от 10 000 TC вместо стандартных 30 000 TC.</p>
             </div>
-            <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:20px; text-align:center;">
-                <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px; text-transform: uppercase;">ВАША РЕФЕРАЛЬНАЯ ССЫЛКА</p>
-                <div id="ref-link" style="background:#000; padding:15px; font-size:11px; color:var(--gold); border:1px solid #334155; margin-bottom:20px; border-radius:12px; word-break:break-all;">...</div>
-                <button class="btn-buy-tc" style="width:100%; height:50px; background:var(--gold); color:#000; font-weight:900;" onclick="copyRef()">КОПИРОВАТЬ</button>
+            <div style="background:rgba(0,0,0,0.3); padding:25px; border-radius:24px; text-align:center; border:1px solid rgba(255,255,255,0.1); margin-top:20px;">
+                <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px; letter-spacing:1px; font-weight:700; text-transform: uppercase;">ПРИГЛАСИТЬ ДРУГА</p>
+                <div id="ref-link" style="background:#000; padding:18px; font-size:11px; color:var(--gold); border:1px solid #334155; margin-bottom:25px; border-radius:15px; word-break:break-all; font-family:var(--font-mono); box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">...</div>
+                <button class="btn-cast" style="height:55px; background:var(--gold); color:#000; font-weight:900;" onclick="copyRef()">СКОПИРОВАТЬ ССЫЛКУ</button>
             </div>
         </div>
 
         <div id="tab-admin" class="tab-content">
-            <h3 style="text-align:center; color:var(--danger); margin-bottom:20px; text-transform:uppercase;">Admin Panel</h3>
-            <button class="admin-btn" onclick="doAction('admin_get_all')">GET ALL USERS</button>
-            <div id="admin-user-list"></div>
+            <h3 style="text-align:center; color:var(--danger); margin-bottom:25px; text-transform:uppercase;">Панель Управления</h3>
+            <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:20px; border:1px solid var(--danger);">
+                <button class="btn-cast" style="background:var(--danger); box-shadow: 0 5px 0 #991b1b; height:50px; font-size:14px; margin-bottom:20px;" onclick="doAction('admin_get_all')">ЗАГРУЗИТЬ СПИСОК ВСЕХ ИГРОКОВ</button>
+                <div id="admin-user-list" style="padding:15px; background:#000; border-radius:15px; color:var(--text-muted); font-size:10px; font-family:var(--font-mono); line-height:1.4; white-space: pre-wrap;">Данные не загружены...</div>
+            </div>
         </div>
     </div>
 
     <div class="action-container" id="main-controls">
-        <button id="bonus-btn" class="btn-cast" style="margin-bottom:12px; background:var(--success); display:none;" onclick="doAction('get_daily')">🎁 ПОЛУЧИТЬ БОНУС</button>
-        <button id="cast-btn" class="btn-cast" onclick="startFishing()">СДЕЛАТЬ ЗАБРОС</button>
+        <button id="bonus-btn" class="btn-cast" style="margin-bottom:15px; background:var(--success); box-shadow: 0 5px 0 #065f46; display:none;" onclick="doAction('get_daily')">🎁 ПОЛУЧИТЬ ЕЖЕДНЕВНЫЙ БОНУС</button>
+        <button id="cast-btn" class="btn-cast" onclick="startFishing()">СДЕЛАТЬ ЗАБРОС УДОЧКИ</button>
     </div>
 
     <div class="nav-bar">
@@ -916,47 +657,51 @@
         let isFishingProcess = false; 
         let cachedData = null; 
 
-        /* --------------------------------------------------------------------------
-           ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРА (Smart Cache)
-           -------------------------------------------------------------------------- */
+        // [SMART CACHE RENDER ENGINE]
         function renderFromCache() {
             if(!cachedData) return;
             const d = cachedData;
             
-            // Баланс, Джекпот, Ресурсы
+            // Основной интерфейс
             if(d.b !== undefined) document.getElementById('main-balance').innerText = Math.floor(d.b).toLocaleString();
-            if(d.jackpot) document.getElementById('jackpot-display').innerText = Math.floor(d.jackpot.pool || 1000).toLocaleString() + ' TC';
+            if(d.jackpot) {
+                const pj = Math.floor(d.jackpot.pool || 1000);
+                document.getElementById('jackpot-display').innerText = pj.toLocaleString() + ' TC';
+            }
             if(d.energy !== undefined) document.getElementById('energy').innerText = d.energy + '%';
             if(d.dur !== undefined) document.getElementById('dur').innerText = Math.floor(d.dur) + '%';
             if(d.fish !== undefined) document.getElementById('fish-weight').innerText = d.fish.toFixed(2) + ' кг';
             if(d.id) document.getElementById('player-id').innerText = d.id;
 
-            // [НОВОЕ] XP & LEVEL
+            // [НОВОЕ] XP & LEVEL SYSTEM
             const lvl = d.level || 1;
             const xp = d.xp || 0;
             const xpInLvl = xp % 100;
             document.getElementById('lvl-val').innerText = lvl;
             document.getElementById('xp-val').innerText = xpInLvl;
             document.getElementById('xp-fill').style.width = xpInLvl + '%';
+            document.getElementById('player-lvl-info').innerText = lvl + ' УРОВЕНЬ';
 
-            // [НОВОЕ] ADMIN CHECK
-            if(d.isAdmin) document.getElementById('nav-admin-btn').style.display = 'flex';
+            // [НОВОЕ] ADMIN ACCESS
+            if(d.isAdmin) {
+                document.getElementById('nav-admin-btn').style.display = 'flex';
+            }
 
-            // Статус и Локация
+            // Статусы
             const isVip = (d.buffs?.vip > Date.now());
-            document.getElementById('player-status').innerText = isVip ? '👑 VIP' : 'ОБЫЧНЫЙ';
+            document.getElementById('player-status').innerText = isVip ? '👑 VIP ИГРОК' : 'ОБЫЧНЫЙ РЫБАК';
             document.getElementById('player-status').style.color = isVip ? 'var(--gold)' : 'var(--text-muted)';
+            
             userHasHope = (d.buffs?.hope > Date.now());
-            document.getElementById('lake-status').innerText = userHasHope ? "📍 ОЗЕРО НАДЕЖДЫ ✅" : "📍 ОБЫЧНОЕ ОЗЕРО";
+            document.getElementById('lake-status').innerText = userHasHope ? "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОЗЕРО НАДЕЖДЫ ✅" : "📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО";
             
             document.getElementById('ref-link').innerText = `https://t.me/tamacoin_bot?start=${userId}`;
+            
             lastBonusTime = d.lastBonus || 0;
             updateBonusButton();
         }
 
-        /* --------------------------------------------------------------------------
-           УПРАВЛЕНИЕ ТАБАМИ
-           -------------------------------------------------------------------------- */
+        // [TABS MANAGEMENT WITH CACHE]
         function showTab(name, el) {
             currentTab = name; 
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
@@ -973,32 +718,45 @@
             tg.HapticFeedback.selectionChanged();
         }
 
-        /* --------------------------------------------------------------------------
-           СЕТЕВАЯ ЛОГИКА
-           -------------------------------------------------------------------------- */
+        // [CORE API ENGINE]
         async function doAction(action, payload = {}) {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const refBy = urlParams.get('start');
+                
                 const response = await fetch(API, { 
                     method: 'POST', 
                     headers: {'Content-Type': 'application/json'}, 
                     body: JSON.stringify({ 
-                        userId, userName: tg.initDataUnsafe?.user?.first_name,
-                        action, payload: { ...payload, lake: userHasHope ? 'hope' : 'normal', refBy } 
+                        userId, 
+                        userName: tg.initDataUnsafe?.user?.first_name,
+                        action, 
+                        payload: { ...payload, lake: userHasHope ? 'hope' : 'normal', refBy } 
                     }) 
                 });
+                
                 const data = await response.json(); 
-                if (data.msg && (data.msg.includes('сорвалась') || data.msg.includes('Срыв'))) {
-                    setTimeout(() => showWoodAlert("УПС!", "СОРВАЛАСЬ!", "РЫБА УШЛА..."), 1300);
+                
+                // [ВОССТАНОВЛЕНО]: Полная логика плашки продажи
+                if (action === 'sell' && data.msg && data.msg.includes('Продано')) {
+                    const profitMatch = data.msg.match(/\+(\d+)/);
+                    showWoodAlert("РЫНОК", "ПРОДАНО!", profitMatch ? `+${profitMatch[1]} TC` : "УСПЕХ");
                 }
+                
+                // Срывы и ошибки
+                if (data.msg && (data.msg.includes('сорвалась') || data.msg.includes('Срыв'))) {
+                    setTimeout(() => {
+                        showWoodAlert("УПС!", "СОРВАЛАСЬ!", "РЫБА УШЛА...");
+                    }, 1350);
+                }
+                
                 updateUI(data);
-            } catch(e) { console.error("Net error:", e); }
+            } catch(e) { console.error("Network fatal error:", e); }
         }
 
         function updateUI(d) {
             if(!d) return;
-            // УМНОЕ СЛИЯНИЕ КЭША
+            // Умное слияние данных в кэш
             if(d.b !== undefined || d.energy !== undefined) {
                 cachedData = {...cachedData, ...d}; 
             } else if(d.topPlayers) {
@@ -1006,23 +764,44 @@
             } else if(d.allUsers) {
                 document.getElementById('admin-user-list').innerText = JSON.stringify(d.allUsers, null, 2);
             }
+            
             renderFromCache();
-            if (d.catchData) setTimeout(() => showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w), isFishingProcess ? 1300 : 0);
-            if (d.topPlayers) renderTop(d.topPlayers);
+
+            // Отображение кейсов
+            if (d.stats?.boxes > 0) {
+                document.getElementById('open-box-btn').style.display = 'block';
+                document.getElementById('open-box-btn').innerText = `🎁 ОТКРЫТЬ КЕЙС (${d.stats.boxes})`;
+            }
+
+            // Рендер улова
+            if(d.catchData && currentTab === 'main') {
+                const delay = isFishingProcess ? 1350 : 0;
+                setTimeout(() => {
+                    showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w);
+                }, delay);
+            }
+            
+            if(d.boxReward) {
+                document.getElementById('prize-text').innerText = d.boxReward.n;
+            }
+            
+            if(d.topPlayers) renderTop(d.topPlayers);
         }
 
-        /* --------------------------------------------------------------------------
-           ЗАБРОС И АНИМАЦИЯ
-           -------------------------------------------------------------------------- */
+        // [FISHING SYSTEM]
         function startFishing() {
             if (isFishingProcess) return; 
             isFishingProcess = true; 
-            document.getElementById('cast-btn').disabled = true;
+            const btn = document.getElementById('cast-btn');
             const float = document.getElementById('float-img');
-            float.classList.add('anim-cast'); float.style.opacity = '1';
+            
+            btn.disabled = true;
+            float.classList.add('anim-cast');
+            float.style.opacity = '1';
             document.getElementById('status-msg').innerText = "ЗАКИДЫВАЕМ...";
             tg.HapticFeedback.impactOccurred('medium');
-            setTimeout(() => doAction('cast'), 100); 
+
+            setTimeout(() => { doAction('cast'); }, 100); 
         }
 
         function showWoodAlert(header, title, value) {
@@ -1037,25 +816,49 @@
             document.getElementById('wood-alert').classList.remove('wood-show');
             document.getElementById('cast-btn').disabled = false;
             const float = document.getElementById('float-img');
-            float.classList.remove('anim-cast'); float.style.opacity = '0';
+            float.classList.remove('anim-cast');
+            float.style.opacity = '0';
             document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
             isFishingProcess = false; 
         }
 
-        /* --------------------------------------------------------------------------
-           ДОПОЛНИТЕЛЬНЫЕ СКРИПТЫ
-           -------------------------------------------------------------------------- */
         function renderTop(players) {
             const container = document.getElementById('leaderboard-list');
-            container.innerHTML = players.map((p, i) => `<div class="leader-item ${p.id == userId ? 'me' : ''}"><span class="rank">#${i+1}</span><span class="leader-name">${p.n || 'Рыбак'}</span><span class="leader-score">${Math.floor(p.b).toLocaleString()} TC</span></div>`).join('');
+            container.innerHTML = players.map((p, i) => `
+                <div class="leader-item ${p.id == userId ? 'me' : ''}">
+                    <span class="rank">#${i+1}</span>
+                    <span class="leader-name">${p.n || 'Рыбак'}</span>
+                    <span class="leader-score">${Math.floor(p.b).toLocaleString()} TC</span>
+                </div>
+            `).join('');
         }
 
-        function toggleInv() { document.getElementById('inv-block').classList.toggle('inv-open'); tg.HapticFeedback.selectionChanged(); }
-        function toggleCat(id) { document.getElementById(id).classList.toggle('open'); tg.HapticFeedback.selectionChanged(); }
-        function copyRef() { const link = `https://t.me/tamacoin_bot?start=${userId}`; navigator.clipboard.writeText(link).then(() => tg.showAlert("Ссылка скопирована!")); }
+        function toggleInv() {
+            const block = document.getElementById('inv-block');
+            block.classList.toggle('inv-open');
+            document.getElementById('inv-arrow').innerText = block.classList.contains('inv-open') ? '▲' : '▼';
+            tg.HapticFeedback.selectionChanged();
+        }
 
-        function showBoxModal() { document.getElementById('lucky-box-overlay').style.display = 'flex'; tg.HapticFeedback.impactOccurred('heavy'); }
-        function animateBoxOpening() { document.getElementById('lucky-box-overlay').classList.add('box-open-state'); doAction('open_box').then(() => { setTimeout(() => { document.getElementById('close-box-btn').style.display = 'block'; }, 1000); }); }
+        function toggleCat(id) {
+            document.getElementById(id).classList.toggle('open');
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        function showBoxModal() { 
+            document.getElementById('lucky-box-overlay').style.display = 'flex'; 
+            tg.HapticFeedback.impactOccurred('heavy'); 
+        }
+        
+        function animateBoxOpening() {
+            document.getElementById('lucky-box-overlay').classList.add('box-open-state');
+            doAction('open_box').then(() => {
+                setTimeout(() => {
+                    document.getElementById('close-box-btn').style.display = 'block';
+                }, 1000);
+            });
+        }
+        
         function closeBoxModal() { location.reload(); }
 
         function requestPay(item, price) {
@@ -1065,12 +868,24 @@
             tg.HapticFeedback.notificationOccurred('warning');
         }
 
+        function copyRef() {
+            const link = `https://t.me/tamacoin_bot?start=${userId}`;
+            navigator.clipboard.writeText(link).then(() => {
+                tg.showAlert("Реферальная ссылка скопирована в буфер!");
+            });
+        }
+
         function updateBonusButton() {
-            const diff = (lastBonusTime + 86400000) - Date.now();
+            const bonusDiff = (lastBonusTime + 86400000) - Date.now();
             const bBtn = document.getElementById('bonus-btn');
             const bTimer = document.getElementById('bonus-timer');
-            if(diff > 0) { bTimer.innerText = new Date(diff).toISOString().substr(11, 8); bBtn.style.display = 'none'; }
-            else { bTimer.innerText = "ГОТОВ!"; bBtn.style.display = 'block'; }
+            if(bonusDiff > 0) {
+                bTimer.innerText = new Date(bonusDiff).toISOString().substr(11, 8);
+                bBtn.style.display = 'none';
+            } else {
+                bTimer.innerText = "ГОТОВ!";
+                bBtn.style.display = 'block';
+            }
         }
 
         setInterval(() => {
