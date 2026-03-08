@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 5.8.3 - THE TRUE MONOLITH EDITION</title>
+    <title>Tamacoin Fishing Gold 6.5.4 - NITRO TWIN-TURBO EDITION</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -32,6 +32,7 @@
             --text-muted: #94a3b8;
             --success: #10b981;
             --danger: #ef4444;
+            --nitro: #22c55e;
             --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             --font-mono: 'Cascadia Code', 'Courier New', monospace;
             --shadow-gold: 0 0 20px rgba(255, 215, 0, 0.25);
@@ -374,6 +375,17 @@
             text-shadow: 0 2px 5px rgba(0,0,0,0.4);
         }
 
+        .fuel-indicator {
+            font-size: 11px;
+            color: var(--nitro);
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+            font-family: var(--font-mono);
+            text-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+        }
+
         .status-info-grid { 
             display: grid; 
             grid-template-columns: 1fr 1.4fr 1fr; 
@@ -673,8 +685,30 @@
             text-transform: uppercase;
             letter-spacing: 1.5px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
         }
 
+        .btn-nitro {
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            color: white;
+            border: none;
+            width: 100%;
+            height: 48px;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 950;
+            box-shadow: 0 5px 0 #14532d;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .btn-nitro:active { transform: translateY(3px); box-shadow: 0 2px 0 #14532d; }
         .btn-cast:active { 
             transform: translateY(3px); 
             box-shadow: 0 2px 0 #92400e; 
@@ -776,7 +810,7 @@
     <div id="top-area-wrapper">
         <div class="header-fixed">
             <div class="marquee">
-                <div class="marquee-content" id="events-line">Удачного клева в Tamacoin Fishing! 🎣 Редкая рыба клюет в Золотой Час! 🌅 Следи за Джекпотом! 💰 Приглашай друзей! 🚀 Поднимай уровень! 🏆</div>
+                <div class="marquee-content" id="events-line">Удачного клева в Tamacoin Fishing! 🎣 Заправляй NITRO-FUEL для супер-призов! 🏎️ Твин-Турбо вечно! 💰 Следи за Джекпотом! 🏆</div>
             </div>
             
             <div class="timers-row">
@@ -805,6 +839,7 @@
             <div class="balance-pill">
                 <div class="balance-label">БАЛАНС ТАМАКОИНОВ</div>
                 <div class="balance-value"><span id="main-balance">0</span></div>
+                <div class="fuel-indicator">🚀 NITRO-FUEL: <span id="nf-balance">0</span> NF</div>
             </div>
             
             <div class="status-info-grid">
@@ -836,7 +871,8 @@
     <div class="tabs-container">
         
         <div id="tab-main" class="tab-content tab-active">
-            <div id="lake-status" style="text-align:center; font-weight:900; color:var(--accent); margin-bottom:15px; font-size:13px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО</div>
+            <button class="btn-nitro" onclick="spinNitroWheel()">🏎️ NITRO-SPIN (2 NF)</button>
+            <div id="lake-status" style="text-align:center; font-weight:900; color:var(--accent); margin:15px 0; font-size:13px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО</div>
             <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:24px; border:1px solid rgba(255,255,255,0.06); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
                 <p style="font-size:12.5px; color:var(--text-muted); text-align:center; line-height:1.7;">
                     Забрасывайте удочку кнопкой внизу экрана. <br> 
@@ -848,6 +884,21 @@
 
         <div id="tab-shop" class="tab-content">
             <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase; letter-spacing:1px;">Рыболовный рынок</h3>
+
+            <div class="shop-category" style="border: 2px solid var(--nitro); background: rgba(34, 197, 94, 0.05); box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);">
+                <div class="shop-cat-header" style="color: #fff; background: var(--nitro);">⛽ ЗАПРАВКА (1 TON = 10 NF)</div>
+                <div class="shop-cat-content open" style="text-align: center;">
+                    <div style="background: #000; padding: 15px; border-radius: 18px; border: 1.5px dashed var(--nitro); margin-bottom: 10px;">
+                        <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px; font-weight: 800; text-transform: uppercase;">ВАШ УНИКАЛЬНЫЙ MEMO:</p>
+                        <code id="fuel-memo" style="font-size: 14px; color: var(--nitro); font-weight: 900; letter-spacing: 1px;">FISH_ID_DEPOSIT</code>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-main); line-height: 1.5;">
+                        Отправьте любую сумму TON на кошелек проекта. <br>
+                        <b>1 TON</b> превратится в <b>10 единиц Топлива (NF)</b>. <br>
+                        Средства зачислятся автоматически в течение минуты.
+                    </p>
+                </div>
+            </div>
             
             <div class="inventory-dropdown inv-open" id="inv-block">
                 <div class="inv-header" onclick="toggleInv()">
@@ -905,7 +956,7 @@
             </div>
 
             <div class="shop-category">
-                <div class="shop-cat-header" onclick="toggleCat('cat-ton')">VIP ТОВАРЫ (TON) <span>▶</span></div>
+                <div class="shop-cat-header" onclick="toggleCat('cat-ton')">TURBO ПРЕДЛОЖЕНИЯ <span>▶</span></div>
                 <div id="cat-ton" class="shop-cat-content">
                     
                     <div id="payment-area" style="background: #020617; border: 2px dashed var(--gold); padding: 20px; border-radius: 18px; margin: 15px 0; text-align: center;">
@@ -913,6 +964,14 @@
                         <p style="font-size:10px; margin-top:8px; color:var(--accent); letter-spacing:1px; font-weight:900;">ОБЯЗАТЕЛЬНО УКАЖИТЕ MEMO:</p>
                         <code id="pay-memo" class="memo-box">MEMO_CODE</code>
                         <p style="font-size:9px; color:var(--danger); margin-top:8px; font-weight:800;">БЕЗ ПРАВИЛЬНОГО MEMO ТОВАР НЕ ПРИДЕТ!</p>
+                    </div>
+
+                    <div class="item-row">
+                        <div class="item-info">
+                            <h4>🚀 Твин-Турбо (Вечно)</h4>
+                            <p>Авто-продажа рыбы + x2 опыт.</p>
+                        </div>
+                        <button class="btn-buy-ton" onclick="requestPay('turbo_license', 5.0)">5.0 TON</button>
                     </div>
 
                     <div class="item-row">
@@ -1034,6 +1093,11 @@
             if(d.b !== undefined) {
                 document.getElementById('main-balance').innerText = Math.floor(d.b).toLocaleString();
             }
+
+            // --- NITRO FUEL INDICATOR ---
+            if(d.nf !== undefined) {
+                document.getElementById('nf-balance').innerText = d.nf;
+            }
             
             // --- Фикс Джекпота (база 1000) ---
             if(d.jackpot) {
@@ -1046,9 +1110,12 @@
             // --- Основные параметры ---
             if(d.energy !== undefined) document.getElementById('energy').innerText = d.energy + '%';
             if(d.dur !== undefined) document.getElementById('dur').innerText = Math.floor(d.dur) + '%';
-            if(d.fish !== undefined) document.getElementById('fish-weight').innerText = d.fish.toFixed(2) + ' кг';
+            if(d.fish !== undefined) document.getElementById('fish-weight').innerText = (d.fish || 0).toFixed(2) + ' кг';
             if(d.id) document.getElementById('player-id').innerText = d.id;
             
+            // --- MEMO ДЛЯ ЗАПРАВКИ ---
+            document.getElementById('fuel-memo').innerText = `FISH_${userId}_DEPOSIT`;
+
             // --- XP & LEVEL SYSTEM (V 5.8.3) ---
             const lvl = d.level || 1;
             const xp = d.xp || 0;
@@ -1181,6 +1248,10 @@
             if(d.topPlayers) {
                 renderTop(d.topPlayers);
             }
+            
+            if(d.msg && action === 'spin_nitro') {
+                showWoodAlert("NITRO", "ИНФО", d.msg);
+            }
         }
 
         /* [FISHING LOGIC] */
@@ -1208,6 +1279,18 @@
             setTimeout(() => { 
                 doAction('cast'); 
             }, 180); 
+        }
+
+        /**
+         * МЕХАНИКА NITRO-SPIN (ЗА 2 NF)
+         */
+        function spinNitroWheel() {
+            if(!cachedData || (cachedData.nf || 0) < 2) {
+                tg.showAlert("❌ НЕДОСТАТОЧНО ТОПЛИВА! \nЗаправьте бак в разделе 'Рынок'.");
+                return;
+            }
+            tg.HapticFeedback.impactOccurred('heavy');
+            doAction('spin_nitro');
         }
 
         /* [UI HELPERS] */
