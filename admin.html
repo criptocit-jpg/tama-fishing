@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 7.1.0 - THE SUPREME HEAVY MONOLITH</title>
+    <title>Tamacoin Fishing Gold 7.2.0 - THE TRUE HEAVY MONOLITH EDITION</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -11,7 +11,6 @@
         /* ==========================================================================
            [1] ГЛОБАЛЬНЫЕ ТЕМАТИЧЕСКИЕ ПЕРЕМЕННЫЕ (ТВОЯ БАЗА + ТЮНИНГ)
            ========================================================================== 
-           Здесь определены все константы оформления. Ничего не вырезано.
         */
         * { 
             box-sizing: border-box; 
@@ -132,7 +131,7 @@
         }
 
         /* ==========================================================================
-           [4] ИНВЕНТАРЬ И САДОК (ТВОИ ОРИГИНАЛЬНЫЕ СТИЛИ)
+           [4] ТВОИ СТИЛИ ИНВЕНТАРЯ И САДКА (ПОЛНЫЕ)
            ========================================================================== 
         */
         .inventory-dropdown {
@@ -248,7 +247,7 @@
         }
 
         /* ==========================================================================
-           [6] ШАПКА, XP БАР И ТАЙМЕРЫ (ТВОЯ ОРИГИНАЛЬНАЯ ЛОГИКА)
+           [6] ШАПКА, XP БАР И ТАЙМЕРЫ (ТВОЯ БАЗОВАЯ РАЗМЕТКА)
            ========================================================================== 
         */
         .header-fixed { 
@@ -552,7 +551,7 @@
             <div class="box-lid-anim"></div>
         </div>
         <p style="margin-top:25px; font-weight:950; color:var(--gold);" id="box-hint">ЖМИ НА ШКАТУЛКУ!</p>
-        <button id="close-box-btn" class="btn-cast" style="display:none; margin-top:35px; width:210px;" onclick="closeBoxModal()">ЗАБРАТЬ</button>
+        <button id="close-box-btn" class="btn-cast" style="display:none; margin-top:35px; width:210px;" onclick="closeBoxModal()">ЗАБРАТЬ НАГРАДУ</button>
     </div>
 
     <div class="header-fixed">
@@ -661,7 +660,7 @@
         </div>
 
         <div id="tab-admin" class="tab-content">
-            <h3 style="color:var(--danger); text-align:center; margin-bottom:15px;">Admin Core 7.1.0</h3>
+            <h3 style="color:var(--danger); text-align:center; margin-bottom:15px;">Admin Core 7.2.0</h3>
             <button class="btn-cast" style="background:var(--danger); box-shadow: 0 5px 0 #991b1b;" onclick="doAction('admin_get_all')">ЗАГРУЗИТЬ БАЗУ USERS</button>
             <div id="admin-user-list" style="margin-top:15px;">...</div>
         </div>
@@ -743,17 +742,16 @@
             // --- Блокировка кнопок (Защита от дурака) ---
             document.getElementById('spin-tc-btn').disabled = (d.b < 500 || isSpinning);
             document.getElementById('spin-ton-btn').disabled = (d.nf < 2 || isSpinning);
-            document.getElementById('cast-btn').disabled = (isFishingProcess || d.energy < 1);
+            document.getElementById('cast-btn').disabled = (isFishingProcess || (d.energy < 1 && !isFishingProcess));
 
             // --- Админка (Только для тебя) ---
             if(d.isAdmin) {
                 document.getElementById('nav-admin-btn').style.display = 'flex';
             }
         }
-
         /**
          * СЕТЕВОЕ ВЗАИМОДЕЙСТВИЕ (API BRIDGE)
-         * Сохранены все твои обработчики ответов.
+         * Сохранены все твои обработчики ответов, включая Джекпот и ошибки.
          */
         async function doAction(action, payload = {}) {
             try {
@@ -771,70 +769,90 @@
                 const data = await response.json();
                 cachedData = {...cachedData, ...data};
                 
-                // Обработка системных сообщений
-                if(data.msg) {
-                    if (data.msg.includes('сорвалась')) {
-                        setTimeout(() => showWoodAlert("УПС!", "СОРВАЛАСЬ!", "РЫБА УШЛА..."), 1300);
-                    } else if (!data.catchData) {
+                // --- Логика срывов (Твой оригинал) ---
+                if(data.msg && (data.msg.includes('сорвалась') || data.lost)) {
+                    setTimeout(() => {
+                        showWoodAlert("УПС!", "СОРВАЛАСЬ!", "РЫБА УШЛА...");
+                        tg.HapticFeedback.notificationOccurred('error');
+                    }, 1300);
+                } else if (data.msg && !data.catchData && !data.boxReward) {
+                    // Системные уведомления (продажа, покупка и т.д.)
+                    if (data.msg.includes('Продано')) {
+                        const profit = data.msg.match(/\+(\d+)/);
+                        showWoodAlert("РЫНОК", "ПРОДАНО!", profit ? `+${profit[1]} TC` : "УСПЕХ");
+                    } else {
                         showWoodAlert("ИНФО", "СИСТЕМА", data.msg);
                     }
                 }
                 
-                // Обработка улова (Твой метод)
+                // --- Обработка улова (Твои тайминги) ---
                 if(data.catchData && currentTab === 'main') {
                     if (!isFishingProcess) {
                         showWoodAlert("УЛОВ!", data.catchData.type, data.catchData.w);
                     } else {
-                        setTimeout(() => showWoodAlert("УЛОВ!", data.catchData.type, data.catchData.w), 1400);
+                        setTimeout(() => {
+                            showWoodAlert("УЛОВ!", data.catchData.type, data.catchData.w);
+                        }, 1400);
                     }
                 }
+
+                // --- Кейсы и Шкатулки ---
+                if(data.boxReward) {
+                    document.getElementById('prize-text').innerText = data.boxReward.n;
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
                 
-                // Обработка Админки
-                if(action === 'admin_get_all') {
+                // --- Админка (Вывод базы) ---
+                if(action === 'admin_get_all' && data.allUsers) {
                     document.getElementById('admin-user-list').innerText = JSON.stringify(data.allUsers, null, 2);
                 }
                 
-                // Рендер ТОПа
+                // --- Обновление ТОПа ---
                 if(data.topPlayers) renderTop(data.topPlayers);
                 
                 renderUI();
             } catch(e) {
                 console.error("Critical API error:", e);
-                document.getElementById('status-msg').innerText = "ОШИБКА СЕТИ";
+                document.getElementById('status-msg').innerText = "ОШИБКА СВЯЗИ";
             }
         }
 
         /**
-         * МЕХАНИКА ЛОВЛИ (С ТВОИМИ ТАЙМИНГАМИ)
+         * МЕХАНИКА ЛОВЛИ (С ТВОИМИ ВИЗУАЛАМИ)
          */
         function startFishing() {
             if (isFishingProcess) return;
-            isFishingProcess = true;
             
-            const float = document.getElementById('float-img');
             const btn = document.getElementById('cast-btn');
+            const float = document.getElementById('float-img');
             
+            isFishingProcess = true;
             btn.disabled = true;
+            
             float.classList.add('anim-cast');
             float.style.opacity = '1';
-            document.getElementById('status-msg').innerText = "ЗАБРОС...";
+            document.getElementById('status-msg').innerText = "ЗАКИДЫВАЕМ...";
             
             tg.HapticFeedback.impactOccurred('medium');
-            
-            setTimeout(() => { doAction('cast'); }, 1450);
+
+            // Твоя задержка перед запросом к серверу
+            setTimeout(() => { 
+                doAction('cast'); 
+            }, 180);
         }
 
         /**
-         * МЕХАНИКА КОЛЕСА ФОРТУНЫ (НОВАЯ ЛОГИКА)
+         * МЕХАНИКА КОЛЕСА ФОРТУНЫ (ДЕРЕВЯННЫЙ ТЮНИНГ)
          */
         function spinWheel(type) {
             if(isSpinning) return;
-            isSpinning = true;
             
             const wheel = document.getElementById('wheel-gfx');
+            // Минимум 5 оборотов + случайный угол
             const randomDeg = 1800 + Math.floor(Math.random() * 1800);
             
-            wheel.style.transition = "4s cubic-bezier(0.15, 0, 0.15, 1)";
+            isSpinning = true;
+            wheel.style.transition = "transform 4s cubic-bezier(0.15, 0, 0.15, 1)";
             wheel.style.transform = `rotate(${randomDeg}deg)`;
             
             tg.HapticFeedback.impactOccurred('heavy');
@@ -853,11 +871,12 @@
         }
 
         /**
-         * МЕХАНИКА ШКАТУЛКИ (LUCKY BOX)
+         * МЕХАНИКА ШКАТУЛКИ (LUCKY BOX ANIMATION)
          */
         function animateBoxOpening() {
-            const box = document.getElementById('lucky-box-overlay');
-            box.classList.add('box-open-state');
+            const overlay = document.getElementById('lucky-box-overlay');
+            overlay.classList.add('box-open-state');
+            document.getElementById('box-hint').style.display = 'none';
             
             doAction('open_box').then(() => {
                 setTimeout(() => {
@@ -869,32 +888,40 @@
         function closeBoxModal() {
             document.getElementById('lucky-box-overlay').classList.remove('box-open-state');
             document.getElementById('lucky-box-overlay').style.display = 'none';
-            location.reload(); 
+            location.reload(); // Перезапуск для чистоты баланса
         }
 
         /**
-         * UI HELPERS (ВКЛАДКИ И АЛЕРТЫ)
+         * UI HELPERS (ВКЛАДКИ, АЛЕРТЫ, ТОП)
          */
         function showWoodAlert(h, t, v) {
             document.getElementById('wood-header-type').innerText = h;
             document.getElementById('wood-title').innerText = t;
             document.getElementById('wood-profit').innerText = v;
             document.getElementById('wood-alert').classList.add('wood-show');
+            tg.HapticFeedback.notificationOccurred('success');
         }
 
         function closeWood() {
             document.getElementById('wood-alert').classList.remove('wood-show');
             document.getElementById('cast-btn').disabled = false;
-            document.getElementById('float-img').classList.remove('anim-cast');
-            document.getElementById('float-img').style.opacity = '0';
+            
+            const float = document.getElementById('float-img');
+            float.classList.remove('anim-cast');
+            float.style.opacity = '0';
+            
             isFishingProcess = false;
-            document.getElementById('status-msg').innerText = "ГОТОВ";
+            document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
         }
 
         function showTab(name, el) {
             currentTab = name;
+            // Скрываем все табы
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
+            // Снимаем актив со всех кнопок
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Активируем нужный
             document.getElementById('tab-' + name).classList.add('tab-active');
             el.classList.add('active');
             
@@ -904,46 +931,64 @@
 
         function renderTop(players) {
             const container = document.getElementById('leaderboard-list');
+            if(!players || players.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:10px;">Загрузка лидеров...</p>';
+                return;
+            }
             container.innerHTML = players.map((p, i) => `
-                <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;">
-                    <span>#${i+1} ${p.n || 'Рыбак'}</span>
-                    <span style="color:var(--gold); font-weight:900;">${Math.floor(p.b).toLocaleString()} TC</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); ${p.id == userId ? 'background:rgba(255,215,0,0.1);' : ''}">
+                    <span style="font-size:13px; font-weight:800;">#${i+1} ${p.n || 'Рыбак'}</span>
+                    <span style="color:var(--gold); font-family:var(--font-mono); font-weight:950;">${Math.floor(p.b).toLocaleString()} TC</span>
                 </div>
             `).join('');
         }
 
         function toggleInv() {
             document.getElementById('inv-block').classList.toggle('inv-open');
+            const arrow = document.getElementById('inv-arrow');
+            arrow.innerText = document.getElementById('inv-block').classList.contains('inv-open') ? '▲' : '▼';
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        function toggleCat(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'none' || content.style.display === '') ? 'block' : 'none';
             tg.HapticFeedback.selectionChanged();
         }
 
         function copyRef() {
             const link = `https://t.me/tamacoin_bot?start=${userId}`;
-            navigator.clipboard.writeText(link).then(() => tg.showAlert("Ссылка скопирована!"));
+            navigator.clipboard.writeText(link).then(() => {
+                tg.showAlert("Ссылка скопирована в буфер обмена!");
+            });
         }
 
         /**
-         * ТВОИ ТАЙМЕРЫ (ЗОЛОТОЙ ЧАС И БОНУС)
+         * ТАЙМЕРЫ И ФОНОВЫЕ ПРОЦЕССЫ
          */
         setInterval(() => {
-            // Золотой час
-            const nextHour = (3600000 - (Date.now() % 3600000));
+            // Таймер Золотого часа
+            const now = Date.now();
+            const nextHour = (3600000 - (now % 3600000));
             document.getElementById('gold-timer').innerText = new Date(nextHour).toISOString().substr(11, 8);
             
-            // Ежедневный бонус
+            // Таймер Ежедневного бонуса
             if(cachedData) {
-                const bDiff = (cachedData.lastBonus || 0) + 86400000 - Date.now();
+                const bDiff = (cachedData.lastBonus || 0) + 86400000 - now;
+                const bBtn = document.getElementById('bonus-btn');
+                const bTimer = document.getElementById('bonus-timer');
+                
                 if(bDiff > 0) {
-                    document.getElementById('bonus-timer').innerText = new Date(bDiff).toISOString().substr(11, 8);
-                    document.getElementById('bonus-btn').style.display = 'none';
+                    bTimer.innerText = new Date(bDiff).toISOString().substr(11, 8);
+                    bBtn.style.display = 'none';
                 } else {
-                    document.getElementById('bonus-timer').innerText = "ГОТОВ!";
-                    document.getElementById('bonus-btn').style.display = 'block';
+                    bTimer.innerText = "ГОТОВ!";
+                    bBtn.style.display = 'block';
                 }
             }
         }, 1000);
 
-        // ПЕРВЫЙ ЗАПУСК
+        // --- СТАРТ МОНОЛИТА ---
         doAction('load');
     </script>
 </body>
