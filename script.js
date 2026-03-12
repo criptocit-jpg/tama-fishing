@@ -1,6 +1,6 @@
-/* ==========================================================================
-   [1] CORE SETUP
-   ========================================================================== */
+// ==========================================================================
+// [1] ИНИЦИАЛИЗАЦИЯ И ДАННЫЕ
+// ==========================================================================
 const tg = window.Telegram.WebApp;
 tg.expand();
 tg.ready();
@@ -8,13 +8,13 @@ tg.ready();
 const userId = tg.initDataUnsafe?.user?.id || '7883085758';
 const API = 'https://tama-bot-server.onrender.com/api/action';
 
+let cachedData = { b: 0, units: 0, energy: 100, dur: 100, level: 1, xp: 0, fish: 0, buffs: { vip: 0, hope: 0 }, lastBonus: 0 };
 let currentTab = 'main';
 let isFishingProcess = false;
 let isSpinning = false;
 let safetyTimeout = null;
-let cachedData = { b: 0, units: 0, energy: 100, dur: 100, level: 1, xp: 0, fish: 0, buffs: { vip: 0 } };
 
-// КОНФИГ КОЛЕСА (8 секторов по 45 градусов)
+// КОНФИГУРАЦИЯ КОЛЕСА (8 секторов)
 const sectors = [
     { label: "ПУСТО", color: "#334155", weight: 0.50, type: "null" },
     { label: "100 TC", color: "#1e293b", weight: 0.15, type: "tc", val: 100 },
@@ -26,9 +26,45 @@ const sectors = [
     { label: "ЭНЕРГЕТИК", color: "#475569", weight: 0.10, type: "item", val: "energy" }
 ];
 
-/* ==========================================================================
-   [2] WHEEL ENGINE (ИСПРАВЛЕННЫЙ ЦЕНТР НА 12 ЧАСОВ)
-   ========================================================================== */
+// ==========================================================================
+// [2] НАВИГАЦИЯ (ИСПРАВЛЕННЫЙ НАЕЗД)
+// ==========================================================================
+function showTab(name, el) {
+    currentTab = name;
+    
+    // Переключаем активный таб
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    const targetTab = document.getElementById('tab-' + name);
+    if (targetTab) targetTab.classList.add('tab-active');
+    if (el) el.classList.add('active');
+
+    // УПРАВЛЕНИЕ ВИДИМОСТЬЮ (Чтобы не наезжало)
+    const topArea = document.getElementById('top-area-wrapper');
+    const mainControls = document.getElementById('main-controls');
+
+    if (name === 'main') {
+        topArea.style.display = 'block';
+        mainControls.style.display = 'block';
+    } else if (name === 'fortune') {
+        topArea.style.display = 'none'; // Полностью скрываем рыбу для колеса
+        mainControls.style.display = 'none';
+        setTimeout(drawWheel, 100);
+    } else {
+        topArea.style.display = 'none';
+        mainControls.style.display = 'none';
+    }
+
+    if (name === 'top') doAction('get_top');
+    if (name === 'admin') renderAdminGodMode();
+    
+    tg.HapticFeedback.selectionChanged();
+}
+
+// ==========================================================================
+// [3] КОЛЕСО ФОРТУНЫ (ФИКС 12 ЧАСОВ)
+// ==========================================================================
 function drawWheel() {
     const canvas = document.getElementById('wheel-canvas');
     if (!canvas) return;
@@ -68,7 +104,6 @@ async function handleSpin(cur) {
     isSpinning = true;
     tg.HapticFeedback.notificationOccurred('warning');
     
-    // Генерируем победителя
     const rand = Math.random();
     let cumul = 0, winner = 0;
     for (let i = 0; i < sectors.length; i++) {
@@ -78,8 +113,7 @@ async function handleSpin(cur) {
 
     const canvas = document.getElementById('wheel-canvas');
     const sectorAngle = 360 / sectors.length;
-    
-    // ФОРМУЛА ФИКСА: (8 оборотов) - (индекс * угол) + 90 градусов (сдвиг с 3 на 12 часов) - (полсектора для центра)
+    // ФОРМУЛА: 8 оборотов - (индекс * угол) + 90 (сдвиг на 12 часов) - полсектора для центра
     const totalRot = (360 * 8) - (winner * sectorAngle) + 90 - (sectorAngle / 2);
 
     canvas.style.transform = `rotate(${totalRot}deg)`;
@@ -89,14 +123,40 @@ async function handleSpin(cur) {
         const p = sectors[winner];
         await doAction('spin_fortune', { cur, pLabel: p.label });
         
-        if (p.type === 'null') showWoodAlert("УПС...", "ПУСТО", "ПОВЕЗЕТ В СЛЕДУЮЩИЙ РАЗ");
-        else showWoodAlert("ВЫИГРЫШ!", p.label, "ПРИЗ НАЧИСЛЕН");
+        if (p.type === 'null') showWoodAlert("ОЙ...", "ПУСТО", "В СЛЕДУЮЩИЙ РАЗ");
+        else showWoodAlert("ПОБЕДА!", p.label, "ПРИЗ ВАШ!");
     }, 4100);
 }
 
-/* ==========================================================================
-   [3] API & УВЕДОМЛЕНИЯ (ПЛАШКА ПРОДАЖИ)
-   ========================================================================== */
+// ==========================================================================
+// [4] РЕЖИМ БОГА (ADMIN GOD MODE)
+// ==========================================================================
+function renderAdminGodMode() {
+    const list = document.getElementById('admin-user-list');
+    if (!list) return;
+    list.innerHTML = `
+        <div style="background:#1e293b; padding:15px; border-radius:15px; border:2px solid #ef4444; margin-bottom:15px;">
+            <h4 style="color:#ef4444; margin-bottom:10px; text-transform:uppercase;">⚡ GOD MODE ACTIVE</h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button onclick="godCmd('add_tc', 10000)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:10px; border-radius:10px; font-size:10px;">+10k TC</button>
+                <button onclick="godCmd('add_units', 50)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:10px; border-radius:10px; font-size:10px;">+50 Units</button>
+                <button onclick="godCmd('set_energy', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:10px; border-radius:10px; font-size:10px;">FULL ENERGY</button>
+                <button onclick="godCmd('set_dur', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:10px; border-radius:10px; font-size:10px;">REPAIR ROD</button>
+                <button onclick="godCmd('give_vip', 7)" style="background:#ffd700; color:#000; padding:10px; border-radius:10px; grid-column: span 2; font-weight:900;">GIVE 7 DAYS VIP</button>
+            </div>
+        </div>
+        <div id="raw-admin-data" style="color:#94a3b8; font-size:10px;">Нажмите "Загрузить базу" ниже</div>
+    `;
+}
+
+async function godCmd(type, val) {
+    tg.HapticFeedback.impactOccurred('heavy');
+    await doAction('admin_god_command', { type, val });
+}
+
+// ==========================================================================
+// [5] ЛОВЛЯ И API
+// ==========================================================================
 async function doAction(action, payload = {}) {
     try {
         const res = await fetch(API, {
@@ -106,88 +166,53 @@ async function doAction(action, payload = {}) {
         });
         const data = await res.json();
         if (data.error) return tg.showAlert(data.error);
-        
-        // ПЛАШКА ПРИ ПРОДАЖЕ РЫБЫ
+
+        // ПЛАШКА ПРИ ПРОДАЖЕ
         if (action === 'sell' && data.msg) {
-            const tcGained = data.msg.match(/\d+/); // Вытаскиваем цифры из сообщения сервера
-            showWoodAlert("РЫНОК", "УЛОВ ПРОДАН!", tcGained ? `+${tcGained[0]} TC` : "УСПЕШНО");
+            const gain = data.msg.match(/\d+/);
+            showWoodAlert("РЫНОК", "УЛОВ ПРОДАН!", gain ? `+${gain[0]} TC` : "ОК");
         }
 
         Object.assign(cachedData, data);
         renderUI();
-    } catch (e) { console.error(e); }
-}
 
-/* ==========================================================================
-   [4] АДМИНКА: РЕЖИМ БОГА (GOD MODE)
-   ========================================================================== */
-function renderAdminGodMode() {
-    const container = document.getElementById('admin-user-list');
-    container.innerHTML = `
-        <div style="background:#1e293b; padding:15px; border-radius:12px; border:2px solid var(--danger);">
-            <h4 style="color:var(--danger); margin-bottom:10px;">⚡ GOD MODE: ПРЯМОЕ УПРАВЛЕНИЕ</h4>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <button onclick="godAction('add_tc', 10000)" style="background:#0f172a; color:var(--gold); border:1px solid var(--gold); padding:8px; border-radius:8px;">+10,000 TC</button>
-                <button onclick="godAction('add_units', 50)" style="background:#0f172a; color:var(--gold); border:1px solid var(--gold); padding:8px; border-radius:8px;">+50 Units</button>
-                <button onclick="godAction('set_energy', 100)" style="background:#0f172a; color:var(--success); border:1px solid var(--success); padding:8px; border-radius:8px;">Full Energy</button>
-                <button onclick="godAction('set_dur', 100)" style="background:#0f172a; color:var(--success); border:1px solid var(--success); padding:8px; border-radius:8px;">Repair Rod</button>
-                <button onclick="godAction('give_vip', 7)" style="background:var(--gold); color:#000; font-weight:900; padding:8px; border-radius:8px; grid-column: span 2;">GIVE 7 DAYS VIP</button>
-            </div>
-            <p style="font-size:9px; color:var(--text-muted); margin-top:10px;">*Команды улетают сразу в базу данных*</p>
-        </div>
-        <hr style="margin:15px 0; border:0; border-top:1px solid #334155;">
-        <div id="admin-raw-data">Нажмите "Загрузить базу" для сырых данных</div>
-    `;
-}
-
-async function godAction(type, val) {
-    tg.HapticFeedback.notificationOccurred('success');
-    await doAction('admin_god_command', { type, val });
-}
-
-/* ==========================================================================
-   [5] ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-   ========================================================================== */
-function showTab(name, el) {
-    currentTab = name;
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('tab-active');
-    el.classList.add('active');
-
-    // Прячем рыбу во время Колеса и Админки
-    const topArea = document.getElementById('top-area-wrapper');
-    const controls = document.getElementById('main-controls');
-    topArea.style.display = (name === 'main' || name === 'fortune') ? 'block' : 'none';
-    controls.style.display = (name === 'main') ? 'block' : 'none';
-
-    if (name === 'fortune') setTimeout(drawWheel, 100);
-    if (name === 'admin') renderAdminGodMode();
-    tg.HapticFeedback.selectionChanged();
-}
-
-function showWoodAlert(h, t, v) {
-    document.getElementById('wood-header-type').innerText = h;
-    document.getElementById('wood-title').innerText = t;
-    document.getElementById('wood-profit').innerText = v;
-    document.getElementById('wood-alert').classList.add('wood-show');
-}
-
-function closeWood() {
-    document.getElementById('wood-alert').classList.remove('wood-show');
-    isFishingProcess = false;
-    document.getElementById('cast-btn').disabled = false;
-    document.getElementById('float-img').style.opacity = '0';
+        if (data.catchData && currentTab === 'main') {
+            setTimeout(() => showWoodAlert("УЛОВ!", data.catchData.type, data.catchData.w + " кг"), 1500);
+        }
+    } catch (e) { 
+        console.error(e); 
+        if (action === 'cast') closeWood();
+    }
 }
 
 function renderUI() {
-    document.getElementById('main-balance').innerText = Math.floor(cachedData.b).toLocaleString();
-    document.getElementById('units-val').innerText = cachedData.units || 0;
-    document.getElementById('energy').innerText = (cachedData.energy || 0) + '%';
-    document.getElementById('dur').innerText = Math.floor(cachedData.dur || 0) + '%';
-    document.getElementById('fish-weight').innerText = (cachedData.fish || 0).toFixed(2) + ' кг';
+    const d = cachedData;
+    const safeSet = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
-    if (cachedData.isAdmin) document.getElementById('nav-admin-btn').style.display = 'flex';
+    safeSet('main-balance', Math.floor(d.b).toLocaleString());
+    safeSet('units-val', d.units || 0);
+    safeSet('energy', (d.energy || 0) + '%');
+    safeSet('dur', Math.floor(d.dur || 0) + '%');
+    safeSet('fish-weight', (d.fish || 0).toFixed(2) + ' кг');
+    safeSet('lvl-val', d.level || 1);
+    safeSet('xp-val', d.xp || 0);
+    safeSet('player-id', d.id || userId);
+    
+    const xpGoal = (d.level || 1) * 500;
+    const fill = document.getElementById('xp-fill');
+    if (fill) fill.style.width = Math.min((d.xp / xpGoal) * 100, 100) + '%';
+
+    if (d.isAdmin) {
+        const admBtn = document.getElementById('nav-admin-btn');
+        if (admBtn) admBtn.style.display = 'flex';
+    }
+
+    // Ежедневный бонус
+    const bBtn = document.getElementById('bonus-btn');
+    const bTim = document.getElementById('bonus-timer');
+    const bonusReady = (Date.now() - (d.lastBonus || 0) > 86400000);
+    if (bBtn) bBtn.style.display = bonusReady ? 'block' : 'none';
+    if (bTim) bTim.innerText = bonusReady ? "ГОТОВ!" : "ЖДИТЕ";
 }
 
 function startFishing() {
@@ -195,11 +220,39 @@ function startFishing() {
     isFishingProcess = true;
     const btn = document.getElementById('cast-btn');
     const float = document.getElementById('float-img');
-    btn.disabled = true;
-    float.classList.add('anim-cast');
-    float.style.opacity = '1';
-    document.getElementById('status-msg').innerText = "ЗАКИДЫВАЕМ...";
+    if (btn) btn.disabled = true;
+    if (float) { float.classList.add('anim-cast'); float.style.opacity = '1'; }
+    const status = document.getElementById('status-msg');
+    if (status) status.innerText = "ЗАКИДЫВАЕМ...";
+    
+    tg.HapticFeedback.impactOccurred('medium');
     setTimeout(() => { doAction('cast'); }, 400);
+}
+
+function showWoodAlert(h, t, v) {
+    document.getElementById('wood-header-type').innerText = h;
+    document.getElementById('wood-title').innerText = t;
+    document.getElementById('wood-profit').innerText = v;
+    document.getElementById('wood-alert').classList.add('wood-show');
+    tg.HapticFeedback.notificationOccurred('success');
+}
+
+function closeWood() {
+    document.getElementById('wood-alert').classList.remove('wood-show');
+    isFishingProcess = false;
+    const btn = document.getElementById('cast-btn');
+    if (btn) btn.disabled = false;
+    const float = document.getElementById('float-img');
+    if (float) { float.style.opacity = '0'; float.classList.remove('anim-cast'); }
+    const status = document.getElementById('status-msg');
+    if (status) status.innerText = "ГОТОВ К ЛОВЛЕ";
+}
+
+function toggleInv() { document.getElementById('inv-block').classList.toggle('inv-open'); }
+function toggleCat(id) { document.getElementById(id).classList.toggle('open'); }
+function copyRef() {
+    const link = `https://t.me/tamacoin_bot?start=${userId}`;
+    navigator.clipboard.writeText(link).then(() => tg.showAlert("Ссылка скопирована!"));
 }
 
 window.onload = () => { doAction('load'); };
