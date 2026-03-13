@@ -17,13 +17,15 @@ let cachedData = {
     xp: 0, 
     fish: 0, 
     buffs: { vip: 0 }, 
-    lastBonus: 0 
+    lastBonus: 0,
+    isAdmin: false 
 };
 
 let currentTab = 'main';
 let isFishingProcess = false;
 let isSpinning = false;
 
+// КОНФИГУРАЦИЯ КОЛЕСА (НЕ ТРОГАЕМ - ОНО РАБОТАЕТ!)
 const sectors = [
     { label: "ПУСТО", color: "#334155", weight: 0.50, type: "null" },
     { label: "100 TC", color: "#1e293b", weight: 0.15, type: "tc", val: 100 },
@@ -36,7 +38,7 @@ const sectors = [
 ];
 
 /* ==========================================================================
-   [2] WHEEL ENGINE (ИСПРАВЛЕННЫЙ РАСЧЕТ НА 12 ЧАСОВ)
+   [2] WHEEL ENGINE (ЗОЛОТАЯ ФОРМУЛА - БЬЕТ В ЦЕЛЬ)
    ========================================================================== */
 function drawWheel() {
     const canvas = document.getElementById('wheel-canvas');
@@ -86,9 +88,6 @@ async function handleSpin(cur) {
 
     const canvas = document.getElementById('wheel-canvas');
     const sectorAngle = 360 / sectors.length;
-    
-    // ФОРМУЛА: Сдвигаем на 12 часов (+90 градусов) и центрируем сектор
-    // Мы крутим КАНВАС, поэтому вычитаем угол победителя из общего вращения
     const totalRot = (360 * 10) - (winner * sectorAngle) + 270 - (sectorAngle / 2);
 
     canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.15, 1)';
@@ -110,7 +109,80 @@ async function handleSpin(cur) {
 }
 
 /* ==========================================================================
-   [3] ТАЙМЕРЫ (ФИКС ЗАВИСАНИЯ)
+   [3] РЕЖИМ БОГА (GOD MODE) И АДМИНКА
+   ========================================================================== */
+function renderAdminGodMode() {
+    const list = document.getElementById('admin-user-list');
+    if (!list) return;
+    
+    list.innerHTML = `
+        <div style="background:#1e293b; padding:15px; border-radius:15px; border:2px solid #ef4444; margin-bottom:15px;">
+            <h4 style="color:#ef4444; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">⚡ GOD MODE ACTIVE</h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button onclick="godCmd('add_tc', 10000)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:12px; border-radius:10px; font-size:11px; font-weight:900;">+10k TC</button>
+                <button onclick="godCmd('add_units', 50)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:12px; border-radius:10px; font-size:11px; font-weight:900;">+50 Units</button>
+                <button onclick="godCmd('set_energy', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:12px; border-radius:10px; font-size:11px; font-weight:900;">FULL ENERGY</button>
+                <button onclick="godCmd('set_dur', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:12px; border-radius:10px; font-size:11px; font-weight:900;">REPAIR ROD</button>
+                <button onclick="godCmd('give_vip', 7)" style="background:#ffd700; color:#000; padding:14px; border-radius:12px; grid-column: span 2; font-weight:950; text-transform:uppercase;">GIVE 7 DAYS VIP</button>
+            </div>
+        </div>
+        <div id="raw-admin-data" style="color:#64748b; font-size:10px; font-family:monospace; word-break:break-all;">Нажмите кнопку "ЗАГРУЗИТЬ БАЗУ ДАННЫХ USERS" ниже...</div>
+    `;
+}
+
+async function godCmd(type, val) {
+    tg.HapticFeedback.impactOccurred('heavy');
+    await doAction('admin_god_command', { type, val });
+}
+
+/* ==========================================================================
+   [4] API & ТОП ЛИСТ
+   ========================================================================== */
+async function doAction(action, payload = {}) {
+    try {
+        const res = await fetch(API, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ userId, action, payload })
+        });
+        const data = await res.json();
+        
+        if (data.error) return tg.showAlert(data.error);
+
+        // ПЛАШКА ПРОДАЖИ
+        if (action === 'sell' && data.msg) {
+            const gain = data.msg.match(/\d+/);
+            showWoodAlert("РЫНОК", "УЛОВ ПРОДАН!", gain ? `+${gain[0]} TC` : "УСПЕШНО");
+        }
+
+        // РЕНДЕР ТОП-ЛИСТА
+        if (action === 'get_top' && data.top) {
+            const list = document.getElementById('leaderboard-list');
+            if (list) {
+                list.innerHTML = data.top.map((u, i) => `
+                    <div style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.03); margin-bottom:5px; border-radius:10px;">
+                        <span>${i+1}. ${u.n || 'Рыбак'}</span>
+                        <b style="color:var(--gold);">${Math.floor(u.b).toLocaleString()} TC</b>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // РЕНДЕР ВСЕЙ БАЗЫ (АДМИН)
+        if (action === 'admin_get_all' && data.users) {
+            const raw = document.getElementById('raw-admin-data');
+            if (raw) raw.innerText = JSON.stringify(data.users, null, 2);
+        }
+
+        Object.assign(cachedData, data);
+        renderUI();
+        updateTimers();
+
+    } catch (e) { console.error("API ERROR:", e); }
+}
+
+/* ==========================================================================
+   [5] ТАЙМЕРЫ И ИНТЕРФЕЙС
    ========================================================================== */
 function updateTimers() {
     const now = new Date();
@@ -119,7 +191,6 @@ function updateTimers() {
     const mins = now.getMinutes();
     const secs = now.getSeconds();
     const goldTimer = document.getElementById('gold-timer');
-    
     if (goldTimer) {
         if (mins < 10) {
             const m = 9 - mins;
@@ -134,13 +205,12 @@ function updateTimers() {
         }
     }
 
-    // ТАЙМЕР БОНУСА
+    // БОНУС
     const bTim = document.getElementById('bonus-timer');
     const bBtn = document.getElementById('bonus-btn');
     if (bTim) {
         const nextB = (cachedData.lastBonus || 0) + 86400000;
         const diff = nextB - Date.now();
-
         if (diff <= 0) {
             bTim.innerText = "ГОТОВ!";
             bTim.style.color = '#10b981';
@@ -150,44 +220,14 @@ function updateTimers() {
             const m = Math.floor((diff % 3600000) / 60000);
             const s = Math.floor((diff % 60000) / 1000);
             bTim.innerText = `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-            bTim.style.color = '#94a3b8';
             if (bBtn) bBtn.style.display = 'none';
         }
     }
 }
 
-/* ==========================================================================
-   [4] CORE API & UI
-   ========================================================================== */
-async function doAction(action, payload = {}) {
-    try {
-        const res = await fetch(API, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ userId, action, payload })
-        });
-        const data = await res.json();
-        if (data.error) return tg.showAlert(data.error);
-
-        if (action === 'sell' && data.msg) {
-            const gain = data.msg.match(/\d+/);
-            showWoodAlert("РЫНОК", "УЛОВ ПРОДАН!", gain ? `+${gain[0]} TC` : "УСПЕШНО");
-        }
-
-        Object.assign(cachedData, data);
-        renderUI();
-        updateTimers(); // Обновляем таймеры сразу после загрузки данных
-
-        if (data.catchData && currentTab === 'main') {
-            setTimeout(() => showWoodAlert("УЛОВ!", data.catchData.type, data.catchData.w + " кг"), 1500);
-        }
-    } catch (e) { console.error(e); }
-}
-
 function renderUI() {
     const d = cachedData;
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-    
     set('main-balance', Math.floor(d.b).toLocaleString());
     set('units-val', d.units || 0);
     set('energy', (d.energy || 0) + '%');
@@ -195,31 +235,48 @@ function renderUI() {
     set('fish-weight', (d.fish || 0).toFixed(2) + ' кг');
     set('lvl-val', d.level || 1);
     
-    const xpGoal = (d.level || 1) * 500;
     const fill = document.getElementById('xp-fill');
-    if (fill) fill.style.width = Math.min((d.xp / xpGoal) * 100, 100) + '%';
+    if (fill) fill.style.width = Math.min((d.xp / (d.level * 500)) * 100, 100) + '%';
     
     if (d.isAdmin) {
-        const adm = document.getElementById('nav-admin-btn');
-        if (adm) adm.style.display = 'flex';
+        const btn = document.getElementById('nav-admin-btn');
+        if (btn) btn.style.display = 'flex';
     }
 }
 
 /* ==========================================================================
-   [5] ACTIONS & UTILS
+   [6] УПРАВЛЕНИЕ ВКЛАДКАМИ И UI
    ========================================================================== */
+function showTab(name, el) {
+    currentTab = name;
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    const target = document.getElementById('tab-' + name);
+    if (target) target.classList.add('tab-active');
+    if (el) el.classList.add('active');
+
+    const top = document.getElementById('top-area-wrapper');
+    const ctrl = document.getElementById('main-controls');
+    
+    // СКРЫТИЕ РЫБАЛКИ ДЛЯ ЧИСТОТЫ ЭКРАНА
+    top.style.display = (name === 'main' || name === 'fortune') ? 'block' : 'none';
+    ctrl.style.display = (name === 'main') ? 'block' : 'none';
+
+    if (name === 'fortune') setTimeout(drawWheel, 100);
+    if (name === 'top') doAction('get_top');
+    if (name === 'admin') renderAdminGodMode(); // ВОТ ОНО!
+    
+    tg.HapticFeedback.selectionChanged();
+}
+
 function startFishing() {
     if (isFishingProcess || cachedData.energy < 2 || cachedData.dur <= 0) return;
     isFishingProcess = true;
-    const btn = document.getElementById('cast-btn');
     const float = document.getElementById('float-img');
     const msg = document.getElementById('status-msg');
-    
-    if (btn) btn.disabled = true;
     if (float) { float.classList.add('anim-cast'); float.style.opacity = '1'; }
     if (msg) msg.innerText = "ЗАКИДЫВАЕМ...";
-    
-    tg.HapticFeedback.impactOccurred('medium');
     setTimeout(() => { doAction('cast'); }, 400);
 }
 
@@ -233,28 +290,10 @@ function showWoodAlert(h, t, v) {
 function closeWood() {
     document.getElementById('wood-alert').classList.remove('wood-show');
     isFishingProcess = false;
-    const btn = document.getElementById('cast-btn');
-    if (btn) btn.disabled = false;
     const float = document.getElementById('float-img');
     if (float) { float.style.opacity = '0'; float.classList.remove('anim-cast'); }
     const msg = document.getElementById('status-msg');
     if (msg) msg.innerText = "ГОТОВ К ЛОВЛЕ";
-}
-
-function showTab(name, el) {
-    currentTab = name;
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('tab-active');
-    el.classList.add('active');
-
-    const top = document.getElementById('top-area-wrapper');
-    const ctrl = document.getElementById('main-controls');
-    top.style.display = (name === 'main') ? 'block' : 'none';
-    ctrl.style.display = (name === 'main') ? 'block' : 'none';
-
-    if (name === 'fortune') setTimeout(drawWheel, 100);
-    if (name === 'top') doAction('get_top');
 }
 
 function toggleInv() { document.getElementById('inv-block').classList.toggle('inv-open'); }
@@ -265,7 +304,7 @@ function copyRef() {
 }
 
 /* ==========================================================================
-   [6] RUN
+   [7] RUN
    ========================================================================== */
 setInterval(updateTimers, 1000);
 window.onload = () => { doAction('load'); };
