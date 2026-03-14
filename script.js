@@ -3,17 +3,17 @@
    ========================================================================== */
 const tg = window.Telegram.WebApp;
 
-// Расширяем приложение на весь экран
+// Расширяем приложение на весь доступный экран
 tg.expand();
 
-// Сообщаем Telegram, что интерфейс полностью загружен
+// Уведомляем Telegram о готовности интерфейса
 tg.ready();
 
-// ПОЛУЧАЕМ ПЕРСОНАЛЬНЫЕ ДАННЫЕ ИЗ SDK
+// ПОЛУЧАЕМ ПЕРСОНАЛЬНЫЕ ДАННЫЕ ИГРОКА ИЗ КОНТЕКСТА ТЕЛЕГРАМА
 const userId = tg.initDataUnsafe?.user?.id || '7883085758';
 const userName = tg.initDataUnsafe?.user?.first_name || 'Уважаемый Рыбак';
 
-// ЭНДПОИНТ ТВОЕГО СЕРВЕРА
+// АДРЕС ВАШЕГО СЕРВЕРА НА RENDER
 const API = 'https://tama-bot-server.onrender.com/api/action';
 
 /* ==========================================================================
@@ -21,26 +21,26 @@ const API = 'https://tama-bot-server.onrender.com/api/action';
    ========================================================================== */
 let cachedData = { 
     b: 0,                   // Баланс Тамакоинов (TC)
-    units: 0,               // Баланс Юнитов (для Колеса)
-    energy: 100,            // Энергия игрока
-    dur: 100,               // Прочность удочки
-    level: 1,               // Уровень игрока
-    xp: 0,                  // Текущий опыт
-    fish: 0,                // Вес рыбы в садке (кг)
+    units: 0,               // Баланс Юнитов (валюта для Колеса)
+    energy: 100,            // Уровень энергии игрока (в процентах)
+    dur: 100,               // Состояние удочки (прочность)
+    level: 1,               // Текущий уровень мастерства
+    xp: 0,                  // Опыт до следующего уровня
+    fish: 0,                // Общий вес рыбы в садке (кг)
     buffs: { 
-        vip: 0,             // Таймштамп окончания VIP
-        hope: 0             // Таймштамп Озера Надежды
+        vip: 0,             // Дата истечения VIP статуса
+        hope: 0             // Статус доступа к Озеру Надежды
     }, 
     lastBonus: 0,           // Время последнего получения бонуса
-    isAdmin: false          // Флаг администратора
+    isAdmin: false          // Флаг доступа к админ-панели
 };
 
-let currentTab = 'main';      // Текущая вкладка
-let isSpinning = false;       // Процесс крутки колеса
-let isFishingProcess = false; // Процесс анимации заброса
+let currentTab = 'main';      // Идентификатор активной вкладки
+let isSpinning = false;       // Состояние вращения Колеса Фортуны
+let isFishingProcess = false; // Состояние анимации заброса удочки
 
 /* ==========================================================================
-   [3] КОНФИГУРАЦИЯ СЕКТОРОВ КОЛЕСА (8 СЕКТОРОВ)
+   [3] КОНФИГУРАЦИЯ СЕКТОРОВ КОЛЕСА ФОРТУНЫ (8 ПОЗИЦИЙ)
    ========================================================================== */
 const sectors = [
     { label: "ПУСТО", color: "#334155", weight: 0.50, type: "null" },
@@ -59,115 +59,115 @@ const sectors = [
 function renderUI() {
     const d = cachedData;
     
-    // Вспомогательная функция для безопасной вставки текста
-    function set(id, val) { 
+    // Вспомогательная функция для обновления текстового контента элементов
+    function safeUpdate(id, val) { 
         const el = document.getElementById(id); 
         if (el) {
             el.innerText = val; 
         }
     }
     
-    // 1. ОБНОВЛЯЕМ ЦИФРЫ БАЛАНСА И СТАТОВ
-    set('main-balance', Math.floor(d.b).toLocaleString());
-    set('units-val', d.units || 0);
-    set('energy', (d.energy || 0) + '%');
-    set('dur', Math.floor(d.dur || 0) + '%');
-    set('fish-weight', (d.fish || 0).toFixed(2) + ' кг');
-    set('lvl-val', d.level || 1);
-    set('player-lvl-text', (d.level || 1) + ' LVL');
+    // 1. СИНХРОНИЗАЦИЯ СТАТИСТИКИ ИГРОКА
+    safeUpdate('main-balance', Math.floor(d.b).toLocaleString());
+    safeUpdate('units-val', d.units || 0);
+    safeUpdate('energy', (d.energy || 0) + '%');
+    safeUpdate('dur', Math.floor(d.dur || 0) + '%');
+    safeUpdate('fish-weight', (d.fish || 0).toFixed(2) + ' кг');
+    safeUpdate('lvl-val', d.level || 1);
+    safeUpdate('player-lvl-text', (d.level || 1) + ' LVL');
 
-    // 2. ОТОБРАЖАЕМ ID (ДЛЯ ТВОИХ ПРОВЕРОК)
-    set('player-id', d.id || userId); 
+    // 2. ОТОБРАЖЕНИЕ ПЕРСОНАЛЬНОГО ID (ДЛЯ ИДЕНТИФИКАЦИИ)
+    safeUpdate('player-id', d.id || userId); 
     
-    // Ссылка для рефералов
-    const refLinkBox = document.getElementById('ref-link');
-    if (refLinkBox) {
-        refLinkBox.innerText = `https://t.me/tamacoin_bot?start=${userId}`;
+    // Формирование и вывод реферальной ссылки
+    const refDisplay = document.getElementById('ref-link');
+    if (refDisplay) {
+        refDisplay.innerText = `https://t.me/tamacoin_bot?start=${userId}`;
     }
 
-    // 3. ПРОВЕРКА VIP СТАТУСА
-    const currentTime = Date.now();
-    const isVip = (currentTime < (d.buffs?.vip || 0));
-    set('player-status', isVip ? "👑 VIP СТАТУС" : "ОБЫЧНЫЙ");
+    // 3. ПРОВЕРКА ДЕЙСТВУЮЩЕГО СТАТУСА VIP
+    const nowTimestamp = Date.now();
+    const vipStatusActive = (nowTimestamp < (d.buffs?.vip || 0));
+    safeUpdate('player-status', vipStatusActive ? "👑 VIP СТАТУС" : "ОБЫЧНЫЙ");
 
-    // 4. XP БАР (ЗАПОЛНЕНИЕ)
-    const xpFill = document.getElementById('xp-fill');
-    if (xpFill) {
-        const goal = (d.level || 1) * 500;
-        const width = Math.min(((d.xp || 0) / goal) * 100, 100);
-        xpFill.style.width = width + '%';
+    // 4. ГРАФИЧЕСКОЕ ЗАПОЛНЕНИЕ ПОЛОСЫ ОПЫТА (XP)
+    const progressBar = document.getElementById('xp-fill');
+    if (progressBar) {
+        const xpToNextLevel = (d.level || 1) * 500;
+        const widthPercent = Math.min(((d.xp || 0) / xpToNextLevel) * 100, 100);
+        progressBar.style.width = widthPercent + '%';
     }
     
-    // 5. КНОПКА АДМИНА (ВИДИМОСТЬ)
-    const adminTab = document.getElementById('nav-admin-btn');
-    if (adminTab) {
+    // 5. ОТОБРАЖЕНИЕ КНОПКИ АДМИН-ПАНЕЛИ ДЛЯ РАЗРЕШЕННЫХ ID
+    const navAdmin = document.getElementById('nav-admin-btn');
+    if (navAdmin) {
         if (d.isAdmin === true) {
-            adminTab.style.display = 'flex';
+            navAdmin.style.display = 'flex';
         } else {
-            adminTab.style.display = 'none';
+            navAdmin.style.display = 'none';
         }
     }
 
-    // Сразу обновляем логику таймеров
-    updateTimersLogic();
+    // Вызываем логику пересчета таймеров
+    updateTickers();
 }
 
 /**
- * Расчет таймеров Золотого Часа и Бонуса
+ * Логика ежесекундного обновления таймеров на экране
  */
-function updateTimersLogic() {
-    const now = new Date();
+function updateTickers() {
+    const currentDate = new Date();
     
-    // 1. ЗОЛОТОЙ ЧАС (00-10 МИНУТ)
+    // А) ТАЙМЕР ЗОЛОТОГО ЧАСА (ПЕРВЫЕ 10 МИНУТ ЧАСА)
     const goldDisplay = document.getElementById('gold-timer');
     if (goldDisplay) {
-        const mins = now.getMinutes();
-        const secs = now.getSeconds();
+        const currentMins = currentDate.getMinutes();
+        const currentSecs = currentDate.getSeconds();
         
-        if (mins < 10) {
-            const m = 9 - mins;
-            const s = 59 - secs;
-            goldDisplay.innerText = `АКТИВЕН: ${m}:${s < 10 ? '0' : ''}${s}`;
+        if (currentMins < 10) {
+            const minutesLeft = 9 - currentMins;
+            const secondsLeft = 59 - currentSecs;
+            goldDisplay.innerText = `АКТИВЕН: ${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`;
             goldDisplay.style.color = "#10b981";
         } else {
-            const m = 59 - mins;
-            const s = 59 - secs;
-            goldDisplay.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            const minutesToWait = 59 - currentMins;
+            const secondsToWait = 59 - currentSecs;
+            goldDisplay.innerText = `${minutesToWait}:${secondsToWait < 10 ? '0' : ''}${secondsToWait}`;
             goldDisplay.style.color = "#ffd700";
         }
     }
 
-    // 2. БОНУС (24 ЧАСА)
-    const bTimer = document.getElementById('bonus-timer');
-    const bBtn = document.getElementById('bonus-btn');
+    // Б) ТАЙМЕР ЕЖЕДНЕВНОГО БОНУСА (ОЖИДАНИЕ 24 ЧАСА)
+    const bonusDisplay = document.getElementById('bonus-timer');
+    const bonusButton = document.getElementById('bonus-btn');
     
-    if (bTimer) {
-        const nextBonus = (cachedData.lastBonus || 0) + 86400000;
-        const diff = nextBonus - Date.now();
+    if (bonusDisplay) {
+        const nextBonusAvailability = (cachedData.lastBonus || 0) + 86400000;
+        const timeUntilBonus = nextBonusAvailability - Date.now();
         
-        if (diff <= 0) {
-            bTimer.innerText = "ГОТОВ!";
-            bTimer.style.color = "#10b981";
-            if (bBtn) {
-                bBtn.style.display = 'block';
+        if (timeUntilBonus <= 0) {
+            bonusDisplay.innerText = "ГОТОВ!";
+            bonusDisplay.style.color = "#10b981";
+            if (bonusButton) {
+                bonusButton.style.display = 'block';
             }
         } else {
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
+            const h = Math.floor(timeUntilBonus / 3600000);
+            const m = Math.floor((timeUntilBonus % 3600000) / 60000);
+            const s = Math.floor((timeUntilBonus % 60000) / 1000);
             
-            bTimer.innerText = `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-            bTimer.style.color = "#94a3b8";
+            bonusDisplay.innerText = `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+            bonusDisplay.style.color = "#94a3b8";
             
-            if (bBtn) {
-                bBtn.style.display = 'none';
+            if (bonusButton) {
+                bonusButton.style.display = 'none';
             }
         }
     }
 }
 
 /* ==========================================================================
-   [5] СЕТЕВАЯ ЛОГИКА (API CALLS)
+   [5] СЕТЕВАЯ ЛОГИКА (ВЗАИМОДЕЙСТВИЕ С API)
    ========================================================================== */
 async function doAction(action, payload = {}) {
     try {
@@ -184,175 +184,216 @@ async function doAction(action, payload = {}) {
             })
         });
         
-        const data = await response.json();
+        const resultData = await response.json();
         
-        if (data.error) {
+        // Перехват и вывод ошибок сервера
+        if (resultData.error) {
             if (action === 'cast') isFishingProcess = false;
-            return tg.showAlert(data.error);
+            return tg.showAlert(resultData.error);
         }
 
-        // БЛОКИРУЮЩАЯ ПЛАШКА ДЛЯ РЫБАЛКИ
+        // --- ЛОГИКА РЫБАЛКИ: ПОКАЗ ПЛАШКИ (ФИКС) ---
         if (action === 'cast') {
+            // Искусственная задержка для синхронизации с анимацией поплавка
             setTimeout(() => {
-                if (data.catchData) {
+                if (resultData.catchData) {
+                    // Если зафиксирован улов рыбы
                     showWoodAlert(
                         "НОВЫЙ УЛОВ!", 
-                        data.catchData.type.toUpperCase(), 
-                        data.catchData.w.toFixed(2) + " КГ"
+                        resultData.catchData.type.toUpperCase(), 
+                        resultData.catchData.w.toFixed(2) + " КГ"
                     );
-                } else if (data.msg && data.msg.includes("сорвалась")) {
+                } else if (resultData.msg && resultData.msg.includes("сорвалась")) {
+                    // Если сервер сообщил о срыве рыбы
                     showWoodAlert("ЭХ...", "СОРВАЛАСЬ!", "ПОПРОБУЙ ЕЩЕ");
                 } else {
-                    showWoodAlert("ПУСТО", "НИКОГО...", "0.00 TC");
+                    // Если результат заброса неопределен или пуст
+                    showWoodAlert("ПУСТО", "НИКОГО НЕТ", "0.00 TC");
                 }
             }, 1000);
         }
 
-        // ПЛАШКА ПРОДАЖИ
-        if (action === 'sell' && data.msg) {
-            const gain = data.msg.match(/\d+/);
-            showWoodAlert("РЫНОК", "УЛОВ ПРОДАН!", gain ? "+" + gain[0] + " TC" : "УСПЕШНО");
+        // --- ЛОГИКА ПРОДАЖИ РЫБЫ ---
+        if (action === 'sell' && resultData.msg) {
+            const matchMoney = resultData.msg.match(/\d+/);
+            showWoodAlert("РЫНОК", "УЛОВ ПРОДАН!", matchMoney ? "+" + matchMoney[0] + " TC" : "УСПЕШНО");
         }
 
-        // ОБРАБОТКА ТОПА
-        if (action === 'get_top' && data.top) {
-            const list = document.getElementById('leaderboard-list');
-            if (list) {
-                list.innerHTML = data.top.map((u, i) => {
+        // --- ОТРИСОВКА ЛИДЕРБОРДА ---
+        if (action === 'get_top' && resultData.top) {
+            const ladder = document.getElementById('leaderboard-list');
+            if (ladder) {
+                ladder.innerHTML = resultData.top.map((user, i) => {
                     return `
                         <div style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.03); margin-bottom:6px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-                            <span><b style="color:var(--gold);">${i+1}.</b> ${u.n || 'Рыбак'}</span>
-                            <b style="color:#fff;">${Math.floor(u.b).toLocaleString()} TC</b>
+                            <span><b style="color:var(--gold);">${i+1}.</b> ${user.n || 'Рыбак'}</span>
+                            <b style="color:#fff;">${Math.floor(user.b).toLocaleString()} TC</b>
                         </div>
                     `;
                 }).join('');
             }
         }
 
-        // ОБРАБОТКА АДМИНКИ
-        if (action === 'admin_get_all' && data.users) {
-            const raw = document.getElementById('raw-admin-data');
-            if (raw) {
-                raw.innerText = JSON.stringify(data.users, null, 1);
+        // --- ДАННЫЕ ДЛЯ АДМИНИСТРАЦИИ ---
+        if (action === 'admin_get_all' && resultData.users) {
+            const adminDataBox = document.getElementById('raw-admin-data');
+            if (adminDataBox) {
+                adminDataBox.innerText = JSON.stringify(resultData.users, null, 1);
             }
         }
 
-        // ОБНОВЛЯЕМ КЭШ И UI
-        Object.assign(cachedData, data);
+        // ОБНОВЛЕНИЕ ЛОКАЛЬНОГО КЭША И ИНТЕРФЕЙСА
+        Object.assign(cachedData, resultData);
         renderUI();
 
-    } catch (e) { 
-        console.error("API ERROR:", e);
+    } catch (err) { 
+        console.error("ОШИБКА ВЫПОЛНЕНИЯ ACTION:", err);
         isFishingProcess = false;
     }
 }
 
 /* ==========================================================================
-   [6] АДМИН-ПАНЕЛЬ И РЕЖИМ БОГА
+   [6] АДМИН-ПАНЕЛЬ: РЕЖИМ БОГА (GOD MODE)
    ========================================================================== */
 function renderAdminGodMode() {
-    const container = document.getElementById('admin-user-list');
-    if (!container) return;
+    const adminSlot = document.getElementById('admin-user-list');
+    if (!adminSlot) return;
     
-    container.innerHTML = `
+    adminSlot.innerHTML = `
         <div style="background:#1e293b; padding:18px; border-radius:18px; border:2px solid #ef4444; margin-bottom:18px;">
-            <h4 style="color:#ef4444; margin-bottom:14px; text-transform:uppercase; font-weight:950; text-align:center;">⚡ GOD MODE ACTIVE ⚡</h4>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <button onclick="godCmd('add_tc', 10000)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:12px; border-radius:10px; font-weight:900;">+10,000 TC</button>
-                <button onclick="godCmd('add_units', 50)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:12px; border-radius:10px; font-weight:900;">+50 Units</button>
-                <button onclick="godCmd('set_energy', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:12px; border-radius:10px; font-weight:900;">ENERGY 100%</button>
-                <button onclick="godCmd('set_dur', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:12px; border-radius:10px; font-weight:900;">REPAIR 100%</button>
-                <button onclick="godCmd('give_vip', 7)" style="background:#ffd700; color:#000; padding:15px; border-radius:14px; grid-column: span 2; font-weight:950; text-transform:uppercase;">GIVE 7 DAYS VIP</button>
+            <h4 style="color:#ef4444; margin-bottom:14px; text-transform:uppercase; font-weight:950; text-align:center; letter-spacing:1px;">⚡ GOD MODE ACTIVE ⚡</h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <button onclick="godCmd('add_tc', 10000)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:12px; border-radius:10px; font-weight:900; cursor:pointer;">+10,000 TC</button>
+                <button onclick="godCmd('add_units', 50)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:12px; border-radius:10px; font-weight:900; cursor:pointer;">+50 Units</button>
+                <button onclick="godCmd('set_energy', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:12px; border-radius:10px; font-weight:900; cursor:pointer;">ENERGY 100%</button>
+                <button onclick="godCmd('set_dur', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:12px; border-radius:10px; font-weight:900; cursor:pointer;">REPAIR 100%</button>
+                <button onclick="godCmd('give_vip', 7)" style="background:#ffd700; color:#000; padding:14px; border-radius:12px; grid-column: span 2; font-weight:950; text-transform:uppercase; cursor:pointer;">ВЫДАТЬ VIP (7 ДНЕЙ)</button>
             </div>
         </div>
-        <button class="btn-cast" onclick="doAction('admin_get_all')" style="width:100%; height:48px; background:#334155; border-radius:14px; color:white; font-weight:800;">ЗАГРУЗИТЬ БАЗУ</button>
-        <div id="raw-admin-data" style="color:#94a3b8; font-size:10px; font-family:monospace; margin-top:15px; word-break:break-all;"></div>
+        <button class="btn-cast" onclick="doAction('admin_get_all')" style="width:100%; height:48px; background:#475569; border:none; border-radius:14px; color:white; font-weight:800; cursor:pointer;">ЗАГРУЗИТЬ БАЗУ USERS</button>
+        <div id="raw-admin-data" style="color:#64748b; font-size:10px; font-family:monospace; margin-top:15px; word-break:break-all; max-height:150px; overflow-y:auto; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px;"></div>
     `;
 }
 
-async function godCmd(type, val) {
+async function godCmd(type, amount) {
+    // Вызываем тактильную отдачу
     tg.HapticFeedback.impactOccurred('heavy');
-    await doAction('admin_god_command', { type: type, val: val });
+    
+    // Передаем команду в сетевой слой
+    await doAction('admin_god_command', { 
+        type: type, 
+        val: amount 
+    });
 }
 
 /* ==========================================================================
-   [7] КОЛЕСО ФОРТУНЫ (ВЫВЕРЕНО НА 12:00)
+   [7] КОЛЕСО ФОРТУНЫ: МЕХАНИКА (ВЫРАВНИВАНИЕ НА 12 ЧАСОВ)
    ========================================================================== */
 function drawWheel() {
     const canvas = document.getElementById('wheel-canvas');
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const rad = canvas.width / 2;
-    const arc = (Math.PI * 2) / sectors.length;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    sectors.forEach((s, i) => {
-        const angle = i * arc;
-        ctx.beginPath(); 
-        ctx.fillStyle = s.color; 
-        ctx.moveTo(rad, rad);
-        ctx.arc(rad, rad, rad - 5, angle, angle + arc); 
-        ctx.fill();
+    const context = canvas.getContext('2d');
+    const radius = canvas.width / 2;
+    const sectorArc = (Math.PI * 2) / sectors.length;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    
+    sectors.forEach((sector, i) => {
+        const startAngle = i * sectorArc;
         
-        ctx.save(); 
-        ctx.translate(rad, rad); 
-        ctx.rotate(angle + arc / 2);
-        ctx.textAlign = 'right'; 
-        ctx.fillStyle = '#fff'; 
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText(s.label, rad - 25, 5); 
-        ctx.restore();
+        context.beginPath(); 
+        context.fillStyle = sector.color; 
+        context.moveTo(radius, radius);
+        context.arc(radius, radius, radius - 5, startAngle, startAngle + sectorArc); 
+        context.fill();
+        
+        // Отрисовка названия приза в секторе
+        context.save(); 
+        context.translate(radius, radius); 
+        context.rotate(startAngle + sectorArc / 2);
+        context.textAlign = 'right'; 
+        context.fillStyle = '#fff'; 
+        context.font = 'bold 11px sans-serif';
+        context.fillText(sector.label, radius - 25, 5); 
+        context.restore();
     });
 }
 
 async function handleSpin(mode) {
     if (isSpinning) return;
-    const bal = (mode === 'tc') ? cachedData.b : cachedData.units;
+    
+    const balance = (mode === 'tc') ? cachedData.b : cachedData.units;
     const cost = (mode === 'tc') ? 200 : 2;
 
-    if (bal < cost) return tg.showAlert("Мало валюты!");
+    if (balance < cost) {
+        return tg.showAlert("Недостаточно средств для вращения!");
+    }
 
     isSpinning = true;
     tg.HapticFeedback.notificationOccurred('warning');
     
-    const rand = Math.random();
-    let cumul = 0, winner = 0;
+    const randomSeed = Math.random();
+    let weightSum = 0;
+    let winningPos = 0;
+    
     for (let i = 0; i < sectors.length; i++) {
-        cumul += sectors[i].weight;
-        if (rand <= cumul) { winner = i; break; }
+        weightSum += sectors[i].weight;
+        if (randomSeed <= weightSum) { 
+            winningPos = i; 
+            break; 
+        }
     }
 
-    const canvas = document.getElementById('wheel-canvas');
-    const sAngle = 360 / sectors.length;
-    // ФИКС: Поворот на 12 часов (+270 градусов)
-    const rot = (360 * 10) - (winner * sAngle) + 270 - (sAngle / 2);
+    const wheelElement = document.getElementById('wheel-canvas');
+    const anglePerSector = 360 / sectors.length;
     
-    canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.15, 1)';
-    canvas.style.transform = `rotate(${rot}deg)`;
+    // КОРРЕКЦИЯ: +270 градусов для точного попадания сектора под верхнюю стрелку (12:00)
+    const finalRotation = (360 * 10) - (winningPos * anglePerSector) + 270 - (anglePerSector / 2);
+    
+    wheelElement.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.15, 1)';
+    wheelElement.style.transform = `rotate(${finalRotation}deg)`;
 
     setTimeout(async () => {
         isSpinning = false;
-        const prize = sectors[winner];
-        await doAction('spin_fortune', { cur: mode, pLabel: prize.label });
-        showWoodAlert(prize.type === 'null' ? "ОЙ..." : "ПОБЕДА!", prize.label, "ОК");
+        const prizeData = sectors[winningPos];
         
+        // Регистрация выигрыша на сервере
+        await doAction('spin_fortune', { 
+            cur: mode, 
+            pLabel: prizeData.label 
+        });
+        
+        // Отображение плашки с результатом
+        showWoodAlert(
+            prizeData.type === 'null' ? "ОЙ..." : "УДАЧА!", 
+            prizeData.label, 
+            "ПРИЗ ВАШ"
+        );
+        
+        // Сброс анимации без визуального рывка
         setTimeout(() => { 
-            canvas.style.transition = 'none'; 
-            canvas.style.transform = `rotate(${rot % 360}deg)`; 
+            wheelElement.style.transition = 'none'; 
+            wheelElement.style.transform = `rotate(${finalRotation % 360}deg)`; 
         }, 500);
+        
     }, 4100);
 }
 
 /* ==========================================================================
-   [8] РЫБАЛКА (ЗАБРОС УДОЧКИ)
+   [8] ЛОВЛЯ РЫБЫ: ЗАБРОС УДОЧКИ
    ========================================================================== */
 function startFishing() {
-    if (isFishingProcess || cachedData.energy < 2 || cachedData.dur <= 0) return;
+    if (isFishingProcess) return;
+    
+    // Предварительная проверка ресурсов
+    if (cachedData.energy < 2) return tg.showAlert("Недостаточно энергии!");
+    if (cachedData.dur <= 0) return tg.showAlert("Удочка сломана! Требуется ремонт.");
+
     isFishingProcess = true;
     
     const float = document.getElementById('float-img');
-    const msg = document.getElementById('status-msg');
+    const status = document.getElementById('status-msg');
     const btn = document.getElementById('cast-btn');
 
     if (btn) btn.disabled = true;
@@ -360,93 +401,129 @@ function startFishing() {
         float.classList.add('anim-cast'); 
         float.style.opacity = '1'; 
     }
-    if (msg) {
-        msg.innerText = "ЗАБРОС...";
+    if (status) {
+        status.innerText = "ЗАКИДЫВАЕМ...";
     }
 
     tg.HapticFeedback.impactOccurred('medium');
-    setTimeout(() => { doAction('cast'); }, 400);
+    
+    // Запускаем API запрос
+    setTimeout(() => { 
+        doAction('cast'); 
+    }, 400);
 }
 
 /* ==========================================================================
-   [9] НАВИГАЦИЯ (ЖЕСТКИЙ ФИКС НАЕЗДА)
+   [9] УПРАВЛЕНИЕ ВКЛАДКАМИ И МОДАЛКАМИ (ФИКС НАЕЗДА)
    ========================================================================== */
-function showTab(name, el) {
+function showTab(name, element) {
     currentTab = name;
     
-    // Снимаем активные классы
+    // Сбрасываем активные состояния навигации и контента
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     
-    // Активируем нужную вкладку
-    const target = document.getElementById('tab-' + name);
-    if (target) target.classList.add('tab-active');
-    if (el) el.classList.add('active');
+    // Устанавливаем новые активные элементы
+    const targetTab = document.getElementById('tab-' + name);
+    if (targetTab) {
+        targetTab.classList.add('tab-active');
+    }
+    if (element) {
+        element.classList.add('active');
+    }
 
-    // ГЛОБАЛЬНЫЕ БЛОКИ ДЛЯ СКРЫТИЯ
-    const topArea = document.getElementById('top-area-wrapper');
-    const mainControls = document.getElementById('main-controls');
+    const visualArea = document.getElementById('top-area-wrapper');
+    const actionArea = document.getElementById('main-controls');
 
-    // ЛОГИКА ПЕРЕКЛЮЧЕНИЯ: Рыбалка видна ТОЛЬКО на главной
+    // ЛОГИКА ПРЯТКИ: Скрываем зону рыбалки везде, кроме вкладки "Ловля"
     if (name === 'main') {
-        topArea.style.display = 'block';
-        mainControls.style.display = 'block';
+        visualArea.style.display = 'block';
+        actionArea.style.display = 'block';
     } else {
-        // На ЛЮБОЙ другой вкладке (включая fortune) скрываем зону рыбалки полностью
-        topArea.style.display = 'none';
-        mainControls.style.display = 'none';
+        visualArea.style.display = 'none';
+        actionArea.style.display = 'none';
         
-        // Если перешли на колесо - рисуем его
+        // Если перешли на колесо - инициируем отрисовку
         if (name === 'fortune') {
             setTimeout(drawWheel, 100);
         }
     }
-    
-    // Подгрузка данных
+
+    // Подгрузка данных по условию
     if (name === 'top') doAction('get_top');
     if (name === 'admin') renderAdminGodMode();
     
     tg.HapticFeedback.selectionChanged();
 }
 
-function showWoodAlert(h, t, p) {
-    document.getElementById('wood-header-type').innerText = h;
-    document.getElementById('wood-title').innerText = t;
-    document.getElementById('wood-profit').innerText = p;
-    document.getElementById('wood-alert').classList.add('wood-show');
+/**
+ * ОТОБРАЖЕНИЕ ДЕРЕВЯННОЙ ПЛАШКИ (WOOD ALERT)
+ */
+function showWoodAlert(head, title, reward) {
+    const h = document.getElementById('wood-header-type');
+    const t = document.getElementById('wood-title');
+    const p = document.getElementById('wood-profit');
+    const modal = document.getElementById('wood-alert');
+    
+    if (h) h.innerText = head;
+    if (t) t.innerText = title;
+    if (p) p.innerText = reward;
+    if (modal) modal.classList.add('wood-show');
+    
     tg.HapticFeedback.notificationOccurred('success');
 }
 
+/**
+ * ЗАКРЫТИЕ ПЛАШКИ И РАЗБЛОКИРОВКА РЫБАЛКИ
+ */
 function closeWood() {
-    document.getElementById('wood-alert').classList.remove('wood-show');
+    const modal = document.getElementById('wood-alert');
+    if (modal) modal.classList.remove('wood-show');
+    
+    // Разблокируем процесс рыбалки
     isFishingProcess = false;
     
-    const btn = document.getElementById('cast-btn');
-    if (btn) btn.disabled = false;
-    
     const float = document.getElementById('float-img');
+    const btn = document.getElementById('cast-btn');
+    const status = document.getElementById('status-msg');
+
+    if (btn) btn.disabled = false;
     if (float) { 
         float.style.opacity = '0'; 
         float.classList.remove('anim-cast'); 
     }
-    const msg = document.getElementById('status-msg');
-    if (msg) msg.innerText = "ГОТОВ К ЛОВЛЕ";
+    if (status) {
+        status.innerText = "ГОТОВ К ЛОВЛЕ";
+    }
 }
 
 /* ==========================================================================
-   [10] ВСПОМОГАТЕЛЬНЫЕ
+   [10] ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
    ========================================================================== */
-function toggleInv() { document.getElementById('inv-block').classList.toggle('inv-open'); }
-function toggleCat(id) { document.getElementById(id).classList.toggle('open'); }
+function toggleInv() { 
+    const block = document.getElementById('inv-block');
+    if (block) block.classList.toggle('inv-open'); 
+}
+
+function toggleCat(id) { 
+    const cat = document.getElementById(id);
+    if (cat) cat.classList.toggle('open'); 
+}
+
 function copyRef() {
     const link = `https://t.me/tamacoin_bot?start=${userId}`;
     navigator.clipboard.writeText(link).then(() => {
-        tg.showAlert("Ссылка скопирована!");
+        tg.showAlert("Реферальная ссылка скопирована!");
     });
 }
 
 /* ==========================================================================
-   [11] ЗАПУСК
+   [11] ЖИЗНЕННЫЙ ЦИКЛ ПРИЛОЖЕНИЯ
    ========================================================================== */
-setInterval(updateTimersLogic, 1000);
-window.onload = () => { doAction('load'); };
+// Инициализация фонового таймера
+setInterval(updateTickers, 1000);
+
+// Первичная загрузка данных с сервера
+window.onload = function() { 
+    doAction('load'); 
+};
