@@ -3,7 +3,7 @@
    ========================================================================== */
 const tg = window.Telegram.WebApp;
 
-// Расширяем приложение на весь экран для удобства
+// Расширяем приложение на весь экран
 tg.expand();
 
 // Сообщаем Telegram, что интерфейс полностью загружен
@@ -35,8 +35,8 @@ let cachedData = {
     isAdmin: false          // Флаг администратора
 };
 
-let currentTab = 'main';    // Текущая вкладка
-let isSpinning = false;     // Процесс крутки колеса
+let currentTab = 'main';      // Текущая вкладка
+let isSpinning = false;       // Процесс крутки колеса
 let isFishingProcess = false; // Процесс анимации заброса
 
 /* ==========================================================================
@@ -86,7 +86,8 @@ function renderUI() {
     }
 
     // 3. ПРОВЕРКА VIP СТАТУСА
-    const isVip = (Date.now() < (d.buffs?.vip || 0));
+    const currentTime = Date.now();
+    const isVip = (currentTime < (d.buffs?.vip || 0));
     set('player-status', isVip ? "👑 VIP СТАТУС" : "ОБЫЧНЫЙ");
 
     // 4. XP БАР (ЗАПОЛНЕНИЕ)
@@ -190,7 +191,7 @@ async function doAction(action, payload = {}) {
             return tg.showAlert(data.error);
         }
 
-        // БЛОКИРУЮЩАЯ ПЛАШКА ДЛЯ РЫБАЛКИ (ФИКС)
+        // БЛОКИРУЮЩАЯ ПЛАШКА ДЛЯ РЫБАЛКИ
         if (action === 'cast') {
             setTimeout(() => {
                 if (data.catchData) {
@@ -204,7 +205,7 @@ async function doAction(action, payload = {}) {
                 } else {
                     showWoodAlert("ПУСТО", "НИКОГО...", "0.00 TC");
                 }
-            }, 1000); // Тайминг анимации
+            }, 1000);
         }
 
         // ПЛАШКА ПРОДАЖИ
@@ -228,7 +229,7 @@ async function doAction(action, payload = {}) {
             }
         }
 
-        // ОБРАБОТКА АДМИНКИ (ПОЛНЫЙ СПИСОК)
+        // ОБРАБОТКА АДМИНКИ
         if (action === 'admin_get_all' && data.users) {
             const raw = document.getElementById('raw-admin-data');
             if (raw) {
@@ -256,11 +257,11 @@ function renderAdminGodMode() {
     container.innerHTML = `
         <div style="background:#1e293b; padding:18px; border-radius:18px; border:2px solid #ef4444; margin-bottom:18px;">
             <h4 style="color:#ef4444; margin-bottom:14px; text-transform:uppercase; font-weight:950; text-align:center;">⚡ GOD MODE ACTIVE ⚡</h4>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-                <button onclick="godCmd('add_tc', 10000)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:13px; border-radius:12px; font-weight:900;">+10,000 TC</button>
-                <button onclick="godCmd('add_units', 50)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:13px; border-radius:12px; font-weight:900;">+50 Units</button>
-                <button onclick="godCmd('set_energy', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:13px; border-radius:12px; font-weight:900;">ENERGY 100%</button>
-                <button onclick="godCmd('set_dur', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:13px; border-radius:12px; font-weight:900;">REPAIR 100%</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button onclick="godCmd('add_tc', 10000)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:12px; border-radius:10px; font-weight:900;">+10,000 TC</button>
+                <button onclick="godCmd('add_units', 50)" style="background:#0f172a; color:#ffd700; border:1px solid #ffd700; padding:12px; border-radius:10px; font-weight:900;">+50 Units</button>
+                <button onclick="godCmd('set_energy', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:12px; border-radius:10px; font-weight:900;">ENERGY 100%</button>
+                <button onclick="godCmd('set_dur', 100)" style="background:#0f172a; color:#10b981; border:1px solid #10b981; padding:12px; border-radius:10px; font-weight:900;">REPAIR 100%</button>
                 <button onclick="godCmd('give_vip', 7)" style="background:#ffd700; color:#000; padding:15px; border-radius:14px; grid-column: span 2; font-weight:950; text-transform:uppercase;">GIVE 7 DAYS VIP</button>
             </div>
         </div>
@@ -271,7 +272,7 @@ function renderAdminGodMode() {
 
 async function godCmd(type, val) {
     tg.HapticFeedback.impactOccurred('heavy');
-    await doAction('admin_god_command', { type, val });
+    await doAction('admin_god_command', { type: type, val: val });
 }
 
 /* ==========================================================================
@@ -368,31 +369,43 @@ function startFishing() {
 }
 
 /* ==========================================================================
-   [9] НАВИГАЦИЯ И ПЛАШКА
+   [9] НАВИГАЦИЯ (ЖЕСТКИЙ ФИКС НАЕЗДА)
    ========================================================================== */
 function showTab(name, el) {
     currentTab = name;
+    
+    // Снимаем активные классы
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     
+    // Активируем нужную вкладку
     const target = document.getElementById('tab-' + name);
     if (target) target.classList.add('tab-active');
     if (el) el.classList.add('active');
 
-    const top = document.getElementById('top-area-wrapper');
-    const ctrl = document.getElementById('main-controls');
+    // ГЛОБАЛЬНЫЕ БЛОКИ ДЛЯ СКРЫТИЯ
+    const topArea = document.getElementById('top-area-wrapper');
+    const mainControls = document.getElementById('main-controls');
 
-    if (name === 'main' || name === 'fortune') {
-        top.style.display = 'block';
-        ctrl.style.display = (name === 'main') ? 'block' : 'none';
-        if (name === 'fortune') setTimeout(drawWheel, 100);
+    // ЛОГИКА ПЕРЕКЛЮЧЕНИЯ: Рыбалка видна ТОЛЬКО на главной
+    if (name === 'main') {
+        topArea.style.display = 'block';
+        mainControls.style.display = 'block';
     } else {
-        top.style.display = 'none';
-        ctrl.style.display = 'none';
+        // На ЛЮБОЙ другой вкладке (включая fortune) скрываем зону рыбалки полностью
+        topArea.style.display = 'none';
+        mainControls.style.display = 'none';
+        
+        // Если перешли на колесо - рисуем его
+        if (name === 'fortune') {
+            setTimeout(drawWheel, 100);
+        }
     }
     
+    // Подгрузка данных
     if (name === 'top') doAction('get_top');
     if (name === 'admin') renderAdminGodMode();
+    
     tg.HapticFeedback.selectionChanged();
 }
 
@@ -427,7 +440,9 @@ function toggleInv() { document.getElementById('inv-block').classList.toggle('in
 function toggleCat(id) { document.getElementById(id).classList.toggle('open'); }
 function copyRef() {
     const link = `https://t.me/tamacoin_bot?start=${userId}`;
-    navigator.clipboard.writeText(link).then(() => tg.showAlert("Ссылка скопирована!"));
+    navigator.clipboard.writeText(link).then(() => {
+        tg.showAlert("Ссылка скопирована!");
+    });
 }
 
 /* ==========================================================================
