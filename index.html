@@ -8,12 +8,11 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-
     <div id="wood-alert">
-        <div id="wood-header-type">СООБЩЕНИЕ</div>
-        <div id="wood-title">РЕЗУЛЬТАТ!</div>
+        <div id="wood-header-type">СИСТЕМНОЕ УВЕДОМЛЕНИЕ</div>
+        <div id="wood-title">РЕЗУЛЬТАТ ДЕЙСТВИЯ</div>
         <div id="wood-profit">+0.00 TC</div>
-        <button onclick="closeWood()" class="wood-alert-btn">ПРИНЯТЬ</button>
+        <button onclick="closeWood()" class="wood-alert-btn">ПОДТВЕРДИТЬ</button>
     </div>
 
     <div id="lucky-box-overlay" class="box-overlay">
@@ -21,130 +20,153 @@
         <div class="lucky-box-anim box-shake-effect" id="box-body" onclick="animateBoxOpening()">
             <div class="box-lid-anim"></div>
         </div>
-        <p id="box-hint">ЖМИ НА КОРОБКУ!</p>
+        <p id="box-hint">НАЖМИТЕ НА КОРОБКУ, ЧТОБЫ ОТКРЫТЬ</p>
         <button id="close-box-btn" class="btn-cast" style="display:none; margin-top:35px; width:210px;" onclick="closeBoxModal()">ЗАБРАТЬ НАГРАДУ</button>
     </div>
 
-    <div id="top-area-wrapper">
-        <div class="header-fixed">
-            <div class="marquee">
-                <div class="marquee-content" id="events-line">Удачного клева в Tamacoin Fishing! 🎣 1 TON = 10 Units 💰 Крути Колесо Фортуны за 2 Units! 🎡 Следи за Джекпотом! 🚀</div>
-            </div>
-            
-            <div class="timers-row">
-                <div class="timer-block">
-                    <span class="timer-label">ЗОЛОТОЙ ЧАС:</span>
-                    <span id="gold-timer" class="timer-val">00:00:00</span>
-                </div>
-                <div class="timer-block">
-                    <span class="timer-label">ДО БОНУСА:</span>
-                    <span id="bonus-timer" class="timer-val">...</span>
-                </div>
-            </div>
-            
-            <div id="xp-bar-container">
-                <div class="xp-text-info">
-                    <span>УРОВЕНЬ <span id="lvl-val">1</span></span>
-                    <span>XP: <span id="xp-val">0</span> / <span id="xp-target">500</span></span>
-                </div>
-                <div class="xp-track">
-                    <div id="xp-fill" class="xp-fill"></div>
-                </div>
+    <div class="header-fixed">
+        <div class="marquee">
+            <div class="marquee-content" id="events-line">
+                ДОБРО ПОЖАЛОВАТЬ В ТАМАКОИН ФИШИНГ! 🎣 КУРС: 1 TON = 10 UNITS 💰 ЖЕЛАЕМ УДАЧНОГО КЛЕВА! 🚀 ПОДПИСЫВАЙТЕСЬ НА КАНАЛ ПРОЕКТА! 📢 СЛЕДИТЕ ЗА ОБНОВЛЕНИЯМИ! 🛠️
             </div>
         </div>
+        
+        <div class="timers-row">
+            <div class="timer-block">
+                <span class="timer-label">ЗОЛОТОЙ ЧАС:</span>
+                <span id="gold-timer" class="timer-val">00:00:00</span>
+            </div>
+            <div class="timer-block">
+                <span class="timer-label">ЕЖЕДНЕВНЫЙ БОНУС:</span>
+                <span id="bonus-timer" class="timer-val">ЗАГРУЗКА...</span>
+            </div>
+        </div>
+        
+        <div id="xp-bar-container">
+            <div class="xp-text-info">
+                <span>УРОВЕНЬ МАСТЕРСТВА: <span id="lvl-val">1</span></span>
+                <span>ОПЫТ: <span id="xp-val">0</span> / <span id="xp-target">500</span></span>
+            </div>
+            <div class="xp-track">
+                <div id="xp-fill" class="xp-fill"></div>
+            </div>
+        </div>
+    </div>
 
-        <div class="top-stats">
+    <div class="top-stats">
+        <div class="stats-main-row">
             <div class="balance-pill">
-                <div class="balance-label">БАЛАНС ТАМАКОИНОВ</div>
+                <div class="balance-label">БАЛАНС ТАМАКОИНОВ (TC)</div>
                 <div class="balance-value"><span id="main-balance">0</span></div>
             </div>
-            
-            <div class="status-info-grid">
-                <div class="status-card">
-                    <span>ЭНЕРГИЯ</span>
-                    <b id="energy">100%</b>
-                </div>
-                <div class="status-card jp-highlight">
-                    <span>JACKPOT</span>
-                    <b id="jackpot-display">1 000 TC</b>
-                </div>
-                <div class="status-card">
-                    <span>ПРОЧНОСТЬ</span>
-                    <b id="dur">100%</b>
-                </div>
+            <div class="units-pill-top">
+                <div class="balance-label">UNITS (ДЛЯ КОЛЕСА)</div>
+                <div class="balance-value"><span id="units-top-val">0</span></div>
             </div>
         </div>
-
-        <div class="game-view-container" id="game-view-block">
-            <div class="game-view">
-                <div class="float-container">
-                    <img id="float-img" src="fish_anim.webp" class="float-img">
-                </div>
-                <div id="status-msg">ГОТОВ К ЛОВЛЕ</div>
+        
+        <div class="status-info-grid">
+            <div class="status-card" id="card-energy">
+                <span>ЭНЕРГИЯ</span>
+                <b id="energy">100%</b>
+                <div class="mini-progress"><div id="energy-fill"></div></div>
             </div>
+            <div class="status-card jp-highlight">
+                <span>JACKPOT POOL</span>
+                <b id="jackpot-display">1 000 TC</b>
+                <span style="font-size:7px; margin-top:2px;">ОТПРАВЛЯЕТСЯ ПОБЕДИТЕЛЮ</span>
+            </div>
+            <div class="status-card" id="card-dur">
+                <span>ПРОЧНОСТЬ</span>
+                <b id="dur">100%</b>
+                <div class="mini-progress"><div id="dur-fill"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-view-container">
+        <div class="game-view">
+            <div class="water-background"></div>
+            <div class="float-container">
+                <img id="float-img" src="fish_anim.webp" class="float-img">
+            </div>
+            <div id="status-msg">ОЖИДАНИЕ ЗАБРОСА</div>
+            <div id="catch-anim-text"></div>
         </div>
     </div>
 
     <div class="tabs-container">
         <div id="tab-main" class="tab-content tab-active">
             <div id="lake-status">📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО</div>
-            <div class="monolith-info-box">
-                <p>Добро пожаловать в Monolith 6.5.2. Забрасывайте удочку, копите TC и используйте Units для игры в Колесо Фортуны.</p>
+            <div class="monolith-box">
+                <h4>ИНСТРУКЦИЯ МАСТЕРА:</h4>
+                <p>Нажимайте кнопку "ЗАБРОС", чтобы поймать рыбу. Вес рыбы зависит от вашей удачи и активных приманок. Продавайте улов в Садке, чтобы получить TC. Используйте Units для вращения Колеса Фортуны.</p>
             </div>
+            <div class="active-buffs-list" id="buffs-list">
+                </div>
         </div>
 
         <div id="tab-fortune" class="tab-content">
-            <h3 class="monolith-tab-title">КОЛЕСО ФОРТУНЫ 🎡</h3>
+            <h3 class="tab-header">КОЛЕСО УДАЧИ 🎡</h3>
             <div class="fortune-wheel-wrapper">
                 <div class="wheel-outer-ring">
                     <div class="wheel-indicator-arrow"></div>
                     <div class="wheel-center-hub"></div>
-                    <canvas id="wheel-canvas" width="270" height="270"></canvas>
+                    <canvas id="wheel-canvas" width="300" height="300"></canvas>
                 </div>
-                <div class="wheel-controls">
-                    <button class="btn-cast" id="spin-btn-units" onclick="handleSpin('units')">КРУТИТЬ ЗА 2 UNITS</button>
-                    <div class="units-display-box">ВАШИ UNITS: <span id="units-val">0</span></div>
+                <div class="wheel-ui">
+                    <div class="units-counter">ДОСТУПНО: <span id="units-val">0</span> UNITS</div>
+                    <button class="btn-spin-wheel" id="spin-btn" onclick="handleSpin()">ВРАЩАТЬ (2 UNITS)</button>
+                </div>
+                <div class="prize-list-info">
+                    <span>🎁 ВОЗМОЖНЫЕ ПРИЗЫ: TC, VIP, UNITS, TON, РЕМКОМПЛЕКТЫ</span>
                 </div>
             </div>
         </div>
 
         <div id="tab-shop" class="tab-content">
-            <h3 class="monolith-tab-title">РЫБОЛОВНЫЙ РЫНОК</h3>
-            
-            <div class="inventory-dropdown inv-open" id="inv-block">
-                <div class="inv-header" onclick="toggleInv()">
-                    <span>🧺 СОДЕРЖИМОЕ САДКА</span>
-                    <span id="inv-arrow">▲</span>
-                </div>
-                <div class="inv-content">
-                    <div class="inv-row"><span class="inv-label">ID:</span><span class="inv-val" id="player-id">---</span></div>
-                    <div class="inv-row"><span class="inv-label">ВЕС В САДКЕ:</span><span class="inv-val" id="fish-weight">0.00 кг</span></div>
-                    <div class="inv-row"><span class="inv-label">СТАТУС:</span><span class="inv-val" id="player-status">ОБЫЧНЫЙ</span></div>
-                    <button class="btn-sell-all" onclick="doAction('sell')">💰 ПРОДАТЬ ВЕСЬ УЛОВ</button>
+            <div class="inventory-section">
+                <div class="inv-dropdown open">
+                    <div class="inv-header">🧺 ВАШ САДОК (ИНВЕНТАРЬ)</div>
+                    <div class="inv-body">
+                        <div class="inv-stat"><span>ВАШ ВЕС:</span> <b id="fish-weight">0.00 кг</b></div>
+                        <div class="inv-stat"><span>ВАШ ID:</span> <b id="player-id">0</b></div>
+                        <div class="inv-stat"><span>СТАТУС:</span> <b id="player-status">ОБЫЧНЫЙ</b></div>
+                        <button class="btn-sell" onclick="doAction('sell')">ПРОДАТЬ РЫБУ ЗА TC</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="shop-category">
-                <div class="shop-cat-header" onclick="toggleCat('cat-ton')">ТОВАРЫ ЗА TON (АВТОМАТИКА) <span>▼</span></div>
-                <div id="cat-ton" class="shop-cat-content open">
-                    <div id="payment-area">
-                        <p>ПЕРЕВЕДИТЕ: <b id="pay-price">0.0</b> TON</p>
-                        <p>MEMO (ОБЯЗАТЕЛЬНО):</p>
-                        <code id="pay-memo" class="memo-box">MEMO_CODE</code>
+            <div class="shop-grid">
+                <h3 class="shop-title">МАГАЗИН СНАРЯЖЕНИЯ</h3>
+                
+                <div class="shop-category">
+                    <div class="cat-name">ЗА TC (ИГРОВАЯ ВАЛЮТА)</div>
+                    <div class="item-card">
+                        <div class="item-desc"><b>ЭНЕРГЕТИК</b><br><small>Восполняет 100% энергии</small></div>
+                        <button class="btn-buy-tc" onclick="doAction('buy', {id:'energy'})">50 TC</button>
                     </div>
+                    <div class="item-card">
+                        <div class="item-desc"><b>РЕМКОМПЛЕКТ</b><br><small>Чинит удочку до 100%</small></div>
+                        <button class="btn-buy-tc" onclick="doAction('buy', {id:'repair'})">50 TC</button>
+                    </div>
+                </div>
 
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>Пакет: 10 Units</h4>
-                            <p>Для вращения Колеса Фортуны.</p>
-                        </div>
+                <div class="shop-category">
+                    <div class="cat-name">ЗА TON (БЛОКЧЕЙН)</div>
+                    <div id="payment-area">
+                        <div class="pay-title">ОПЛАТА ЧЕРЕЗ TON</div>
+                        <div class="pay-row">СУММА: <b id="pay-price">0.0</b> TON</div>
+                        <div class="pay-row">КОШЕЛЕК: <small>UQAQZE...BJh</small></div>
+                        <div class="pay-row">MEMO (ВАЖНО!): <code id="pay-memo">---</code></div>
+                        <div class="pay-warning">ТОВАР ПРИДЕТ АВТОМАТИЧЕСКИ ПОСЛЕ ПОДТВЕРЖДЕНИЯ СЕТИ</div>
+                    </div>
+                    <div class="item-card-ton">
+                        <div class="item-desc"><b>ЗАПРАВКА: 10 UNITS</b><br><small>Для Колеса Фортуны</small></div>
                         <button class="btn-buy-ton" onclick="requestPay('units_10', 1.0)">1.0 TON</button>
                     </div>
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>👑 VIP СТАТУС (14 дней)</h4>
-                            <p>Безлимит энергии и x2 опыт.</p>
-                        </div>
+                    <div class="item-card-ton">
+                        <div class="item-desc"><b>VIP СТАТУС (14 ДНЕЙ)</b><br><small>X2 XP, ЭНЕРГИЯ 100%</small></div>
                         <button class="btn-buy-ton" onclick="requestPay('vip_status_14', 3.0)">3.0 TON</button>
                     </div>
                 </div>
@@ -152,14 +174,20 @@
         </div>
 
         <div id="tab-top" class="tab-content">
-            <h3 class="monolith-tab-title">ЛИДЕРЫ ТАМАКОИНОВ</h3>
-            <div id="leaderboard-list"></div>
+            <h3 class="tab-header">ЛИДЕРЫ ПРОЕКТА</h3>
+            <div id="leaderboard-list" class="leader-container"></div>
+            <hr style="opacity:0.1; margin: 20px 0;">
+            <div class="ref-section">
+                <h4>ВАША РЕФЕРАЛЬНАЯ ССЫЛКА:</h4>
+                <div id="ref-link" class="ref-box">https://t.me/tamacoin_bot...</div>
+                <button class="btn-sell" onclick="copyRef()">КОПИРОВАТЬ</button>
+            </div>
         </div>
 
         <div id="tab-admin" class="tab-content">
-            <h3 class="monolith-tab-title" style="color:red">CORE ADMIN PANEL</h3>
-            <button class="admin-btn" onclick="doAction('admin_get_all')">ЗАГРУЗИТЬ БАЗУ ПОЛЬЗОВАТЕЛЕЙ</button>
-            <div id="admin-user-list"></div>
+            <h3 style="color:var(--danger)">RESTRICTED AREA: ADMIN</h3>
+            <button class="btn-sell" style="background:red" onclick="doAction('admin_get_all')">ПОЛУЧИТЬ ПОЛНЫЙ ДАМП БАЗЫ</button>
+            <div id="admin-user-list" style="font-family:monospace; font-size:10px; background:#000; padding:10px; margin-top:10px; overflow:auto; max-height:300px;"></div>
         </div>
     </div>
 
@@ -173,7 +201,7 @@
         <div class="nav-item" onclick="showTab('fortune', this)"><i>🎡</i><span>Удача</span></div>
         <div class="nav-item" onclick="showTab('shop', this)"><i>🛒</i><span>Рынок</span></div>
         <div class="nav-item" onclick="showTab('top', this)"><i>🏆</i><span>Топ</span></div>
-        <div id="nav-admin-btn" class="nav-item" style="display:none; color:red;" onclick="showTab('admin', this)"><i>⚙️</i><span>Админ</span></div>
+        <div id="nav-admin-btn" class="nav-item" style="display:none; color:var(--danger);" onclick="showTab('admin', this)"><i>⚙️</i><span>Админ</span></div>
     </div>
 
     <script src="script.js"></script>
