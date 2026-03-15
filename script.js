@@ -7,7 +7,8 @@ const userName = tg.initDataUnsafe?.user?.first_name || 'Рыбак';
 const API = 'https://tama-bot-server.onrender.com/api/action';
 
 let cachedData = { 
-    b: 0, units: 0, energy: 100, dur: 100, level: 1, xp: 0, fish: 0, buffs: { vip: 0, hope: 0 }, lastBonus: 0, isAdmin: false 
+    b: 0, units: 0, energy: 100, dur: 100, level: 1, xp: 0, fish: 0, 
+    buffs: { vip: 0, hope: 0, titan: 0, bait: 0, myakish: 0 }, lastBonus: 0, isAdmin: false 
 };
 
 let currentTab = 'main'; 
@@ -35,26 +36,52 @@ function renderUI() {
     safeUpdate('dur', Math.floor(d.dur || 0) + '%');
     safeUpdate('fish-weight', (d.fish || 0).toFixed(2) + ' кг');
     safeUpdate('lvl-val', d.level || 1);
+    safeUpdate('player-lvl-text', (d.level || 1) + ' LVL');
+    safeUpdate('player-id', d.id || userId); 
+    
+    const rl = document.getElementById('ref-link');
+    if (rl) rl.innerText = `https://t.me/tamacoin_bot?start=${userId}`;
 
-    const xpTarget = (d.level || 1) * 500;
-    const xpFillBar = document.getElementById('xp-fill');
-    if (xpFillBar) xpFillBar.style.width = Math.min(((d.xp || 0) / xpTarget) * 100, 100) + '%';
+    const now = Date.now();
+    safeUpdate('player-status', (now < (d.buffs?.vip || 0)) ? "👑 VIP СТАТУС" : "ОБЫЧНЫЙ");
+
+    const xpFill = document.getElementById('xp-fill');
+    if (xpFill) {
+        const target = (d.level || 1) * 500;
+        xpFill.style.width = Math.min(((d.xp || 0) / target) * 100, 100) + '%';
+    }
+    
+    const adminBtn = document.getElementById('nav-admin-btn');
+    if (adminBtn) adminBtn.style.display = d.isAdmin ? 'flex' : 'none';
 
     updateAllTickers();
 }
 
 function updateAllTickers() {
     const now = new Date();
-    const goldTimerEl = document.getElementById('gold-timer');
-    if (goldTimerEl) {
-        const mins = now.getMinutes();
-        const secs = now.getSeconds();
-        if (mins < 10) {
-            goldTimerEl.innerText = `АКТИВЕН: ${9 - mins}:${59 - secs < 10 ? '0' : ''}${59 - secs}`;
-            goldTimerEl.style.color = "#10b981";
+    const gt = document.getElementById('gold-timer');
+    if (gt) {
+        const m = now.getMinutes(); const s = now.getSeconds();
+        if (m < 10) {
+            gt.innerText = `АКТИВЕН: ${9 - m}:${59 - s < 10 ? '0' : ''}${59 - s}`;
+            gt.style.color = "#10b981";
         } else {
-            goldTimerEl.innerText = `${59 - mins}:${59 - secs < 10 ? '0' : ''}${59 - secs}`;
-            goldTimerEl.style.color = "#ffd700";
+            gt.innerText = `${59 - m}:${59 - s < 10 ? '0' : ''}${59 - s}`;
+            gt.style.color = "#ffd700";
+        }
+    }
+    const bt = document.getElementById('bonus-timer');
+    const bb = document.getElementById('bonus-btn');
+    if (bt) {
+        const diff = (cachedData.lastBonus || 0) + 86400000 - Date.now();
+        if (diff <= 0) {
+            bt.innerText = "ГОТОВ!"; if (bb) bb.style.display = 'block';
+        } else {
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            bt.innerText = `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+            if (bb) bb.style.display = 'none';
         }
     }
 }
@@ -64,42 +91,32 @@ async function doAction(action, payload = {}) {
         const response = await fetch(API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, action, payload, n: userName })
+            body: JSON.stringify({ userId, action, payload, userName })
         });
         const data = await response.json();
         if (data.error) { isFishingProcess = false; return tg.showAlert(data.error); }
 
-        // --- ФИКС ЛОГИКИ ОТОБРАЖЕНИЯ ПЛАШКИ ---
+        // --- ТОТ САМЫЙ ФИКС ПЛАШКИ ---
         if (action === 'cast') {
             if (data.catchData) {
-                // ПРОВЕРКА НА ТИП (Рыба или Турбо)
-                const weightText = data.catchData.w.toString().includes("кг") 
-                                   ? data.catchData.w 
-                                   : data.catchData.w + " КГ";
-                
-                showWoodAlert(
-                    "НОВЫЙ УЛОВ! 🎣", 
-                    data.catchData.type.toUpperCase(), 
-                    weightText
-                );
+                const w = data.catchData.w.toString();
+                showWoodAlert("НОВЫЙ УЛОВ! 🎣", data.catchData.type.toUpperCase(), w.includes("кг") ? w : w + " КГ");
             } else {
                 showWoodAlert("МИМО... 🌊", "НИКОГО НЕТ", "ПОПРОБУЙ ЕЩЕ");
             }
         }
 
-        if (action === 'sell' && data.msg) {
-            showWoodAlert("РЫНОК", "УЛОВ ПРОДАН!", data.msg);
-        }
+        if (action === 'sell' && data.msg) showWoodAlert("РЫНОК", "УЛОВ ПРОДАН!", data.msg);
 
         Object.assign(cachedData, data);
         renderUI();
     } catch (e) { isFishingProcess = false; }
 }
 
-function showWoodAlert(headStr, titleStr, rewardStr) {
-    document.getElementById('wood-header-type').innerText = headStr;
-    document.getElementById('wood-title').innerText = titleStr;
-    document.getElementById('wood-profit').innerText = rewardStr;
+function showWoodAlert(h, t, r) {
+    document.getElementById('wood-header-type').innerText = h;
+    document.getElementById('wood-title').innerText = t;
+    document.getElementById('wood-profit').innerText = r;
     document.getElementById('wood-alert').classList.add('wood-show');
     tg.HapticFeedback.notificationOccurred('success');
 }
@@ -108,8 +125,9 @@ function closeWood() {
     document.getElementById('wood-alert').classList.remove('wood-show');
     isFishingProcess = false;
     document.getElementById('cast-btn').disabled = false;
-    const floatImg = document.getElementById('float-img');
-    if (floatImg) { floatImg.style.opacity = '0'; floatImg.classList.remove('anim-cast'); }
+    const img = document.getElementById('float-img');
+    if (img) { img.style.opacity = '0'; img.classList.remove('anim-cast'); }
+    document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
 }
 
 function startFishing() {
@@ -117,36 +135,70 @@ function startFishing() {
     if (cachedData.energy < 2) return tg.showAlert("Недостаточно энергии!");
     isFishingProcess = true;
     document.getElementById('cast-btn').disabled = true;
-    const floatImg = document.getElementById('float-img');
-    floatImg.classList.add('anim-cast'); floatImg.style.opacity = '1';
+    const img = document.getElementById('float-img');
+    img.classList.add('anim-cast'); img.style.opacity = '1';
+    document.getElementById('status-msg').innerText = "ЗАКИДЫВАЕМ...";
     tg.HapticFeedback.impactOccurred('medium');
     setTimeout(() => { doAction('cast'); }, 400);
 }
 
-function showTab(tabName, navEl) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('tab-active'));
-    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-    document.getElementById('tab-' + tabName).classList.add('tab-active');
-    if (navEl) navEl.classList.add('active');
-    if (tabName === 'fortune') setTimeout(drawWheel, 100);
-    tg.HapticFeedback.selectionChanged();
+// --- АВТОПЛАТЕЖ (ПЕРСОНАЛЬНЫЙ ФИКС) ---
+function requestPay(itemId, price) {
+    const area = document.getElementById('payment-area');
+    document.getElementById('pay-price').innerText = price.toFixed(1);
+    document.getElementById('pay-memo').innerText = `FISH_${userId}_${itemId}`;
+    area.style.display = 'block';
+    area.scrollIntoView({ behavior: 'smooth' });
+}
+
+function showTab(tab, el) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('tab-active');
+    if (el) el.classList.add('active');
+
+    const tw = document.getElementById('top-area-wrapper');
+    const mc = document.getElementById('main-controls');
+    if (tab === 'main') {
+        tw.style.display = 'block'; mc.style.display = 'block';
+    } else {
+        tw.style.display = 'none'; mc.style.display = 'none';
+        if (tab === 'fortune') setTimeout(drawWheel, 100);
+        if (tab === 'admin') renderAdminGodMode();
+    }
+}
+
+function renderAdminGodMode() {
+    const slot = document.getElementById('admin-user-list');
+    if (!slot) return;
+    slot.innerHTML = `
+        <div style="background:#1e293b; padding:18px; border-radius:18px; border:2px solid #ef4444; margin-bottom:18px;">
+            <h4 style="color:#ef4444; text-align:center;">⚡ GOD MODE ⚡</h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <button onclick="doAction('admin_user_op',{targetId:'${userId}',op:'add_money',val:10000})">+10k TC</button>
+                <button onclick="doAction('admin_user_op',{targetId:'${userId}',op:'add_nf',val:50})">+50 NF</button>
+            </div>
+        </div>
+        <button class="btn-cast" onclick="doAction('admin_get_all')">USERS DB</button>
+        <div id="raw-admin-data" style="font-size:10px; color:#64748b; margin-top:10px; max-height:150px; overflow:auto;"></div>
+    `;
 }
 
 function drawWheel() {
-    const canvas = document.getElementById('wheel-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const radius = canvas.width / 2;
-    const arcSize = (Math.PI * 2) / sectors.length;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    sectors.forEach((sector, i) => {
-        const startAngle = i * arcSize;
-        ctx.beginPath(); ctx.fillStyle = sector.color; ctx.moveTo(radius, radius);
-        ctx.arc(radius, radius, radius - 5, startAngle, startAngle + arcSize); ctx.fill();
-        ctx.save(); ctx.translate(radius, radius); ctx.rotate(startAngle + arcSize / 2);
+    const cv = document.getElementById('wheel-canvas');
+    const ctx = cv.getContext('2d');
+    const r = cv.width / 2; const a = (Math.PI * 2) / sectors.length;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    sectors.forEach((s, i) => {
+        ctx.beginPath(); ctx.fillStyle = s.color; ctx.moveTo(r, r);
+        ctx.arc(r, r, r - 5, i * a, (i + 1) * a); ctx.fill();
+        ctx.save(); ctx.translate(r, r); ctx.rotate(i * a + a / 2);
         ctx.textAlign = 'right'; ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif';
-        ctx.fillText(sector.label, radius - 25, 5); ctx.restore();
+        ctx.fillText(s.label, r - 25, 5); ctx.restore();
     });
 }
+
+function toggleInv() { document.getElementById('inv-block').classList.toggle('inv-open'); }
+function toggleCat(id) { document.getElementById(id).classList.toggle('open'); }
 
 window.onload = () => { doAction('load'); setInterval(updateAllTickers, 1000); };
