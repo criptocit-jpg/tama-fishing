@@ -1,6 +1,3 @@
-/* ==========================================================================
-   [1] ИНИЦИАЛИЗАЦИЯ TG WEB APP
-   ========================================================================== */
 const tg = window.Telegram.WebApp;
 tg.expand();
 tg.ready();
@@ -8,128 +5,97 @@ tg.ready();
 const userId = tg.initDataUnsafe?.user?.id || '7883085758';
 const API = 'https://tama-bot-server.onrender.com/api/action';
 
-let cachedData = null;
-let isFishingProcess = false;
-let isSpinning = false;
 let lastBonusTime = 0;
+let userHasHope = false;
+let currentTab = 'main'; 
+let isFishingProcess = false; 
+let isSpinning = false;
+let safetyTimeout = null; 
+let cachedData = null;
 
-/* [2] КОНФИГ КОЛЕСА ФОРТУНЫ */
 const sectors = [
     { label: "ПУСТО", color: "#334155", weight: 0.50, type: "null", val: 0 },
     { label: "100 TC", color: "#1e293b", weight: 0.15, type: "tc", val: 100 },
     { label: "500 TC", color: "#1e293b", weight: 0.05, type: "tc", val: 500 },
     { label: "VIP 1 ДЕНЬ", color: "#d97706", weight: 0.05, type: "vip", val: 1 },
     { label: "1.0 TON", color: "#10b981", weight: 0.02, type: "ton", val: 1 },
-    { label: "РЕМКОМПЛЕКТ", color: "#475569", weight: 0.23, type: "item", val: "repair" }
+    { label: "5.0 TON", color: "#fbbf24", weight: 0.01, type: "ton", val: 5 },
+    { label: "РЕМКОМПЛЕКТ", color: "#475569", weight: 0.12, type: "item", val: "repair" },
+    { label: "ЭНЕРГЕТИК", color: "#475569", weight: 0.10, type: "item", val: "energy" }
 ];
 
-/* ==========================================================================
-   [3] ЯДРО ОБМЕНА ДАННЫМИ (API)
-   ========================================================================== */
-async function doAction(action, payload = {}) {
-    try {
-        const response = await fetch(API, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                userId,
-                userName: tg.initDataUnsafe?.user?.first_name || "Рыбак",
-                action,
-                payload
-            })
-        });
-        const data = await response.json();
-        updateUI(data);
-    } catch(e) {
-        console.error("Критическая ошибка API:", e);
+function renderFromCache() {
+    if(!cachedData) return;
+    const d = cachedData;
+    
+    if(d.b !== undefined) document.getElementById('main-balance').innerText = Math.floor(d.b).toLocaleString();
+    if(d.units !== undefined) document.getElementById('units-val').innerText = d.units;
+    
+    if(d.jackpot) {
+        const poolVal = Math.floor(d.jackpot.pool || 1000);
+        document.getElementById('jackpot-display').innerText = poolVal.toLocaleString() + ' TC';
+    } else {
+        document.getElementById('jackpot-display').innerText = '1 000 TC';
     }
-}
-
-function updateUI(d) {
-    if(!d) return;
-    cachedData = d;
     
-    // Балансы
-    document.getElementById('main-balance').innerText = Math.floor(d.b).toLocaleString();
-    document.getElementById('units-val').innerText = (d.units || 0);
-    document.getElementById('units-balance') ? document.getElementById('units-balance').innerText = (d.units || 0) : null;
-
-    // Статы
-    document.getElementById('energy').innerText = d.energy + '%';
-    document.getElementById('dur').innerText = Math.floor(d.dur) + '%';
-    document.getElementById('jackpot-display').innerText = Math.floor(d.jackpot.pool).toLocaleString() + ' TC';
+    if(d.energy !== undefined) document.getElementById('energy').innerText = d.energy + '%';
+    if(d.dur !== undefined) document.getElementById('dur').innerText = Math.floor(d.dur) + '%';
+    if(d.fish !== undefined) document.getElementById('fish-weight').innerText = d.fish.toFixed(2) + ' кг';
+    if(d.id) document.getElementById('player-id').innerText = d.id;
     
-    // XP и Уровни
     const lvl = d.level || 1;
     const xp = d.xp || 0;
-    const target = lvl * 500;
+    const nextLevelXP = lvl * 500; 
     document.getElementById('lvl-val').innerText = lvl;
     document.getElementById('xp-val').innerText = xp;
-    document.getElementById('xp-target').innerText = target;
-    document.getElementById('xp-fill').style.width = Math.min((xp/target)*100, 100) + '%';
+    document.getElementById('xp-target').innerText = nextLevelXP;
+    document.getElementById('player-lvl-text').innerText = lvl + ' LVL';
+    document.getElementById('xp-fill').style.width = Math.min((xp / nextLevelXP) * 100, 100) + '%';
 
-    // Садок
-    document.getElementById('player-id').innerText = d.id;
-    document.getElementById('fish-weight').innerText = d.fish.toFixed(2) + ' кг';
-    
+    if(d.isAdmin) document.getElementById('nav-admin-btn').style.display = 'flex';
+
     const isVip = (d.buffs?.vip > Date.now());
     document.getElementById('player-status').innerText = isVip ? '👑 VIP АККАУНТ' : 'ОБЫЧНЫЙ';
-
-    // Админка
-    if(d.isAdmin) document.getElementById('nav-admin-btn').style.display = 'flex';
-    if(d.allUsers) document.getElementById('admin-user-list').innerText = JSON.stringify(d.allUsers, null, 2);
-
-    // Логика бонуса
+    document.getElementById('player-status').style.color = isVip ? 'var(--gold)' : 'var(--text-muted)';
+    
+    userHasHope = (d.buffs?.hope > Date.now());
+    document.getElementById('lake-status').innerText = userHasHope ? "📍 ОЗЕРО НАДЕЖДЫ ✅" : "📍 ОБЫЧНОЕ ОЗЕРО";
+    
+    document.getElementById('ref-link').innerText = `https://t.me/tamacoin_bot?start=${userId}`;
+    
     lastBonusTime = d.lastBonus || 0;
-    updateBonusUI();
-
-    // Уведомления от сервера
-    if(d.msg && !isSpinning && !isFishingProcess) {
-        showWoodAlert("ИНФО", "СИСТЕМА", d.msg);
-    }
+    updateBonusButton();
 }
 
-/* ==========================================================================
-   [4] МЕХАНИКА РЫБАЛКИ
-   ========================================================================== */
-function startFishing() {
-    if (isFishingProcess) return;
-    isFishingProcess = true;
+function showTab(name, el) {
+    currentTab = name; 
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     
-    const btn = document.getElementById('cast-btn');
-    const float = document.getElementById('float-img');
+    document.getElementById('tab-' + name).classList.add('tab-active');
+    el.classList.add('active');
     
-    btn.disabled = true;
-    float.classList.add('anim-cast');
-    float.style.opacity = '1';
-    document.getElementById('status-msg').innerText = "ЗАКИДЫВАЕМ...";
+    const isMain = (name === 'main');
+    const isFortune = (name === 'fortune');
     
-    tg.HapticFeedback.impactOccurred('medium');
-
-    setTimeout(() => {
-        doAction('cast').then(() => {
-            setTimeout(() => {
-                float.classList.remove('anim-cast');
-                float.style.opacity = '0';
-                btn.disabled = false;
-                isFishingProcess = false;
-                document.getElementById('status-msg').innerText = "ГОТОВ";
-            }, 1000);
-        });
-    }, 500);
+    document.getElementById('top-area-wrapper').style.display = (isMain || isFortune) ? 'block' : 'none';
+    document.getElementById('main-controls').style.display = isMain ? 'block' : 'none';
+    
+    if(isFortune) setTimeout(drawWheel, 100);
+    if(name === 'top') doAction('get_top');
+    
+    tg.HapticFeedback.selectionChanged();
 }
 
-/* ==========================================================================
-   [5] КОЛЕСО ФОРТУНЫ (ENGINE)
-   ========================================================================== */
 function drawWheel() {
     const canvas = document.getElementById('wheel-canvas');
-    if(!canvas) return;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const rad = canvas.width / 2;
+    const cw = canvas.width;
+    const rad = cw / 2;
     const arc = (Math.PI * 2) / sectors.length;
 
-    ctx.clearRect(0,0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, cw, cw);
 
     sectors.forEach((s, i) => {
         const angle = i * arc;
@@ -138,6 +104,8 @@ function drawWheel() {
         ctx.moveTo(rad, rad);
         ctx.arc(rad, rad, rad - 5, angle, angle + arc);
         ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 2;
         ctx.stroke();
 
         ctx.save();
@@ -145,90 +113,212 @@ function drawWheel() {
         ctx.rotate(angle + arc / 2);
         ctx.textAlign = 'right';
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.fillText(s.label, rad - 20, 5);
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText(s.label, rad - 25, 5);
         ctx.restore();
     });
 }
 
-async function handleSpin() {
-    if (isSpinning || (cachedData.units || 0) < 2) {
-        if((cachedData.units || 0) < 2) tg.showAlert("Недостаточно Units!");
-        return;
-    }
+async function handleSpin(cur) {
+    if (isSpinning) return;
+    if (cur === 'tc' && cachedData.b < 200) return tg.showAlert("Недостаточно TC!");
+    if (cur === 'units' && (cachedData.units || 0) < 2) return tg.showAlert("Недостаточно Units!");
 
     isSpinning = true;
-    tg.HapticFeedback.impactOccurred('heavy');
+    const btnTc = document.getElementById('spin-btn-tc');
+    const btnUn = document.getElementById('spin-btn-units');
+    btnTc.disabled = btnUn.disabled = true;
 
-    const winnerIndex = Math.floor(Math.random() * sectors.length);
+    tg.HapticFeedback.notificationOccurred('warning');
+
+    const rand = Math.random();
+    let cumul = 0, winner = 0;
+    for (let i = 0; i < sectors.length; i++) {
+        cumul += sectors[i].weight;
+        if (rand <= cumul) { winner = i; break; }
+    }
+
     const canvas = document.getElementById('wheel-canvas');
-    const rotation = (360 * 5) + (360 - (winnerIndex * (360 / sectors.length)));
-    
-    canvas.style.transform = `rotate(${rotation}deg)`;
+    const sectorAngle = 360 / sectors.length;
+    const totalRot = (360 * 5) + (360 - (winner * sectorAngle)) - (sectorAngle / 2);
 
-    setTimeout(() => {
-        const prize = sectors[winnerIndex];
-        doAction('spin_fortune', { prize: prize.label });
-        showWoodAlert("КОЛЕСО", prize.label, "ВЫИГРЫШ!");
+    canvas.style.transform = `rotate(${totalRot}deg)`;
+
+    setTimeout(async () => {
         isSpinning = false;
+        const p = sectors[winner];
+        await doAction('spin_fortune', { cur, pType: p.type, pVal: p.val, pLabel: p.label });
+
+        if (p.type === 'null') showWoodAlert("ОЙ!", "ПУСТО", "В СЛЕДУЮЩИЙ РАЗ!");
+        else showWoodAlert("ВЫИГРЫШ!", p.label, "УЖЕ НА БАЛАНСЕ!");
+
+        btnTc.disabled = btnUn.disabled = false;
         canvas.style.transition = 'none';
-        canvas.style.transform = `rotate(${rotation % 360}deg)`;
+        canvas.style.transform = `rotate(${totalRot % 360}deg)`;
         setTimeout(() => canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.15, 1)', 50);
     }, 4100);
 }
 
-/* ==========================================================================
-   [6] UI HELPER FUNCTIONS
-   ========================================================================== */
-function showTab(name, el) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('tab-active');
-    el.classList.add('active');
-    if(name === 'fortune') setTimeout(drawWheel, 100);
-    tg.HapticFeedback.selectionChanged();
+async function doAction(action, payload = {}) {
+    try {
+        const response = await fetch(API, { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ 
+                userId, 
+                userName: tg.initDataUnsafe?.user?.first_name,
+                action, 
+                payload: { ...payload, lake: userHasHope ? 'hope' : 'normal' } 
+            }) 
+        });
+        const data = await response.json(); 
+        
+        if (data.lost || (data.msg && data.msg.includes('сорвалась'))) {
+           setTimeout(() => showWoodAlert("УПС!", "СОРВАЛАСЬ!", "РЫБА УШЛА..."), 1300);
+        }
+        
+        if (action === 'sell' && data.msg && data.msg.includes('Продано')) {
+            const profitMatch = data.msg.match(/\+(\d+)/);
+            showWoodAlert("РЫНОК", "ПРОДАНО!", profitMatch ? `+${profitMatch[1]} TC` : "УСПЕХ");
+        }
+        
+        updateUI(data);
+    } catch(e) { 
+        console.error("API error:", e); 
+    }
 }
 
-function showWoodAlert(h, t, v) {
-    document.getElementById('wood-header-type').innerText = h;
-    document.getElementById('wood-title').innerText = t;
-    document.getElementById('wood-profit').innerText = v;
-    document.getElementById('wood-alert').style.display = 'block';
+function updateUI(d) {
+    if(!d) return;
+    if(d.b !== undefined || d.energy !== undefined || d.units !== undefined) {
+        cachedData = {...cachedData, ...d}; 
+    }
+    renderFromCache();
+
+    if (d.stats?.boxes > 0) {
+        const boxBtn = document.getElementById('open-box-btn');
+        boxBtn.style.display = 'block';
+        boxBtn.innerText = `🎁 КЕЙС (${d.stats.boxes})`;
+    } else {
+        document.getElementById('open-box-btn').style.display = 'none';
+    }
+
+    if(d.catchData && currentTab === 'main') {
+        if (!isFishingProcess) showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w);
+        else setTimeout(() => showWoodAlert("УЛОВ!", d.catchData.type, d.catchData.w), 1450);
+    }
+    
+    if(d.boxReward) document.getElementById('prize-text').innerText = d.boxReward.n;
+    if(d.topPlayers) renderTop(d.topPlayers);
+    if(d.allUsers) document.getElementById('admin-user-list').innerText = JSON.stringify(d.allUsers, null, 2);
+}
+
+function startFishing() {
+    if (isFishingProcess) return; 
+    isFishingProcess = true; 
+    const btn = document.getElementById('cast-btn');
+    const float = document.getElementById('float-img');
+    btn.disabled = true;
+    float.classList.add('anim-cast');
+    float.style.opacity = '1';
+    document.getElementById('status-msg').innerText = "ЗАКИДЫВАЕМ...";
+    tg.HapticFeedback.impactOccurred('medium');
+
+    safetyTimeout = setTimeout(() => {
+        if (isFishingProcess && document.getElementById('wood-alert').style.display !== 'flex') closeWood();
+    }, 5500);
+
+    setTimeout(() => doAction('cast'), 180); 
+}
+
+function showWoodAlert(header, title, value) {
+    if (safetyTimeout) clearTimeout(safetyTimeout);
+    document.getElementById('wood-header-type').innerText = header;
+    document.getElementById('wood-title').innerText = title;
+    document.getElementById('wood-profit').innerText = value;
+    document.getElementById('wood-alert').classList.add('wood-show');
+    document.getElementById('cast-btn').disabled = true;
     tg.HapticFeedback.notificationOccurred('success');
 }
 
 function closeWood() {
-    document.getElementById('wood-alert').style.display = 'none';
+    document.getElementById('wood-alert').classList.remove('wood-show');
+    document.getElementById('cast-btn').disabled = false;
+    const float = document.getElementById('float-img');
+    float.classList.remove('anim-cast');
+    float.style.opacity = '0';
+    document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
+    isFishingProcess = false; 
+}
+
+function renderTop(players) {
+    const container = document.getElementById('leaderboard-list');
+    if(!players) return;
+    container.innerHTML = players.map((p, i) => `
+        <div class="leader-item ${p.id == userId ? 'me' : ''}">
+            <span class="rank">#${i+1}</span>
+            <span class="leader-name">${p.n || 'Рыбак'}</span>
+            <span class="leader-score">${Math.floor(p.b).toLocaleString()} TC</span>
+        </div>
+    `).join('');
 }
 
 function toggleInv() {
-    document.getElementById('inv-block').classList.toggle('inv-open');
+    const block = document.getElementById('inv-block');
+    block.classList.toggle('inv-open');
+    document.getElementById('inv-arrow').innerText = block.classList.contains('inv-open') ? '▲' : '▼';
+    tg.HapticFeedback.selectionChanged();
 }
 
 function toggleCat(id) {
     document.getElementById(id).classList.toggle('open');
+    tg.HapticFeedback.selectionChanged();
 }
+
+function showBoxModal() { 
+    document.getElementById('lucky-box-overlay').style.display = 'flex'; 
+    tg.HapticFeedback.impactOccurred('heavy'); 
+}
+
+function animateBoxOpening() {
+    document.getElementById('lucky-box-overlay').classList.add('box-open-state');
+    doAction('open_box').then(() => { 
+        setTimeout(() => document.getElementById('close-box-btn').style.display = 'block', 1100); 
+    });
+}
+
+function closeBoxModal() { location.reload(); }
 
 function requestPay(item, price) {
     document.getElementById('pay-price').innerText = price.toFixed(1);
     document.getElementById('pay-memo').innerText = `FISH_${userId}_${item}`;
     document.getElementById('payment-area').style.display = 'block';
+    tg.HapticFeedback.notificationOccurred('warning');
 }
 
-function updateBonusUI() {
-    const diff = (lastBonusTime + 86400000) - Date.now();
-    const btn = document.getElementById('bonus-btn');
-    const timer = document.getElementById('bonus-timer');
-    if(diff > 0) {
-        btn.style.display = 'none';
-        timer.innerText = new Date(diff).toISOString().substr(11, 8);
+function copyRef() {
+    const link = `https://t.me/tamacoin_bot?start=${userId}`;
+    navigator.clipboard.writeText(link).then(() => tg.showAlert("Ссылка скопирована!"));
+}
+
+function updateBonusButton() {
+    const now = Date.now();
+    const bonusDiff = (lastBonusTime + 86400000) - now;
+    const bBtn = document.getElementById('bonus-btn');
+    const bTimer = document.getElementById('bonus-timer');
+    if(bonusDiff > 0) {
+        bTimer.innerText = new Date(bonusDiff).toISOString().substr(11, 8);
+        bBtn.style.display = 'none';
     } else {
-        btn.style.display = 'block';
-        timer.innerText = "ГОТОВ!";
+        bTimer.innerText = "ГОТОВ!";
+        bBtn.style.display = 'block';
     }
 }
 
-setInterval(updateBonusUI, 1000);
+setInterval(() => {
+    updateBonusButton();
+    const nextHour = (3600000 - (Date.now() % 3600000));
+    document.getElementById('gold-timer').innerText = new Date(nextHour).toISOString().substr(11, 8);
+}, 1000);
 
-// Первый запуск
 doAction('load');
