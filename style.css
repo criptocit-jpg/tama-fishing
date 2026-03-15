@@ -1,35 +1,224 @@
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; user-select: none; }
+/* ==========================================================================
+    [1] ГЛОБАЛЬНЫЕ ТЕМАТИЧЕСКИЕ ПЕРЕМЕННЫЕ
+   ========================================================================== */
+* { 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+    margin: 0; 
+    padding: 0; 
+    user-select: none;
+    outline: none;
+}
+
 :root { 
-    --gold: #ffd700; --gold-dark: #b8860b; --bg: #0f172a; --panel: rgba(30, 41, 59, 0.95); 
-    --accent: #fbbf24; --text-main: #f8fafc; --success: #10b981; --danger: #ef4444; 
+    --gold: #ffd700; 
+    --gold-dark: #b8860b;
+    --bg: #0f172a; 
+    --panel: rgba(30, 41, 59, 0.95); 
+    --accent: #fbbf24;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --success: #10b981;
+    --danger: #ef4444;
 }
-body { font-family: sans-serif; background: var(--bg); color: var(--text-main); overflow: hidden; height: 100vh; }
 
+body { 
+    font-family: -apple-system, sans-serif; 
+    background: var(--bg); 
+    color: var(--text-main); 
+    overflow: hidden; 
+    height: 100vh;
+}
+
+/* ==========================================================================
+    [3] МОДАЛЬНЫЕ ОКНА: WOOD ALERT
+   ========================================================================== */
 #wood-alert {
-    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
-    width: 310px; height: 190px; z-index: 10000; background: #5d4037; border: 6px solid #3e2723; border-radius: 15px;
-    box-shadow: 0 0 0 1000px rgba(0,0,0,0.7), 0 25px 60px rgba(0,0,0,0.9); text-align: center;
-    flex-direction: column; font-weight: 900; background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png'); padding: 15px;
+    display: none; 
+    position: fixed; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%) scale(0.5);
+    width: 310px; 
+    height: 190px; 
+    z-index: 10000;
+    background: #5d4037; 
+    border: 6px solid #3e2723; 
+    border-radius: 15px;
+    box-shadow: 0 0 0 1000px rgba(0,0,0,0.8), 0 25px 60px rgba(0,0,0,0.9);
+    color: #eceff1; 
+    text-align: center; 
+    justify-content: center; 
+    align-items: center; 
+    flex-direction: column;
+    background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+    padding: 15px;
 }
-.wood-show { display: flex !important; animation: woodPop 0.4s forwards; }
-@keyframes woodPop { to { transform: translate(-50%, -50%) scale(1); } }
 
+.wood-show { 
+    display: flex !important; 
+    animation: woodPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+}
+
+@keyframes woodPop { 
+    to { transform: translate(-50%, -50%) scale(1); } 
+}
+
+/* ==========================================================================
+    [4] ЭЛЕМЕНТЫ МАГАЗИНА: САДОК
+   ========================================================================== */
+.inventory-dropdown {
+    margin: 0 0 18px 0; 
+    background: var(--panel); 
+    border-radius: 20px; 
+    border: 2px solid rgba(255, 215, 0, 0.2); 
+    overflow: hidden; 
+}
+
+.inv-header {
+    padding: 16px 20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    background: rgba(255, 215, 0, 0.1); 
+}
+
+.inv-content { 
+    max-height: 0; 
+    padding: 0 20px; 
+    transition: all 0.45s ease; 
+    opacity: 0;
+}
+
+.inv-open .inv-content { 
+    max-height: 500px; 
+    padding: 20px; 
+    opacity: 1; 
+}
+
+.inv-row { 
+    display: flex; 
+    justify-content: space-between; 
+    margin-bottom: 12px; 
+    border-bottom: 1px solid rgba(255,255,255,0.06); 
+    padding-bottom: 6px; 
+}
+
+/* ==========================================================================
+    [6] ШАПКА: БЕГУЩАЯ СТРОКА
+   ========================================================================== */
+.marquee { 
+    background: #020617; 
+    height: 32px; 
+    overflow: hidden; 
+    border-bottom: 1.5px solid var(--gold); 
+}
+
+.marquee-content { 
+    white-space: nowrap; 
+    display: inline-block;
+    animation: marquee-scroll 28s linear infinite; 
+    font-size: 14px; 
+    color: var(--gold); 
+    padding-left: 100vw;
+}
+
+@keyframes marquee-scroll { 
+    0% { transform: translateX(0); } 
+    100% { transform: translateX(-100%); } 
+}
+
+.timers-row { 
+    display: flex; 
+    justify-content: space-around; 
+    padding: 12px 5px; 
+    background: rgba(0,0,0,0.45);
+}
+
+.timer-val { color: var(--gold); font-weight: 900; }
+
+/* ==========================================================================
+    [8] ПАНЕЛЬ СТАТИСТИКИ
+   ========================================================================== */
 .top-stats { padding: 12px 16px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-.balance-pill { background: #1e293b; padding: 10px 24px; border-radius: 35px; border: 2px solid var(--gold); text-align: center; box-shadow: 0 0 20px rgba(255, 215, 0, 0.25); }
+
+.balance-pill { 
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    padding: 10px 24px; 
+    border-radius: 35px; 
+    border: 2px solid var(--gold);
+    text-align: center; 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+
 .balance-value { font-size: 24px; font-weight: 900; color: var(--gold); }
 
 .status-info-grid { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 12px; width: 100%; }
-.status-card { background: var(--panel); padding: 12px 6px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); text-align: center; }
 
-.game-view { height: 190px; width: 100%; background: #000; border-radius: 26px; border: 2px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; position: relative; }
-.float-img { max-width: 85%; opacity: 0; transition: opacity 0.5s; }
+.status-card { background: var(--panel); padding: 12px 6px; border-radius: 16px; text-align: center; }
+
+/* ==========================================================================
+    [9] ИГРОВАЯ ОБЛАСТЬ
+   ========================================================================== */
+.game-view {
+    height: 190px; 
+    width: 100%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    position: relative; 
+    border-radius: 26px; 
+    background: #000;
+    border: 2px solid rgba(255,255,255,0.12); 
+    overflow: hidden;
+}
+
+.float-img { opacity: 0; transition: opacity 0.5s ease; }
+
 .anim-cast { animation: cast-process 1.3s forwards; }
-@keyframes cast-process { 0% { transform: scale(0.5); opacity: 0; } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0; transform: scale(1.3); } }
 
-.action-container { padding: 12px 16px 20px; background: var(--bg); border-top: 1px solid rgba(255,255,255,0.1); }
-.btn-cast { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: white; border: none; width: 100%; height: 48px; border-radius: 16px; font-size: 19px; font-weight: 950; box-shadow: 0 5px 0 #92400e; }
-.nav-bar { height: 72px; background: #020617; display: flex; justify-content: space-around; align-items: center; }
+@keyframes cast-process {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0; transform: scale(1.3); }
+}
+
+#status-msg {
+    color: var(--gold); 
+    position: absolute; 
+    bottom: 14px; 
+    font-weight: 900; 
+    background: rgba(15, 23, 42, 0.9); 
+    padding: 8px 20px; 
+    border-radius: 35px;
+}
+
+/* ==========================================================================
+    [10] ТАБЫ И КНОПКИ
+   ========================================================================== */
+.tab-content { display: none; padding-bottom: 30px; }
+.tab-active { display: block; }
+
+.btn-cast { 
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); 
+    color: white; 
+    border: none; 
+    width: 100%; 
+    height: 48px; 
+    border-radius: 16px; 
+    font-size: 19px; 
+    font-weight: 950; 
+    box-shadow: 0 5px 0 #92400e; 
+}
+
+.btn-cast:active { transform: translateY(3px); box-shadow: 0 2px 0 #92400e; }
+
+.nav-bar { height: 72px; background: #020617; border-top: 1px solid #334155; display: flex; justify-content: space-around; align-items: center; }
 .nav-item { font-size: 11px; text-align: center; color: #64748b; }
 .nav-item.active { color: var(--gold); }
-.tab-content { display: none; padding: 5px 16px; }
-.tab-active { display: block; }
+
+/* [КОЛЕСО] */
+.fortune-wheel-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.wheel-outer-ring { position: relative; width: 270px; height: 270px; border-radius: 50%; border: 10px solid #1e293b; box-shadow: 0 0 15px var(--gold); }
+#wheel-canvas { width: 100%; height: 100%; border-radius: 50%; }
+.wheel-indicator-arrow { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); width: 40px; height: 50px; background: var(--danger); clip-path: polygon(50% 100%, 0 0, 100% 0); z-index: 100; }
