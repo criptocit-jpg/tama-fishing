@@ -1,280 +1,254 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tamacoin Fishing Gold 5.9.1 - THE TRUE MONOLITH EDITION</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
+/**
+ * ==========================================================================
+ * [PROJECT]: TAM ACOIN FISHING - MONOLITH CLIENT ENGINE
+ * [VERSION]: 7.0.0 "STABLE CORE"
+ * ==========================================================================
+ */
 
-    <div id="wood-alert">
-        <div id="wood-header-type" style="font-size: 10px; color: #bcaaa4; letter-spacing: 1.5px; text-transform: uppercase;">СООБЩЕНИЕ</div>
-        <div id="wood-title" style="font-size: 19px; color: #fff; margin: 6px 0; font-weight: 900;">РЕЗУЛЬТАТ!</div>
-        <div id="wood-profit" style="font-size: 26px; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">+0.00 TC</div>
-        <button onclick="closeWood()" style="margin-top:12px; background:none; border:2.5px solid #8d6e63; color:#fff; font-size:12px; padding:7px 22px; border-radius:10px; cursor:pointer; font-weight: 950; text-transform: uppercase;">ПРИНЯТЬ</button>
-    </div>
+const tg = window.Telegram.WebApp;
+tg.expand();
 
-    <div id="lucky-box-overlay" class="box-overlay">
-        <div id="prize-text" class="prize-out">ВАШ ПРИЗ!</div>
-        <div class="lucky-box-anim box-shake-effect" id="box-body" onclick="animateBoxOpening()">
-            <div class="box-lid-anim"></div>
-        </div>
-        <p style="margin-top:25px; font-weight:950; color:var(--gold); letter-spacing:2px;" id="box-hint">ЖМИ НА КОРОБКУ!</p>
-        <button id="close-box-btn" class="btn-cast" style="display:none; margin-top:35px; width:210px;" onclick="closeBoxModal()">ЗАБРАТЬ НАГРАДУ</button>
-    </div>
+let user = { id: tg.initDataUnsafe?.user?.id || "7883085758", n: tg.initDataUnsafe?.user?.first_name || "Master" };
+let isFishing = false;
+let currentBalance = 0;
 
-    <div id="top-area-wrapper">
-        <div class="header-fixed">
-            <div class="marquee">
-                <div class="marquee-content" id="events-line">Удачного клева в Tamacoin Fishing! 🎣 Редкая рыба клюет в Золотой Час! 🌅 Следи за Джекпотом! 💰 Приглашай друзей! 🚀 Поднимай мастерство! 🎡</div>
-            </div>
-            
-            <div class="timers-row">
-                <div class="timer-block">
-                    <span class="timer-label">ЗОЛОТОЙ ЧАС:</span>
-                    <span id="gold-timer" class="timer-val">00:00:00</span>
-                </div>
-                <div class="timer-block">
-                    <span class="timer-label">ДО БОНУСА:</span>
-                    <span id="bonus-timer" class="timer-val">...</span>
-                </div>
-            </div>
-            
-            <div id="xp-bar-container">
-                <div class="xp-text-info">
-                    <span>УРОВЕНЬ <span id="lvl-val">1</span></span>
-                    <span>XP: <span id="xp-val">0</span> / <span id="xp-target">500</span></span>
-                </div>
-                <div class="xp-track">
-                    <div id="xp-fill" class="xp-fill"></div>
-                </div>
-            </div>
-        </div>
+// Инициализация при загрузке
+window.onload = () => {
+    updateUI();
+    setInterval(tickTimers, 1000);
+    doAction('load');
+};
 
-        <div class="top-stats">
-            <div class="balance-pill">
-                <div class="balance-label">БАЛАНС ТАМАКОИНОВ</div>
-                <div class="balance-value"><span id="main-balance">0</span></div>
-            </div>
-            
-            <div class="status-info-grid">
-                <div class="status-card">
-                    <span>ЭНЕРГИЯ</span>
-                    <b id="energy">100%</b>
-                </div>
-                <div class="status-card jp-highlight">
-                    <span>JACKPOT</span>
-                    <b id="jackpot-display">1 000 TC</b>
-                </div>
-                <div class="status-card">
-                    <span>ПРОЧНОСТЬ</span>
-                    <b id="dur">100%</b>
-                </div>
-            </div>
-        </div>
+// --- ФУНКЦИЯ АНИМАЦИИ ЦИФР ---
+function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const val = Math.floor(progress * (end - start) + start);
+        obj.innerHTML = val.toLocaleString();
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
 
-        <div class="game-view-container" id="game-view-block">
-            <div class="game-view">
-                <div class="float-container">
-                    <img id="float-img" src="fish_anim.webp" class="float-img">
-                </div>
-                <div id="status-msg">ГОТОВ К ЛОВЛЕ</div>
-            </div>
-        </div>
-    </div>
+// --- ТАЙМЕРЫ (Ч:М:С) ---
+function tickTimers() {
+    const now = new Date();
+    
+    // Золотой час (первые 10 минут часа)
+    const mins = now.getMinutes();
+    const goldTimer = document.getElementById('gold-timer');
+    if (mins < 10) {
+        const secLeft = (10 - mins) * 60 - now.getSeconds();
+        goldTimer.innerText = formatTime(secLeft);
+        goldTimer.style.color = "var(--gold)";
+    } else {
+        const secToNext = (60 - mins) * 60 - now.getSeconds();
+        goldTimer.innerText = formatTime(secToNext);
+        goldTimer.style.color = "white";
+    }
 
-    <div class="tabs-container">
-        <div id="tab-main" class="tab-content tab-active">
-            <div id="lake-status" style="text-align:center; font-weight:900; color:var(--accent); margin-bottom:15px; font-size:13px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">📍 ТЕКУЩАЯ ЛОКАЦИЯ: ОБЫЧНОЕ ОЗЕРО</div>
-            <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:24px; border:1px solid rgba(255,255,255,0.06); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-                <p style="font-size:12.5px; color:var(--text-muted); text-align:center; line-height:1.7;">
-                    Забрасывайте удочку кнопкой внизу экрана. <br> 
-                    Каждая попытка тратит 1% прочности и энергию. <br> 
-                    Ловите рыбу, продавайте улов и повышайте свой уровень мастерства!
-                </p>
-            </div>
-        </div>
+    // Бонус (пример: раз в 24 часа)
+    // Здесь логика подтянется из user.lastBonus от сервера
+}
 
-        <div id="tab-fortune" class="tab-content">
-            <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase; letter-spacing:1.5px; text-shadow: 0 0 10px rgba(255,215,0,0.3);">Колесо Фортуны 🎡</h3>
-            <div class="fortune-wheel-wrapper">
-                <div class="wheel-outer-ring">
-                    <div class="wheel-indicator-arrow"></div>
-                    <div class="wheel-center-hub"></div>
-                    <canvas id="wheel-canvas" width="270" height="270"></canvas>
-                </div>
-                <div style="width:100%; display:flex; flex-direction:column; gap:12px; margin-top:10px;">
-                    <button class="btn-cast" id="spin-btn-tc" onclick="handleSpin('tc')">ИГРАТЬ ЗА 200 TC</button>
-                    <button class="btn-cast" id="spin-btn-units" style="background: var(--gold); color: #000; box-shadow: 0 5px 0 var(--gold-dark);" onclick="handleSpin('units')">КРУТИТЬ ЗА 2 UNITS</button>
-                </div>
-                <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:18px; border:1px solid rgba(255,255,255,0.06); width:100%;">
-                    <p style="font-size:10px; color:var(--text-muted); text-align:center; text-transform:uppercase; letter-spacing:1px; line-height:1.6;">
-                        <b style="color:var(--gold);">ПРИЗЫ:</b> VIP-статусы, Энергетики, Большие паки TC и Джекпот в TON! <br>
-                        <span style="color:var(--danger); font-weight:800;">ВНИМАНИЕ:</span> Есть пустые сектора!
-                    </p>
-                </div>
-            </div>
-        </div>
+function formatTime(seconds) {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
 
-        <div id="tab-shop" class="tab-content">
-            <h3 style="text-align:center; color:var(--gold); margin-bottom:20px; text-transform:uppercase; letter-spacing:1px;">Рыболовный рынок</h3>
-            <div class="inventory-dropdown inv-open" id="inv-block">
-                <div class="inv-header" onclick="toggleInv()">
-                    <span style="font-weight:900; font-size:12px; letter-spacing:1px; text-transform: uppercase;">🧺 СОДЕРЖИМОЕ САДКА</span>
-                    <span id="inv-arrow" style="color:var(--gold); font-size:11px;">▲</span>
-                </div>
-                <div class="inv-content">
-                    <div class="inv-row">
-                        <span class="inv-label">ВАШ ПЕРСОНАЛЬНЫЙ ID:</span>
-                        <span class="inv-val" id="player-id">---</span>
-                    </div>
-                    <div class="inv-row" style="background:rgba(255,215,0,0.05); border:1px solid rgba(255,215,0,0.2); border-radius:10px; padding:10px; margin-bottom:15px;">
-                        <span class="inv-label" style="color:var(--gold);">БАЛАНС UNITS:</span>
-                        <span class="inv-val" id="units-val" style="font-size:18px;">0</span>
-                    </div>
-                    <div class="inv-row">
-                        <span class="inv-label">ТЕКУЩИЙ СТАТУС:</span>
-                        <span class="inv-val" id="player-status">ОБЫЧНЫЙ</span>
-                    </div>
-                    <div class="inv-row">
-                        <span class="inv-label">ВЕС РЫБЫ В САДКЕ:</span>
-                        <span class="inv-val" id="fish-weight">0.00 кг</span>
-                    </div>
-                    <div class="inv-row">
-                        <span class="inv-label">УРОВЕНЬ МАСТЕРСТВА:</span>
-                        <span class="inv-val" id="player-lvl-text">1 LVL</span>
-                    </div>
-                    <button class="btn-cast" id="sell-btn-inv" style="background:var(--success); height:42px; font-size:13px; margin-top:14px; box-shadow: 0 4px 0 #065f46; border:none; color:white; font-weight:900;" onclick="doAction('sell')">💰 ПРОДАТЬ ВЕСЬ УЛОВ</button>
-                </div>
-            </div>
+// --- ЛОГИКА РЫБАЛКИ (БЛОКИРУЮЩАЯ) ---
+async function startFishing() {
+    if (isFishing) return;
+    
+    const btn = document.getElementById('cast-btn');
+    const status = document.getElementById('status-msg');
+    const float = document.getElementById('float-img');
 
-            <button id="open-box-btn" class="btn-cast" style="display:none; background:var(--gold); color:#000; margin-bottom:18px; border-radius:18px; height:52px; border:none; font-weight:900; box-shadow: 0 5px 0 var(--gold-dark);" onclick="showBoxModal()">🎁 ОТКРЫТЬ КОРОБКУ УДАЧИ</button>
+    isFishing = true;
+    btn.disabled = true; // Полная блокировка кнопки
+    btn.style.opacity = "0.5";
+    btn.innerText = "ЗАБРОС...";
+    
+    status.innerText = "ОЖИДАНИЕ КЛЕВА...";
+    float.classList.add('float-active'); // Добавь этот класс в CSS для анимации тряски
 
-            <div class="shop-category">
-                <div class="shop-cat-header" onclick="toggleCat('cat-tc')">ИНВЕНТАРЬ ЗА TC <span>▼</span></div>
-                <div id="cat-tc" class="shop-cat-content open">
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>Хлебный мякиш (10 шт)</h4>
-                            <p>Устраняет риск срыва любой рыбы при забросе.</p>
-                        </div>
-                        <button class="btn-buy-tc" onclick="doAction('buy',{id:'myakish'})">100 TC</button>
-                    </div>
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>Бодрящий Энергетик</h4>
-                            <p>Мгновенное восстановление 100% запаса энергии.</p>
-                        </div>
-                        <button class="btn-buy-tc" onclick="doAction('buy',{id:'energy'})">50 TC</button>
-                    </div>
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>Ремкомплект мастера</h4>
-                            <p>Полное восстановление прочности удочки (100%).</p>
-                        </div>
-                        <button class="btn-buy-tc" onclick="doAction('buy',{id:'repair'})">50 TC</button>
-                    </div>
-                </div>
-            </div>
+    // Запрос к серверу
+    try {
+        const res = await fetch('/api/action', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ userId: user.id, userName: user.n, action: 'cast' })
+        });
+        const data = await res.json();
 
-            <div class="shop-category">
-                <div class="shop-cat-header" onclick="toggleCat('cat-units-buy')">КУПИТЬ UNITS (TON) <span>▶</span></div>
-                <div id="cat-units-buy" class="shop-cat-content">
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>Пакет: 10 Units</h4>
-                            <p>Для игры в Колесо Фортуны. Курс: 1 TON = 10 U.</p>
-                        </div>
-                        <button class="btn-buy-ton" onclick="requestPay('units_10', 1.0)">1.0 TON</button>
-                    </div>
-                </div>
-            </div>
+        // Имитация ожидания (2 секунды для азарта)
+        setTimeout(() => {
+            float.classList.remove('float-active');
+            if (data.catch) {
+                showWoodAlert(data.catch.weight, data.catch.type);
+            } else {
+                status.innerText = data.msg || "СОРВАЛОСЬ!";
+                isFishing = false;
+                btn.disabled = false;
+                btn.style.opacity = "1";
+                btn.innerText = "СДЕЛАТЬ ЗАБРОС УДОЧКИ";
+            }
+            syncData(data);
+        }, 2000);
 
-            <div class="shop-category">
-                <div class="shop-cat-header" onclick="toggleCat('cat-ton')">VIP ТОВАРЫ (TON) <span>▶</span></div>
-                <div id="cat-ton" class="shop-cat-content">
-                    <div id="payment-area">
-                        <p style="font-size:12px; color:var(--text-muted); font-weight:700;">ПЕРЕВЕДИТЕ: <b id="pay-price" style="color:var(--gold); font-size:16px;">0.0</b> TON</p>
-                        <p style="font-size:10px; margin-top:8px; color:var(--accent); letter-spacing:1px; font-weight:900;">ОБЯЗАТЕЛЬНО УКАЖИТЕ MEMO:</p>
-                        <code id="pay-memo" class="memo-box">MEMO_CODE</code>
-                        <p style="font-size:9px; color:var(--danger); margin-top:8px; font-weight:800;">БЕЗ ПРАВИЛЬНОГО MEMO ТОВАР НЕ ПРИДЕТ!</p>
-                    </div>
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>VIP Приманка (7 дней)</h4>
-                            <p>Увеличивает вес в 3 раза (в Золотой час — в 6 раз).</p>
-                        </div>
-                        <button class="btn-buy-ton" onclick="requestPay('vip_bait', 1.0)">1.0 TON</button>
-                    </div>
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>Титановая удочка (7 дней)</h4>
-                            <p>Вечная прочность: не ломается и рыба не срывается.</p>
-                        </div>
-                        <button class="btn-buy-ton" onclick="requestPay('titan_rod_7', 1.0)">1.0 TON</button>
-                    </div>
-                    <div class="item-row">
-                        <div class="item-info">
-                            <h4>Озеро Надежды (7 дней)</h4>
-                            <p>Доступ к локации с Золотыми Карпами и кошельками.</p>
-                        </div>
-                        <button class="btn-buy-ton" onclick="requestPay('hope_lake_7', 2.0)">2.0 TON</button>
-                    </div>
-                    <div class="item-row" style="border: 2px solid var(--gold); border-radius:14px; padding:10px; margin-top:10px; background: rgba(255,215,0,0.04);">
-                        <div class="item-info">
-                            <h4>👑 VIP СТАТУС (14 дней)</h4>
-                            <p>Минимальный вывод 10к, безлимит энергии и x2 опыт.</p>
-                        </div>
-                        <button class="btn-buy-ton" onclick="requestPay('vip_status_14', 3.0)">3.0 TON</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    } catch (e) {
+        status.innerText = "ОШИБКА СВЯЗИ";
+        isFishing = false;
+        btn.disabled = false;
+        btn.innerText = "ПОПРОБОВАТЬ СНОВА";
+    }
+}
 
-        <div id="tab-top" class="tab-content">
-            <h3 style="text-align:center; color:var(--gold); margin-bottom:18px; text-transform:uppercase; letter-spacing:1.5px;">Лидеры</h3>
-            <div id="leaderboard-list"></div>
-        </div>
+function showWoodAlert(weight, type) {
+    const alert = document.getElementById('wood-alert');
+    document.getElementById('wood-header-type').innerText = type;
+    document.getElementById('wood-profit').innerText = `+${weight} кг`;
+    alert.style.display = "flex"; // Показываем блокирующую плашку
+}
 
-        <div id="tab-info" class="tab-content">
-            <h3 style="text-align:center; color:var(--gold); margin-bottom:25px; text-transform:uppercase;">Информация</h3>
-            <div class="shop-category" style="padding:20px; color:var(--text-muted); font-size:12.5px; line-height:1.6; background:rgba(255,255,255,0.02); border-radius:24px; border:1px solid rgba(255,255,255,0.05);">
-                <p style="color:var(--gold); font-weight:900; margin-bottom:15px; text-transform: uppercase; letter-spacing:1px; border-bottom:1px solid rgba(255,215,0,0.2); padding-bottom:5px;">ГАЙД ПО ИГРЕ:</p>
-                <p>💡 Золотой час: Первые 10 минут каждого часа. Лучшее время для фарма!</p>
-                <p>💡 Озеро Надежды: Лимит — 10 Карпов в неделю на весь сервер. Успей выловить!</p>
-                <p>💡 Коробка Удачи: Дается за 50 забросов вашего друга (реферала).</p>
-                <p>💡 VIP статус: Снижает минимальный порог вывода TC до 10 000.</p>
-            </div>
-            <div style="background:rgba(0,0,0,0.4); padding:25px; border-radius:28px; text-align:center; border:1px solid rgba(255,255,255,0.08); margin-top:25px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
-                <p style="font-size:11px; color:var(--text-muted); margin-bottom:15px; letter-spacing:1.5px; font-weight:800; text-transform: uppercase;">ВАША РЕФЕРАЛЬНАЯ ССЫЛКА</p>
-                <div id="ref-link" style="background:#000; padding:18px; font-size:11px; color:var(--gold); border:1px solid #334155; margin-bottom:20px; border-radius:15px; word-break:break-all; font-family:var(--font-mono); box-shadow: inset 0 0 15px rgba(0,0,0,0.6);">...</div>
-                <button class="btn-cast" style="height:52px; background:var(--gold); color:#000; font-weight:900; text-transform: uppercase;" onclick="copyRef()">КОПИРОВАТЬ</button>
-            </div>
-        </div>
+function closeWood() {
+    document.getElementById('wood-alert').style.display = "none";
+    
+    // Только здесь разблокируем кнопку заброса!
+    isFishing = false;
+    const btn = document.getElementById('cast-btn');
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.innerText = "СДЕЛАТЬ ЗАБРОС УДОЧКИ";
+    document.getElementById('status-msg').innerText = "ГОТОВ К ЛОВЛЕ";
+}
 
-        <div id="tab-admin" class="tab-content">
-            <h3 style="text-align:center; color:var(--danger); margin-bottom:20px; text-transform:uppercase; letter-spacing:1.5px;">Core Admin Panel</h3>
-            <button class="admin-btn" onclick="doAction('admin_get_all')">ЗАГРУЗИТЬ БАЗУ ДАННЫХ USERS</button>
-            <div id="admin-user-list">...</div>
-        </div>
-    </div>
+// --- ВЗАИМОДЕЙСТВИЕ С СЕРВЕРОМ ---
+async function doAction(action, payload = {}) {
+    try {
+        const res = await fetch('/api/action', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ userId: user.id, userName: user.n, action, payload })
+        });
+        const data = await res.json();
+        syncData(data);
+        
+        if (action === 'admin_get_all') renderAdmin(data.allUsers);
+        if (data.msg && action !== 'load') tg.showAlert(data.msg);
+    } catch (e) { console.error("API ERROR:", e); }
+}
 
-    <div class="action-container" id="main-controls">
-        <button id="bonus-btn" class="btn-cast" style="margin-bottom:15px; background:var(--success); box-shadow: 0 5px 0 #065f46; display:none; height:48px;" onclick="doAction('get_daily')">🎁 ПОЛУЧИТЬ БОНУС (100 TC)</button>
-        <button id="cast-btn" class="btn-cast" onclick="startFishing()">СДЕЛАТЬ ЗАБРОС УДОЧКИ</button>
-    </div>
+function syncData(data) {
+    if (!data) return;
+    
+    // Анимируем баланс
+    if (currentBalance !== data.b) {
+        animateValue("main-balance", currentBalance, data.b, 800);
+        currentBalance = data.b;
+    }
 
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="showTab('main', this)"><i>🎣</i><span>Ловля</span></div>
-        <div class="nav-item" onclick="showTab('fortune', this)"><i>🎡</i><span>Удача</span></div>
-        <div class="nav-item" onclick="showTab('shop', this)"><i>🛒</i><span>Рынок</span></div>
-        <div class="nav-item" onclick="showTab('top', this)"><i>🏆</i><span>Топ</span></div>
-        <div id="nav-admin-btn" class="nav-item" style="display:none; color:var(--danger);" onclick="showTab('admin', this)"><i>⚙️</i><span>Админ</span></div>
-        <div class="nav-item" onclick="showTab('info', this)"><i>ℹ️</i><span>Инфо</span></div>
-    </div>
+    document.getElementById('energy').innerText = `${data.energy}%`;
+    document.getElementById('dur').innerText = `${data.dur}%`;
+    document.getElementById('fish-weight').innerText = `${data.fish.toFixed(2)} кг`;
+    document.getElementById('lvl-val').innerText = data.level;
+    document.getElementById('xp-val').innerText = data.xp;
+    document.getElementById('xp-target').innerText = data.level * 500;
+    document.getElementById('units-val').innerText = data.nf || 0;
+    
+    // Прогресс бар опыта
+    const percent = (data.xp / (data.level * 500)) * 100;
+    document.getElementById('xp-fill').style.width = `${percent}%`;
 
-    <script src="script.js"></script>
-</body>
-</html>
+    if (data.isAdmin) document.getElementById('nav-admin-btn').style.display = "flex";
+}
+
+// --- ВКЛАДКИ И ИНТЕРФЕЙС ---
+function showTab(tabId, el) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('tab-active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    document.getElementById(`tab-${tabId}`).classList.add('tab-active');
+    el.classList.add('active');
+    
+    // Если открыли админку, грузим данные
+    if (tabId === 'admin') doAction('admin_get_all');
+}
+
+function toggleCat(id) {
+    const cat = document.getElementById(id);
+    cat.classList.toggle('open');
+}
+
+// Оплата через Memo
+function requestPay(itemId, price) {
+    const memo = `FISH_${user.id}_${itemId}`;
+    document.getElementById('pay-price').innerText = price.toFixed(1);
+    document.getElementById('pay-memo').innerText = memo;
+    
+    // Копируем memo в буфер для удобства игрока
+    navigator.clipboard.writeText(memo);
+    tg.showConfirm(`Инструкция для покупки ${itemId}:\n1. Переведите ${price} TON\n2. На адрес: ${MY_TON_WALLET}\n3. MEMO: ${memo} (уже скопировано)\n\nПродолжить?`);
+}
+
+// --- КОЛЕСО УДАЧИ (КАНВАС) ---
+const canvas = document.getElementById('wheel-canvas');
+if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const sectors = [
+        { c: "#f1c40f", t: "+50 TC" }, { c: "#e67e22", t: "ENERGY" }, 
+        { c: "#e74c3c", t: "+500 TC" }, { c: "#95a5a6", t: "💨" },
+        { c: "#2ecc71", t: "+100 TC" }, { c: "#9b59b6", t: "VIP" },
+        { c: "#3498db", t: "+200 TC" }, { c: "#000000", t: "JACKPOT" }
+    ];
+
+    function drawWheel() {
+        const arc = (2 * Math.PI) / sectors.length;
+        sectors.forEach((s, i) => {
+            const angle = i * arc;
+            ctx.fillStyle = s.c;
+            ctx.beginPath();
+            ctx.moveTo(135, 135);
+            ctx.arc(135, 135, 130, angle, angle + arc);
+            ctx.fill();
+            ctx.save();
+            ctx.translate(135, 135);
+            ctx.rotate(angle + arc / 2);
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 10px Arial";
+            ctx.fillText(s.t, 60, 5);
+            ctx.restore();
+        });
+    }
+    drawWheel();
+}
+
+async function handleSpin(type) {
+    const res = await fetch('/api/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ userId: user.id, action: 'spin', payload: { type } })
+    });
+    const data = await res.json();
+    
+    if (data.wheel) {
+        const btn = document.getElementById(`spin-btn-${type === 'tc' ? 'tc' : 'units'}`);
+        btn.disabled = true;
+        // Здесь можно добавить анимацию вращения canvas через CSS rotate
+        setTimeout(() => {
+            tg.showAlert(`Выпало: ${data.wheel.prize}`);
+            syncData(data);
+            btn.disabled = false;
+        }, 3000);
+    } else {
+        tg.showAlert(data.msg);
+    }
+}
