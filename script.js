@@ -82,12 +82,19 @@
             const isMain = (name === 'main');
             const isFortune = (name === 'fortune');
             
-            document.getElementById('top-area-wrapper').style.display = (isMain || isFortune) ? 'block' : 'none';
+            document.getElementById('top-area-wrapper').style.display = isMain ? 'block' : 'none';
             document.getElementById('main-controls').style.display = isMain ? 'block' : 'none';
+            document.body.classList.toggle('fortune-open', isFortune);
             
             if(isFortune) setTimeout(drawWheel, 100);
             if(name === 'top') doAction('get_top');
             
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        function closeFortuneView() {
+            const mainNav = document.querySelector('.nav-item[onclick*="showTab(\'main\'"]');
+            if (mainNav) showTab('main', mainNav);
             tg.HapticFeedback.selectionChanged();
         }
 
