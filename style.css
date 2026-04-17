@@ -797,4 +797,44 @@
             z-index: 10;
             box-shadow: 0 0 15px rgba(255,215,0,0.5);
         }
+
+        body.fortune-open #tab-fortune {
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 3000;
+            background: var(--bg);
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        body.fortune-open .tabs-container {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body.fortune-open .nav-bar {
+            display: none;
+        }
+
+        .fortune-back-btn {
+            width: 100%;
+            height: 46px;
+            border: 1.5px solid rgba(255, 215, 0, 0.35);
+            border-radius: 14px;
+            background: rgba(255, 215, 0, 0.08);
+            color: var(--gold);
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            cursor: pointer;
+        }
+
+        .fortune-back-btn:active {
+            transform: translateY(2px);
+        }
     
