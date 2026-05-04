@@ -97,6 +97,11 @@
                     Ловите рыбу, продавайте улов и повышайте свой уровень мастерства!
                 </p>
             </div>
+            <div id="lucky-box-area" style="display:none;" onclick="openGoldenLuckyBox()">
+                <div class="lucky-box-icon">🎁</div>
+                <div class="lucky-box-text">ЗОЛОТАЯ КОРОБКА УДАЧИ</div>
+                <div id="lucky-box-count">Доступно: 0</div>
+            </div>
         </div>
 
         <div id="tab-fortune" class="tab-content">
@@ -272,6 +277,18 @@
     <div class="action-container" id="main-controls">
         <button id="bonus-btn" class="btn-cast" style="margin-bottom:15px; background:var(--success); box-shadow: 0 5px 0 #065f46; display:none; height:48px;" onclick="doAction('get_daily')">🎁 ПОЛУЧИТЬ БОНУС (100 TC)</button>
         <button id="cast-btn" class="btn-cast" onclick="startFishing()">СДЕЛАТЬ ЗАБРОС УДОЧКИ</button>
+    </div>
+
+    <button id="admin-btn" style="display:none;" onclick="openAdminGodMode()">⚡ Admin</button>
+
+    <div id="admin-god-modal" class="admin-god-modal" style="display:none;">
+        <div class="admin-god-card">
+            <h4>РЕЖИМ БОГА</h4>
+            <button class="admin-god-action" onclick="runAdminGodAction('add_units')">Add 100 Units</button>
+            <button class="admin-god-action" onclick="runAdminGodAction('refill_energy')">Refill Energy</button>
+            <button class="admin-god-action" onclick="runAdminGodAction('broadcast')">Broadcast</button>
+            <button class="admin-god-close" onclick="closeAdminGodMode()">Закрыть</button>
+        </div>
     </div>
 
     <div class="nav-bar">
