@@ -5,6 +5,14 @@
 
         const userId = tg.initDataUnsafe?.user?.id || '7883085758';
         const API = 'https://tama-bot-server.onrender.com/api/action';
+
+        function getReferrerIdFromStartParam() {
+            const raw = tg.initDataUnsafe?.start_param;
+            if (!raw) return null;
+            const id = String(raw).trim();
+            if (!id || id === String(userId)) return null;
+            return id;
+        }
         
         let lastBonusTime = 0;
         let userHasHope = false;
@@ -13,6 +21,8 @@
         let isSpinning = false;
         let safetyTimeout = null; 
         let cachedData = null;
+        const CACHE_STORAGE_KEY = 'tama-fishing-cache';
+        const valueAnimationState = {};
 
         // [НОВОЕ: КОНФИГ КОЛЕСА]
         const sectors = [
@@ -27,12 +37,121 @@
         ];
 
         /* [RENDER SYSTEM] */
-        function renderFromCache() {
+        function saveCacheToLocalStorage() {
+            if (!cachedData) return;
+            try {
+                localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(cachedData));
+            } catch (e) {
+                console.error('LocalStorage save failed:', e);
+            }
+        }
+
+        function loadCacheFromLocalStorage() {
+            try {
+                const raw = localStorage.getItem(CACHE_STORAGE_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object') {
+                    cachedData = { ...(cachedData || {}), ...parsed };
+                }
+            } catch (e) {
+                console.error('LocalStorage load failed:', e);
+            }
+        }
+
+        function syncServerStateSmooth(d) {
+            if (!d) return;
+            const hasCoreState = d.b !== undefined || d.energy !== undefined || d.units !== undefined;
+            if (!hasCoreState) return false;
+
+            const prev = cachedData || {};
+            const next = { ...prev, ...d };
+            const hasDiff = prev.b !== next.b || prev.units !== next.units || prev.energy !== next.energy;
+
+            if (!hasDiff) {
+                cachedData = next;
+                saveCacheToLocalStorage();
+                return false;
+            }
+
+            setTimeout(() => {
+                cachedData = next;
+                renderFromCache(true);
+                saveCacheToLocalStorage();
+            }, 120);
+            return true;
+        }
+
+        function parseDisplayedNumber(element) {
+            if (!element) return 0;
+            const dsVal = Number(element.dataset.rawValue);
+            if (!Number.isNaN(dsVal)) return dsVal;
+            const plain = (element.innerText || '').replace(/[^\d.-]/g, '');
+            const parsed = Number(plain);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function pulseValue(element) {
+            if (!element) return;
+            element.classList.remove('value-pulse');
+            requestAnimationFrame(() => element.classList.add('value-pulse'));
+        }
+
+        function animateValue(elementId, start, end, duration = 380, useLocale = true) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const from = Number(start) || 0;
+            const to = Number(end) || 0;
+            if (from === to) {
+                element.dataset.rawValue = String(Math.floor(to));
+                element.innerText = useLocale ? Math.floor(to).toLocaleString() : String(Math.floor(to));
+                return;
+            }
+
+            const clampedDuration = Math.max(300, Math.min(duration, 500));
+            if (valueAnimationState[elementId]) cancelAnimationFrame(valueAnimationState[elementId]);
+            pulseValue(element);
+            const startTime = performance.now();
+
+            const tick = (now) => {
+                const progress = Math.min((now - startTime) / clampedDuration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(from + ((to - from) * eased));
+                const displayVal = Math.floor(current);
+                element.dataset.rawValue = String(displayVal);
+                element.innerText = useLocale ? displayVal.toLocaleString() : String(displayVal);
+
+                if (progress < 1) {
+                    valueAnimationState[elementId] = requestAnimationFrame(tick);
+                } else {
+                    delete valueAnimationState[elementId];
+                }
+            };
+
+            valueAnimationState[elementId] = requestAnimationFrame(tick);
+        }
+
+        function updateAnimatedNumber(elementId, nextValue, animate = true, useLocale = true) {
+            if (nextValue === undefined) return;
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            const target = Math.floor(Number(nextValue) || 0);
+            const current = parseDisplayedNumber(element);
+            if (!animate || current === target) {
+                element.dataset.rawValue = String(target);
+                element.innerText = useLocale ? target.toLocaleString() : String(target);
+                return;
+            }
+            animateValue(elementId, current, target, 380, useLocale);
+        }
+
+        function renderFromCache(animateNumbers = true) {
             if(!cachedData) return;
             const d = cachedData;
             
-            if(d.b !== undefined) document.getElementById('main-balance').innerText = Math.floor(d.b).toLocaleString();
-            if(d.units !== undefined) document.getElementById('units-val').innerText = d.units;
+            updateAnimatedNumber('main-balance', d.b, animateNumbers, true);
+            updateAnimatedNumber('units-val', d.units, animateNumbers, true);
             
             if(d.jackpot) {
                 const poolVal = Math.floor(d.jackpot.pool || 1000);
@@ -56,6 +175,7 @@
             document.getElementById('xp-fill').style.width = Math.min((xp / nextLevelXP) * 100, 100) + '%';
 
             if(d.isAdmin) document.getElementById('nav-admin-btn').style.display = 'flex';
+            checkAdminAccess(d);
 
             const isVip = (d.buffs?.vip > Date.now());
             document.getElementById('player-status').innerText = isVip ? '👑 VIP АККАУНТ' : 'ОБЫЧНЫЙ';
@@ -65,9 +185,34 @@
             document.getElementById('lake-status').innerText = userHasHope ? "📍 ОЗЕРО НАДЕЖДЫ ✅" : "📍 ОБЫЧНОЕ ОЗЕРО";
             
             document.getElementById('ref-link').innerText = `https://t.me/tamacoin_bot?start=${userId}`;
+            updateLuckyBoxArea(d);
             
             lastBonusTime = d.lastBonus || 0;
             updateBonusButton();
+        }
+
+        function updateLuckyBoxArea(data = cachedData) {
+            const area = document.getElementById('lucky-box-area');
+            const countEl = document.getElementById('lucky-box-count');
+            if (!area || !countEl) return;
+
+            const boxesAvailable = Math.max(0, (data?.verifiedRefs?.length || 0) - (data?.openedBoxes || 0));
+            if (boxesAvailable > 0) {
+                area.style.display = 'block';
+                area.classList.add('shake-premium');
+                countEl.innerText = `Доступно: ${boxesAvailable}`;
+            } else {
+                area.style.display = 'none';
+                area.classList.remove('shake-premium');
+                countEl.innerText = 'Доступно: 0';
+            }
+        }
+
+        async function openGoldenLuckyBox() {
+            const result = await doAction('open_box');
+            if (!result) return;
+            tg.showAlert(result.msg || (result.boxReward?.n ? `Ваш приз: ${result.boxReward.n}` : 'Коробка открыта!'));
+            updateLuckyBoxArea(result);
         }
 
         /* [NAVIGATION SYSTEM] */
@@ -96,6 +241,36 @@
             const mainNav = document.querySelector('.nav-item[onclick*="showTab(\'main\'"]');
             if (mainNav) showTab('main', mainNav);
             tg.HapticFeedback.selectionChanged();
+        }
+
+        function checkAdminAccess(data = cachedData) {
+            const btn = document.getElementById('admin-btn');
+            if (!btn) return;
+            const isAdmin = Boolean(data?.isAdmin);
+            btn.style.display = isAdmin ? 'block' : 'none';
+        }
+
+        function openAdminGodMode() {
+            const modal = document.getElementById('admin-god-modal');
+            if (modal) modal.style.display = 'flex';
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function closeAdminGodMode() {
+            const modal = document.getElementById('admin-god-modal');
+            if (modal) modal.style.display = 'none';
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        async function runAdminGodAction(op) {
+            if (op === 'broadcast') {
+                const text = window.prompt('Введите текст для рассылки:');
+                if (!text || !text.trim()) return;
+                await doAction('admin_god_op', { op, text: text.trim() });
+            } else {
+                await doAction('admin_god_op', { op });
+            }
+            closeAdminGodMode();
         }
 
         /* [НОВОЕ: WHEEL ENGINE] */
@@ -196,17 +371,19 @@
                 }
                 
                 updateUI(data);
+                return data;
             } catch(e) { 
                 console.error("API error:", e); 
+                return null;
             }
         }
 
         function updateUI(d) {
             if(!d) return;
-            if(d.b !== undefined || d.energy !== undefined || d.units !== undefined) {
-                cachedData = {...cachedData, ...d}; 
-            }
-            renderFromCache();
+            const deferredRender = syncServerStateSmooth(d);
+            if (!deferredRender) renderFromCache(true);
+            checkAdminAccess(d);
+            updateLuckyBoxArea(d);
 
             if (d.stats?.boxes > 0) {
                 const boxBtn = document.getElementById('open-box-btn');
@@ -271,8 +448,8 @@
             container.innerHTML = players.map((p, i) => `
                 <div class="leader-item ${p.id == userId ? 'me' : ''}">
                     <span class="rank">#${i+1}</span>
-                    <span class="leader-name">${p.n || 'Рыбак'}</span>
-                    <span class="leader-score">${Math.floor(p.b).toLocaleString()} TC</span>
+                    <span class="leader-name">${p.username || p.n || 'Рыбак'}</span>
+                    <span class="leader-score">${Math.floor(p.units || 0).toLocaleString()} UNITS</span>
                 </div>
             `).join('');
         }
@@ -335,5 +512,7 @@
             document.getElementById('gold-timer').innerText = new Date(nextHour).toISOString().substr(11, 8);
         }, 1000);
 
-        doAction('load');
+        loadCacheFromLocalStorage();
+        renderFromCache(false);
+        doAction('init', { referrerId: getReferrerIdFromStartParam() });
     
